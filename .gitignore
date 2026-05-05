@@ -1,10 +1,8 @@
-# macOS
 .DS_Store
 
 .vscode/
 .idea/
 
-# Environment and logs
 .env
 .env.*
 *.log
@@ -13,10 +11,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Dependencies
 node_modules/
 
-# Build/package output
 dist/
 build/
 out/
@@ -24,4 +20,3 @@ coverage/
 *.crx
 *.pem
 *.zip
-
