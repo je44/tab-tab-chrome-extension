@@ -12,9 +12,18 @@
         <span class="brand-dot" aria-hidden="true"></span>
         <span>tab-tab</span>
       </div>
-      <button class="theme-toggle" id="themeToggleButton" type="button" aria-pressed="false" title="切换夜间模式">
-        <span class="theme-toggle-icon" aria-hidden="true">◐</span>
-      </button>
+      <form class="topbar-search" id="quickSearchForm" role="search">
+        <label class="visually-hidden" for="quickSearchInput">搜索或输入网址</label>
+        <input id="quickSearchInput" name="q" autocomplete="off" spellcheck="false" placeholder="搜索或输入网址">
+        <button class="quick-search-submit" id="quickSearchButton" type="submit" title="搜索" aria-label="搜索">
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="themeToggleButton" type="button" aria-pressed="false" title="切换夜间模式">
+          <span class="theme-toggle-icon" aria-hidden="true">◐</span>
+        </button>
+      </div>
     </header>
 
     <nav class="mobile-section-switcher" aria-label="切换信息分区">
@@ -120,6 +129,7 @@
           <img class="site-icon" alt="">
           <span class="site-copy">
             <strong class="site-title"></strong>
+            <span class="site-domain"></span>
           </span>
         </a>
         <button class="site-remove" type="button" title="删除自定义入口" aria-label="删除自定义入口">×</button>

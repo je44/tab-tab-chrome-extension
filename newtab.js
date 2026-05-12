@@ -14,6 +14,7 @@ const PORTALS = [
   { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/portals/chatgpt.svg", category: "ai" },
   { title: "Claude", url: "https://claude.ai", icon: "icons/portals/claude.svg", category: "ai" },
   { title: "Gemini", url: "https://gemini.google.com", icon: "icons/portals/gemini.svg", category: "ai" },
+  { title: "Perplexity", url: "https://www.perplexity.ai", icon: "icons/portals/perplexity.svg", category: "ai" },
   { title: "Notion", url: "https://www.notion.so", icon: "icons/portals/notion.svg", category: "productivity" },
   { title: "Figma", url: "https://www.figma.com", icon: "icons/portals/figma.svg", category: "design" },
   { title: "Vercel", url: "https://vercel.com", icon: "icons/portals/vercel.svg", category: "developer" },
@@ -39,7 +40,8 @@ const MAX_PORTAL_TITLE_LENGTH = 32;
 const MAX_PORTAL_URL_LENGTH = 512;
 const MAX_BOOKMARK_FOLDER_OPTIONS = 160;
 const MAX_PORTAL_FEATURED_ITEMS = 6;
-const MAX_PORTAL_CATEGORY_ITEMS = 4;
+const DEFAULT_PORTAL_CATEGORY = "ai";
+const DEFAULT_SEARCH_URL = "https://www.google.com/search";
 const PORTAL_CATEGORY_ORDER = [
   "custom",
   "ai",
@@ -129,8 +131,8 @@ const MESSAGES = {
   "zh-CN": {
     topbarLabel: "顶部功能区",
     shellLabel: "tab-tab 控制台",
-    portalTitle: "热门推荐",
-    portalCategoryFeatured: "常用",
+    portalTitle: "入口",
+    portalCategoryFeatured: "常用入口",
     portalCategoryCustom: "自定义",
     portalCategoryShopping: "购物",
     portalCategoryAi: "AI",
@@ -141,6 +143,7 @@ const MESSAGES = {
     portalCategoryMedia: "影音",
     portalCategoryDesign: "设计协作",
     portalCategoryOther: "其他",
+    portalCategories: "入口分类",
     addPortal: "添加入口",
     portalName: "名称",
     portalUrl: "网址",
@@ -159,7 +162,9 @@ const MESSAGES = {
     historyTitle: "最近浏览",
     refreshHistory: "刷新历史记录",
     pinnedTitle: "置顶",
-    recentTitle: "最近",
+    recentTitle: "最近 · 时间流",
+    quickSearchPlaceholder: "搜索或输入网址",
+    quickSearch: "搜索",
     deleteCustomPortal: "删除自定义入口",
     switchLightMode: "切换日间模式",
     switchDarkMode: "切换夜间模式",
@@ -184,6 +189,9 @@ const MESSAGES = {
     bookmarkCount: "{count} 个网站",
     pageCount: "{count} 个页面",
     historySitePageMeta: "{count} 个相关页面",
+    historyJustNow: "刚刚",
+    historyMinutesAgo: "{count} 分钟前",
+    historyHoursAgo: "{count} 小时前",
     historyReadFailed: "无法读取历史记录，请确认扩展已获得 history 权限。",
     noPinnedItems: "还没有置顶项目。",
     noHistoryItems: "暂无最近浏览记录。",
@@ -196,6 +204,12 @@ const MESSAGES = {
   },
   "zh-TW": {
     portalTitle: "熱門推薦",
+    quickSearchPlaceholder: "搜尋或輸入網址",
+    quickSearch: "搜尋",
+    portalCategories: "入口分類",
+    historyJustNow: "剛剛",
+    historyMinutesAgo: "{count} 分鐘前",
+    historyHoursAgo: "{count} 小時前",
     portalName: "名稱",
     portalUrl: "網址",
     cancel: "取消",
@@ -219,8 +233,8 @@ const MESSAGES = {
   en: {
     topbarLabel: "Top bar",
     shellLabel: "tab-tab dashboard",
-    portalTitle: "Popular Picks",
-    portalCategoryFeatured: "Frequent",
+    portalTitle: "Portals",
+    portalCategoryFeatured: "Frequent portals",
     portalCategoryCustom: "Custom",
     portalCategoryShopping: "Shopping",
     portalCategoryAi: "AI",
@@ -231,6 +245,7 @@ const MESSAGES = {
     portalCategoryMedia: "Media",
     portalCategoryDesign: "Design",
     portalCategoryOther: "Other",
+    portalCategories: "Portal categories",
     addPortal: "Add portal",
     portalName: "Name",
     portalUrl: "URL",
@@ -249,7 +264,9 @@ const MESSAGES = {
     historyTitle: "Recent browsing",
     refreshHistory: "Refresh history",
     pinnedTitle: "Pinned",
-    recentTitle: "Recent",
+    recentTitle: "Recent timeline",
+    quickSearchPlaceholder: "Search or enter URL",
+    quickSearch: "Search",
     deleteCustomPortal: "Remove custom portal",
     switchLightMode: "Switch to light mode",
     switchDarkMode: "Switch to dark mode",
@@ -274,6 +291,9 @@ const MESSAGES = {
     bookmarkCount: "{count} sites",
     pageCount: "{count} pages",
     historySitePageMeta: "{count} related pages",
+    historyJustNow: "Just now",
+    historyMinutesAgo: "{count} min ago",
+    historyHoursAgo: "{count} hr ago",
     historyReadFailed: "Could not read history. Check that the extension has history permission.",
     noPinnedItems: "No pinned items yet.",
     noHistoryItems: "No recent browsing yet.",
@@ -412,6 +432,9 @@ const historyGrid = document.querySelector("#historyGrid");
 const refreshHistoryButton = document.querySelector("#refreshHistoryButton");
 const siteCardTemplate = document.querySelector("#siteCardTemplate");
 const themeToggleButton = document.querySelector("#themeToggleButton");
+const quickSearchForm = document.querySelector("#quickSearchForm");
+const quickSearchInput = document.querySelector("#quickSearchInput");
+const quickSearchButton = document.querySelector("#quickSearchButton");
 const togglePortalFormButton = document.querySelector("#togglePortalFormButton");
 const portalForm = document.querySelector("#portalForm");
 const portalTitleInput = document.querySelector("#portalTitleInput");
@@ -423,6 +446,7 @@ const mobileSectionTabs = [...document.querySelectorAll(".mobile-section-tab")];
 let bookmarkRefreshTimer = 0;
 let activeBookmarkDeleteCard = null;
 let bookmarkLayout = "grid";
+let activePortalCategory = DEFAULT_PORTAL_CATEGORY;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -483,6 +507,9 @@ function applyLocale() {
   setButtonLabel(chooseBookmarkFolderButton, t("chooseBookmarkFolder"));
   setButtonLabel(refreshHistoryButton, t("refreshHistory"));
   setButtonLabel(themeToggleButton, t("switchDarkMode"));
+  setButtonLabel(quickSearchButton, t("quickSearch"));
+  quickSearchInput.placeholder = t("quickSearchPlaceholder");
+  quickSearchInput.setAttribute("aria-label", t("quickSearchPlaceholder"));
 
   const portalTitleLabel = portalTitleInput.closest("label")?.querySelector("span");
   const portalUrlLabel = portalUrlInput.closest("label")?.querySelector("span");
@@ -529,6 +556,7 @@ function init() {
   toggleBookmarkLayoutButton.addEventListener("click", toggleBookmarkLayout);
   closeBookmarkPickerButton.addEventListener("click", closeBookmarkPicker);
   refreshHistoryButton.addEventListener("click", refreshHistory);
+  quickSearchForm.addEventListener("submit", handleQuickSearchSubmit);
   togglePortalFormButton.addEventListener("click", showPortalForm);
   cancelPortalButton.addEventListener("click", hidePortalForm);
   portalForm.addEventListener("submit", handlePortalSubmit);
@@ -628,11 +656,52 @@ function applyThemeMode(theme) {
   themeToggleButton.querySelector(".theme-toggle-icon").textContent = isDark ? "☼" : "◐";
 }
 
+function handleQuickSearchSubmit(event) {
+  event.preventDefault();
+  const query = normalizeText(quickSearchInput.value);
+  if (!query) {
+    quickSearchInput.focus();
+    return;
+  }
+  window.location.href = quickSearchDestination(query);
+}
+
+function quickSearchDestination(query) {
+  const localUrl = localhostUrl(query);
+  if (localUrl) {
+    return localUrl;
+  }
+  const directUrl = looksLikeUrl(query) ? normalizePortalUrl(query) : "";
+  if (directUrl) {
+    return directUrl;
+  }
+
+  const searchUrl = new URL(DEFAULT_SEARCH_URL);
+  searchUrl.searchParams.set("q", query);
+  return searchUrl.href;
+}
+
+function looksLikeUrl(value) {
+  return /^[a-z][a-z\d+.-]*:\/\//i.test(value)
+    || /^[\w.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(value)
+    || /^localhost(?::\d+)?(?:[/?#]|$)/i.test(value);
+}
+
+function localhostUrl(value) {
+  return /^localhost(?::\d+)?(?:[/?#]|$)/i.test(value)
+    ? normalizePortalUrl(`http://${value}`)
+    : "";
+}
+
 async function renderPortals() {
   const fragment = document.createDocumentFragment();
   const customPortals = await loadCustomPortals();
   const featuredPortals = featuredPortalItems(customPortals);
   const groups = groupPortalsByCategory([...customPortals, ...PORTALS]);
+  activePortalCategory = resolvedActivePortalCategory(groups);
+  if (groups.length) {
+    fragment.appendChild(createPortalCategoryTabs(groups));
+  }
   if (featuredPortals.length) {
     fragment.appendChild(createPortalCategorySection({
       category: "featured",
@@ -640,10 +709,52 @@ async function renderPortals() {
       featured: true
     }));
   }
-  groups.forEach((group) => {
-    fragment.appendChild(createPortalCategorySection(group));
-  });
+  const activeGroup = groups.find((group) => group.category === activePortalCategory);
+  if (activeGroup) {
+    fragment.appendChild(createPortalCategorySection({
+      ...activeGroup,
+      active: true
+    }));
+  }
   portalGrid.replaceChildren(fragment);
+}
+
+function resolvedActivePortalCategory(groups) {
+  if (groups.some((group) => group.category === activePortalCategory)) {
+    return activePortalCategory;
+  }
+  if (groups.some((group) => group.category === DEFAULT_PORTAL_CATEGORY)) {
+    return DEFAULT_PORTAL_CATEGORY;
+  }
+  return groups[0]?.category || DEFAULT_PORTAL_CATEGORY;
+}
+
+function createPortalCategoryTabs(groups) {
+  const nav = document.createElement("nav");
+  nav.className = "portal-category-tabs";
+  nav.setAttribute("aria-label", t("portalCategories"));
+
+  groups.forEach((group) => {
+    const button = document.createElement("button");
+    const label = document.createElement("span");
+    const count = document.createElement("span");
+    const isActive = group.category === activePortalCategory;
+
+    button.className = "portal-category-tab";
+    button.classList.toggle("active", isActive);
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(isActive));
+    label.textContent = portalCategoryLabel(group.category);
+    count.textContent = String(group.items.length);
+    button.append(label, count);
+    button.addEventListener("click", () => {
+      activePortalCategory = group.category;
+      renderPortals();
+    });
+    nav.appendChild(button);
+  });
+
+  return nav;
 }
 
 function featuredPortalItems(customPortals) {
@@ -674,35 +785,23 @@ function createPortalCategorySection(group) {
   const section = document.createElement("section");
   const header = document.createElement("header");
   const title = document.createElement("h3");
+  const count = document.createElement("span");
   const grid = document.createElement("div");
-  const details = document.createElement("details");
 
   section.className = "portal-category";
   section.classList.toggle("featured-category", Boolean(group.featured));
+  section.classList.toggle("active-category", Boolean(group.active));
   header.className = "portal-category-header";
   title.className = "portal-category-title";
   title.textContent = portalCategoryLabel(group.category);
+  count.className = "portal-category-count";
+  count.textContent = String(group.items.length);
   grid.className = "portal-category-grid";
-  group.items.slice(0, group.featured ? MAX_PORTAL_FEATURED_ITEMS : MAX_PORTAL_CATEGORY_ITEMS).forEach((portal) => {
+  group.items.slice(0, group.featured ? MAX_PORTAL_FEATURED_ITEMS : group.items.length).forEach((portal) => {
     grid.appendChild(createSiteCard(portal));
   });
-  if (group.featured || group.items.length <= MAX_PORTAL_CATEGORY_ITEMS) {
-    header.appendChild(title);
-    section.append(header, grid);
-    return section;
-  }
-
-  const summary = document.createElement("summary");
-  const count = document.createElement("span");
-  const marker = document.createElement("span");
-  summary.className = "portal-category-summary";
-  count.className = "portal-category-count";
-  marker.className = "portal-category-marker";
-  count.textContent = String(group.items.length);
-  marker.textContent = "⌄";
-  summary.append(title, count, marker);
-  details.append(summary, grid);
-  section.append(details);
+  header.append(title, count);
+  section.append(header, grid);
   return section;
 }
 
@@ -728,11 +827,13 @@ function createSiteCard(site) {
   const node = siteCardTemplate.content.firstElementChild.cloneNode(true);
   const link = node.querySelector(".site-link");
   const icon = node.querySelector(".site-icon");
+  const domain = node.querySelector(".site-domain");
   const removeButton = node.querySelector(".site-remove");
   link.href = site.url;
   applySiteIcon(icon, site);
   icon.alt = "";
   node.querySelector(".site-title").textContent = site.title;
+  domain.textContent = compactSiteDomain(site.url);
   if (site.custom) {
     node.classList.add("custom");
     setButtonLabel(removeButton, t("deleteCustomPortal"));
@@ -741,6 +842,14 @@ function createSiteCard(site) {
     removeButton.remove();
   }
   return node;
+}
+
+function compactSiteDomain(url) {
+  const parsedUrl = safeUrl(url);
+  if (!parsedUrl) {
+    return "";
+  }
+  return parsedUrl.hostname.replace(/^www\./, "");
 }
 
 function applySiteIcon(icon, site) {
@@ -1391,9 +1500,12 @@ function createHistoryFeedGroup(group) {
   page.setAttribute("aria-label", t("openPage", { title }));
   page.textContent = title;
   meta.className = "history-feed-meta";
-  meta.textContent = group.pages.length > 1
-    ? t("historySitePageMeta", { count: group.pages.length })
-    : compactHistoryUrl(safeUrl(item?.url || group.url));
+  meta.textContent = [
+    group.pages.length > 1
+      ? t("historySitePageMeta", { count: group.pages.length })
+      : compactHistoryUrl(safeUrl(item?.url || group.url)),
+    formatHistoryTime(item?.lastVisitTime)
+  ].filter(Boolean).join(" · ");
   copy.append(name, page, meta);
 
   pinButton.className = "history-page-pin";
@@ -1408,6 +1520,29 @@ function createHistoryFeedGroup(group) {
 
   row.append(homeLink, copy, pinButton);
   return row;
+}
+
+function formatHistoryTime(timestamp) {
+  const time = Number(timestamp);
+  if (!Number.isFinite(time) || time <= 0) {
+    return "";
+  }
+  const visitDate = new Date(time);
+  const now = Date.now();
+  const minutesAgo = Math.max(0, Math.round((now - time) / 60000));
+  if (minutesAgo < 1) {
+    return t("historyJustNow");
+  }
+  if (minutesAgo < 60) {
+    return t("historyMinutesAgo", { count: minutesAgo });
+  }
+  if (minutesAgo < 60 * 24) {
+    return t("historyHoursAgo", { count: Math.floor(minutesAgo / 60) });
+  }
+  return new Intl.DateTimeFormat(LOCALE, {
+    month: "numeric",
+    day: "numeric"
+  }).format(visitDate);
 }
 
 async function loadPinnedHistory() {
