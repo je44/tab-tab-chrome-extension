@@ -40,23 +40,29 @@ const MAX_PORTAL_TITLE_LENGTH = 32;
 const MAX_PORTAL_URL_LENGTH = 512;
 const MAX_BOOKMARK_FOLDER_OPTIONS = 160;
 const MAX_PORTAL_FEATURED_ITEMS = 6;
-const DEFAULT_PORTAL_CATEGORY = "ai";
+const MAX_BOOKMARK_PORTAL_ITEMS = 120;
+const MAX_BOOKMARK_HISTORY_ITEMS = 180;
+const MAX_RECENT_BOOKMARK_ITEMS = 2;
+const BOOKMARK_HISTORY_LOOKBACK_DAYS = 45;
+const DEFAULT_PORTAL_CATEGORY = "developer";
 const DEFAULT_SEARCH_URL = "https://www.google.com/search";
 const PORTAL_CATEGORY_ORDER = [
   "custom",
-  "ai",
-  "shopping",
-  "social",
-  "search",
   "developer",
+  "ai",
   "productivity",
+  "design",
+  "search",
+  "social",
+  "shopping",
   "media",
-  "design"
+  "other"
 ];
 const SITE_NAME_BY_KEY = {
   "b.ai": "B.AI",
   "bilibili.com": "哔哩哔哩",
   "chatgpt.com": "ChatGPT",
+  "cloudflare.com": "Cloudflare",
   "developer.mozilla.org": "MDN",
   "discord.com": "Discord",
   "docs.b.ai": "B.AI Docs",
@@ -66,9 +72,13 @@ const SITE_NAME_BY_KEY = {
   "gmail.com": "Gmail",
   "google.com": "Google",
   "linkedin.com": "LinkedIn",
+  "npmjs.com": "npm",
   "notion.so": "Notion",
+  "react.dev": "React",
+  "stackoverflow.com": "Stack Overflow",
   "taobao.com": "淘宝",
   "trip.com": "Trip.com",
+  "vercel.com": "Vercel",
   "x.com": "X",
   "xiaohongshu.com": "小红书",
   "youtube.com": "YouTube",
@@ -87,16 +97,21 @@ const HOME_URL_BY_KEY = {
   "drive.google.com": "https://drive.google.com/",
   "gemini.google.com": "https://gemini.google.com/",
   "gmail.com": "https://mail.google.com/",
-  "google.com": "https://www.google.com/"
+  "google.com": "https://www.google.com/",
+  "react.dev": "https://react.dev/"
 };
 const SITE_GROUP_SUFFIXES = [
   "bilibili.com",
+  "cloudflare.com",
   "github.com",
   "google.com",
   "linkedin.com",
+  "npmjs.com",
   "notion.so",
+  "stackoverflow.com",
   "taobao.com",
   "twitter.com",
+  "vercel.com",
   "x.com",
   "xiaohongshu.com",
   "youtube.com",
@@ -131,11 +146,12 @@ const MESSAGES = {
   "zh-CN": {
     topbarLabel: "顶部功能区",
     shellLabel: "tab-tab 控制台",
-    portalTitle: "入口",
-    mobilePortalTab: "入口",
+    portalTitle: "快捷入口",
+    mobilePortalTab: "快捷",
     mobileBookmarkTab: "书签",
     mobileHistoryTab: "历史",
     portalCategoryFeatured: "常用入口",
+    portalCategoryRecentBookmarks: "最近加入书签",
     portalCategoryCustom: "自定义",
     portalCategoryShopping: "购物",
     portalCategoryAi: "AI",
@@ -144,9 +160,11 @@ const MESSAGES = {
     portalCategoryDeveloper: "开发",
     portalCategoryProductivity: "效率",
     portalCategoryMedia: "影音",
-    portalCategoryDesign: "设计协作",
+    portalCategoryDesign: "设计",
     portalCategoryOther: "其他",
-    portalCategories: "入口分类",
+    portalCategories: "智能分类",
+    portalSourceBookmarks: "来自书签 · 按访问与收藏整理",
+    portalSourceFallback: "默认入口 · 授权后自动合并书签",
     addPortal: "添加入口",
     portalName: "名称",
     portalUrl: "网址",
@@ -206,13 +224,17 @@ const MESSAGES = {
     website: "网站"
   },
   "zh-TW": {
-    portalTitle: "熱門推薦",
-    mobilePortalTab: "入口",
+    portalTitle: "快捷入口",
+    mobilePortalTab: "快捷",
     mobileBookmarkTab: "書籤",
     mobileHistoryTab: "歷史",
     quickSearchPlaceholder: "搜尋或輸入網址",
     quickSearch: "搜尋",
-    portalCategories: "入口分類",
+    portalCategories: "智能分類",
+    portalCategoryFeatured: "常用入口",
+    portalCategoryRecentBookmarks: "最近加入書籤",
+    portalSourceBookmarks: "來自書籤 · 依瀏覽與收藏整理",
+    portalSourceFallback: "預設入口 · 授權後自動合併書籤",
     historyJustNow: "剛剛",
     historyMinutesAgo: "{count} 分鐘前",
     historyHoursAgo: "{count} 小時前",
@@ -239,11 +261,12 @@ const MESSAGES = {
   en: {
     topbarLabel: "Top bar",
     shellLabel: "tab-tab dashboard",
-    portalTitle: "Portals",
-    mobilePortalTab: "Portals",
+    portalTitle: "Shortcuts",
+    mobilePortalTab: "Shortcuts",
     mobileBookmarkTab: "Bookmarks",
     mobileHistoryTab: "History",
-    portalCategoryFeatured: "Frequent portals",
+    portalCategoryFeatured: "Frequent shortcuts",
+    portalCategoryRecentBookmarks: "Recently bookmarked",
     portalCategoryCustom: "Custom",
     portalCategoryShopping: "Shopping",
     portalCategoryAi: "AI",
@@ -254,7 +277,9 @@ const MESSAGES = {
     portalCategoryMedia: "Media",
     portalCategoryDesign: "Design",
     portalCategoryOther: "Other",
-    portalCategories: "Portal categories",
+    portalCategories: "Smart categories",
+    portalSourceBookmarks: "From bookmarks · Sorted by use and saved sites",
+    portalSourceFallback: "Default shortcuts · Bookmarks merge after permission",
     addPortal: "Add portal",
     portalName: "Name",
     portalUrl: "URL",
@@ -427,6 +452,7 @@ const MESSAGES = {
 const LOCALE = resolveLocale();
 
 const portalGrid = document.querySelector("#portalGrid");
+const portalSourceText = document.querySelector("#portalSourceText");
 const bookmarkGrid = document.querySelector("#bookmarkGrid");
 const bookmarkMainView = document.querySelector("#bookmarkMainView");
 const bookmarkFolderMeta = document.querySelector("#bookmarkFolderMeta");
@@ -505,6 +531,9 @@ function applyLocale() {
   document.querySelector(".topbar")?.setAttribute("aria-label", t("topbarLabel"));
   document.querySelector(".shell")?.setAttribute("aria-label", t("shellLabel"));
   document.querySelector("#portal-title").textContent = t("portalTitle");
+  if (portalSourceText) {
+    portalSourceText.textContent = t("portalSourceFallback");
+  }
   document.querySelector("#bookmark-title").textContent = t("bookmarksTitle");
   document.querySelector("#history-title").textContent = t("historyTitle");
   document.querySelector("#pinned-title").textContent = t("pinnedTitle");
@@ -715,8 +744,12 @@ function localhostUrl(value) {
 async function renderPortals() {
   const fragment = document.createDocumentFragment();
   const customPortals = await loadCustomPortals();
-  const featuredPortals = featuredPortalItems(customPortals);
-  const groups = groupPortalsByCategory([...customPortals, ...PORTALS]);
+  const portalData = await loadBookmarkDrivenPortals(customPortals);
+  const featuredPortals = featuredPortalItems(portalData.items);
+  const groups = groupPortalsByCategory(portalData.items);
+  if (portalSourceText) {
+    portalSourceText.textContent = t(portalData.usingBookmarks ? "portalSourceBookmarks" : "portalSourceFallback");
+  }
   activePortalCategory = resolvedActivePortalCategory(groups);
   if (groups.length) {
     fragment.appendChild(createPortalCategoryTabs(groups));
@@ -735,7 +768,252 @@ async function renderPortals() {
       active: true
     }));
   }
+  if (portalData.recentItems.length) {
+    fragment.appendChild(createPortalCategorySection({
+      category: "recentBookmarks",
+      items: portalData.recentItems,
+      recent: true
+    }));
+  }
   portalGrid.replaceChildren(fragment);
+}
+
+async function loadBookmarkDrivenPortals(customPortals) {
+  const bookmarkData = await loadBookmarkPortalItems();
+  const bookmarkItems = bookmarkData.items;
+  const items = bookmarkItems.length
+    ? mergePortalItems(customPortals, bookmarkItems)
+    : mergePortalItems(customPortals, PORTALS);
+
+  return {
+    items,
+    recentItems: bookmarkData.recentItems,
+    usingBookmarks: bookmarkItems.length > 0
+  };
+}
+
+async function loadBookmarkPortalItems() {
+  if (!chrome.bookmarks?.getTree) {
+    return {
+      items: [],
+      recentItems: []
+    };
+  }
+
+  try {
+    const [tree, historyItems] = await Promise.all([
+      chrome.bookmarks.getTree(),
+      loadBookmarkRankingHistory()
+    ]);
+    const entries = flattenBookmarkSites(tree);
+    const historyStats = bookmarkHistoryStats(historyItems);
+    return {
+      items: bookmarkEntriesToPortalItems(entries, historyStats),
+      recentItems: recentBookmarkPortalItems(entries)
+    };
+  } catch (error) {
+    console.warn("Failed to load bookmark shortcuts", error);
+    return {
+      items: [],
+      recentItems: []
+    };
+  }
+}
+
+async function loadBookmarkRankingHistory() {
+  if (!chrome.history?.search) {
+    return [];
+  }
+  try {
+    return await chrome.history.search({
+      text: "",
+      startTime: Date.now() - 1000 * 60 * 60 * 24 * BOOKMARK_HISTORY_LOOKBACK_DAYS,
+      maxResults: MAX_BOOKMARK_HISTORY_ITEMS
+    });
+  } catch {
+    return [];
+  }
+}
+
+function flattenBookmarkSites(nodes, parents = []) {
+  const sites = [];
+
+  for (const node of nodes || []) {
+    const title = normalizeText(node.title);
+    const pathParts = node.url ? parents : (title ? [...parents, title] : parents);
+    if (node.url && isWebUrl(node.url)) {
+      sites.push({
+        bookmarkId: node.id,
+        title,
+        url: node.url,
+        path: parents.join(" / "),
+        dateAdded: Number(node.dateAdded || 0),
+        dateLastUsed: Number(node.dateLastUsed || 0)
+      });
+      continue;
+    }
+    if (Array.isArray(node.children)) {
+      sites.push(...flattenBookmarkSites(node.children, pathParts));
+    }
+  }
+
+  return sites;
+}
+
+function bookmarkEntriesToPortalItems(entries, historyStats) {
+  const bySite = new Map();
+
+  for (const entry of entries) {
+    const url = safeUrl(entry.url);
+    const key = siteGroupKey(url);
+    if (!key) {
+      continue;
+    }
+    const history = historyStats.get(key) || {};
+    const item = {
+      bookmarkId: entry.bookmarkId,
+      title: siteDisplayName(url, entry.title),
+      url: siteHomeUrl(key, entry.url),
+      category: bookmarkCategoryForEntry(entry, url),
+      bookmarkPath: entry.path,
+      dateAdded: entry.dateAdded,
+      score: bookmarkPortalScore(entry, history)
+    };
+    const existing = bySite.get(key);
+    if (!existing || item.score > existing.score) {
+      bySite.set(key, item);
+    }
+  }
+
+  return [...bySite.values()]
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, LOCALE))
+    .slice(0, MAX_BOOKMARK_PORTAL_ITEMS);
+}
+
+function recentBookmarkPortalItems(entries) {
+  const recent = [];
+  const seen = new Set();
+
+  for (const entry of [...entries].sort((a, b) => b.dateAdded - a.dateAdded)) {
+    const url = safeUrl(entry.url);
+    const key = siteGroupKey(url);
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    recent.push({
+      bookmarkId: entry.bookmarkId,
+      title: siteDisplayName(url, entry.title),
+      url: entry.url,
+      category: "recentBookmarks",
+      dateAdded: entry.dateAdded
+    });
+    if (recent.length >= MAX_RECENT_BOOKMARK_ITEMS) {
+      break;
+    }
+  }
+
+  return recent;
+}
+
+function bookmarkHistoryStats(historyItems) {
+  const stats = new Map();
+
+  for (const item of historyItems || []) {
+    const url = safeUrl(item.url);
+    const key = siteGroupKey(url);
+    if (!key) {
+      continue;
+    }
+    const current = stats.get(key) || {
+      visits: 0,
+      lastVisitTime: 0
+    };
+    current.visits += Math.max(1, Number(item.visitCount || 0));
+    current.lastVisitTime = Math.max(current.lastVisitTime, Number(item.lastVisitTime || 0));
+    stats.set(key, current);
+  }
+
+  return stats;
+}
+
+function bookmarkPortalScore(entry, history) {
+  const savedAt = Math.max(Number(entry.dateAdded || 0), Number(entry.dateLastUsed || 0));
+  return (Number(history.visits || 0) * 12)
+    + recencyScore(Number(history.lastVisitTime || 0), BOOKMARK_HISTORY_LOOKBACK_DAYS) * 18
+    + recencyScore(savedAt, 180) * 10
+    + folderPriorityScore(entry.path);
+}
+
+function recencyScore(timestamp, days) {
+  if (!timestamp) {
+    return 0;
+  }
+  const age = Date.now() - Number(timestamp);
+  if (!Number.isFinite(age) || age < 0) {
+    return 1;
+  }
+  return Math.max(0, 1 - (age / (1000 * 60 * 60 * 24 * days)));
+}
+
+function folderPriorityScore(path) {
+  const lower = normalizeText(path).toLowerCase();
+  if (matchesAny(lower, ["书签栏", "favorites bar", "bookmarks bar", "toolbar", "常用", "快捷", "quick", "pinned"])) {
+    return 18;
+  }
+  if (matchesAny(lower, ["work", "工作", "开发", "design", "效率", "productivity"])) {
+    return 8;
+  }
+  return 0;
+}
+
+function bookmarkCategoryForEntry(entry, url) {
+  const text = `${entry.title} ${entry.path} ${url.hostname}`.toLowerCase();
+  if (matchesAny(text, ["github", "gitlab", "stackoverflow", "stack overflow", "developer", "mozilla", "mdn", "npm", "vercel", "cloudflare", "docs", "api", "开发", "代码", "工程"])) {
+    return "developer";
+  }
+  if (matchesAny(text, ["chatgpt", "claude", "gemini", "perplexity", "openai", "anthropic", "ai", "人工智能"])) {
+    return "ai";
+  }
+  if (matchesAny(text, ["notion", "drive", "gmail", "calendar", "slack", "teams", "feishu", "效率", "productivity", "work"])) {
+    return "productivity";
+  }
+  if (matchesAny(text, ["figma", "canva", "dribbble", "behance", "design", "设计"])) {
+    return "design";
+  }
+  if (matchesAny(text, ["google", "bing", "duckduckgo", "baidu", "kagi", "search", "搜索"])) {
+    return "search";
+  }
+  if (matchesAny(text, ["x.com", "twitter", "linkedin", "discord", "weibo", "zhihu", "xiaohongshu", "reddit", "social", "社交"])) {
+    return "social";
+  }
+  if (matchesAny(text, ["taobao", "tmall", "jd.com", "amazon", "shopping", "购物", "京东", "淘宝"])) {
+    return "shopping";
+  }
+  if (matchesAny(text, ["youtube", "bilibili", "netflix", "spotify", "video", "music", "影音", "音乐"])) {
+    return "media";
+  }
+  return "other";
+}
+
+function matchesAny(value, needles) {
+  return needles.some((needle) => value.includes(needle));
+}
+
+function mergePortalItems(priorityItems, secondaryItems) {
+  const seen = new Set();
+  const merged = [];
+
+  for (const item of [...priorityItems, ...secondaryItems]) {
+    const key = siteGroupKey(safeUrl(item.url)) || normalizeText(item.url).toLowerCase();
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    merged.push(item);
+  }
+
+  return merged;
 }
 
 function resolvedActivePortalCategory(groups) {
@@ -749,7 +1027,12 @@ function resolvedActivePortalCategory(groups) {
 }
 
 function createPortalCategoryTabs(groups) {
+  const section = document.createElement("section");
+  const title = document.createElement("h3");
   const nav = document.createElement("nav");
+  section.className = "portal-category-switcher";
+  title.className = "portal-switcher-title";
+  title.textContent = t("portalCategories");
   nav.className = "portal-category-tabs";
   nav.setAttribute("aria-label", t("portalCategories"));
 
@@ -773,11 +1056,12 @@ function createPortalCategoryTabs(groups) {
     nav.appendChild(button);
   });
 
-  return nav;
+  section.append(title, nav);
+  return section;
 }
 
-function featuredPortalItems(customPortals) {
-  return [...customPortals, ...PORTALS].slice(0, MAX_PORTAL_FEATURED_ITEMS);
+function featuredPortalItems(portals) {
+  return portals.slice(0, MAX_PORTAL_FEATURED_ITEMS);
 }
 
 function groupPortalsByCategory(portals) {
@@ -810,6 +1094,7 @@ function createPortalCategorySection(group) {
   section.className = "portal-category";
   section.classList.toggle("featured-category", Boolean(group.featured));
   section.classList.toggle("active-category", Boolean(group.active));
+  section.classList.toggle("recent-bookmark-category", Boolean(group.recent));
   header.className = "portal-category-header";
   title.className = "portal-category-title";
   title.textContent = portalCategoryLabel(group.category);
@@ -827,6 +1112,9 @@ function createPortalCategorySection(group) {
 function portalCategoryLabel(category) {
   if (category === "featured") {
     return t("portalCategoryFeatured");
+  }
+  if (category === "recentBookmarks") {
+    return t("portalCategoryRecentBookmarks");
   }
   const messageKey = `portalCategory${category.charAt(0).toUpperCase()}${category.slice(1)}`;
   return t(messageKey);
@@ -1189,6 +1477,7 @@ function bindBookmarkChangeEvents() {
 function requestBookmarkRefresh() {
   clearTimeout(bookmarkRefreshTimer);
   bookmarkRefreshTimer = window.setTimeout(() => {
+    renderPortals();
     if (bookmarkPicker.hidden) {
       renderSelectedBookmarkFolder();
       return;

@@ -22,7 +22,10 @@
         </span>
         <input id="quickSearchInput" name="q" autocomplete="off" spellcheck="false" placeholder="搜索或输入网址">
         <button class="quick-search-submit" id="quickSearchButton" type="submit" title="搜索" aria-label="搜索">
-          <span aria-hidden="true">⌘ K</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M5 10h9"></path>
+            <path d="m11 6 4 4-4 4"></path>
+          </svg>
         </button>
       </form>
       <div class="topbar-actions">
@@ -48,6 +51,11 @@
             <span aria-hidden="true">＋</span>
           </button>
         </header>
+
+        <div class="portal-source-strip" id="portalSourceStrip" aria-live="polite">
+          <span class="source-dot" aria-hidden="true"></span>
+          <span id="portalSourceText">来自书签 · 按访问与收藏整理</span>
+        </div>
 
         <form class="portal-form" id="portalForm" hidden>
           <label>
