@@ -31,6 +31,7 @@ const CUSTOM_PORTALS_STORAGE_KEY = "customPortals";
 const PINNED_HISTORY_STORAGE_KEY = "pinnedHistory";
 const BOOKMARK_FOLDER_STORAGE_KEY = "bookmarkFolderId";
 const BOOKMARK_LAYOUT_STORAGE_KEY = "bookmarkLayout";
+const PORTAL_SECTION_ORDER_STORAGE_KEY = "portalSectionOrder";
 const THEME_STORAGE_KEY = "themeMode";
 const SEARCH_ENGINE_STORAGE_KEY = "quickSearchEngine";
 const MAX_HISTORY_SITE_GROUPS = 9;
@@ -47,6 +48,7 @@ const MAX_RECENT_BOOKMARK_ITEMS = 2;
 const BOOKMARK_HISTORY_LOOKBACK_DAYS = 45;
 const DEFAULT_PORTAL_CATEGORY = "developer";
 const DEFAULT_SEARCH_ENGINE = "google";
+const DEFAULT_PORTAL_SECTION_ORDER = ["featured", "active"];
 const SEARCH_ENGINES = [
   { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q" },
   { id: "baidu", label: "百度", icon: "icons/portals/baidu.svg", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
@@ -66,6 +68,40 @@ const PORTAL_CATEGORY_ORDER = [
   "media",
   "other"
 ];
+const BOOKMARK_CATEGORY_RULES = {
+  developer: {
+    hosts: ["github", "gitlab", "bitbucket", "stackoverflow", "stackexchange", "developer", "mozilla", "mdn", "npm", "vercel", "cloudflare", "docs", "api", "react", "vue", "svelte", "python", "nodejs", "docker"],
+    text: ["开发", "代码", "工程", "编程", "技术", "文档", "接口", "源码", "仓库", "developer", "docs", "api", "code", "engineering", "programming"]
+  },
+  ai: {
+    hosts: ["chatgpt", "openai", "claude", "anthropic", "gemini", "perplexity", "poe", "midjourney", "replicate", "huggingface", "cursor"],
+    text: ["ai", "人工智能", "大模型", "模型", "提示词", "prompt", "agent", "智能体", "生成", "llm", "gpt", "Claude", "Gemini"]
+  },
+  productivity: {
+    hosts: ["notion", "drive", "docs.google", "gmail", "calendar", "slack", "teams", "feishu", "larksuite", "office", "dropbox", "linear", "trello", "asana"],
+    text: ["效率", "工作", "协作", "办公", "项目", "任务", "笔记", "文档", "productivity", "work", "office", "notes", "task", "calendar"]
+  },
+  design: {
+    hosts: ["figma", "canva", "dribbble", "behance", "framer", "webflow", "uizard", "iconfont"],
+    text: ["设计", "素材", "图片", "图标", "排版", "原型", "design", "ui", "ux", "mockup", "prototype", "icon"]
+  },
+  search: {
+    hosts: ["google", "bing", "duckduckgo", "baidu", "kagi", "yandex", "sogou"],
+    text: ["搜索", "搜尋", "search", "query", "检索"]
+  },
+  social: {
+    hosts: ["x.com", "twitter", "linkedin", "discord", "weibo", "zhihu", "xiaohongshu", "reddit", "facebook", "instagram", "threads"],
+    text: ["社交", "社区", "论坛", "问答", "social", "community", "forum"]
+  },
+  shopping: {
+    hosts: ["taobao", "tmall", "jd", "amazon", "pinduoduo", "1688", "aliexpress", "ebay", "shopify"],
+    text: ["购物", "商城", "电商", "订单", "优惠", "shopping", "shop", "store", "deal"]
+  },
+  media: {
+    hosts: ["youtube", "bilibili", "netflix", "spotify", "music", "twitch", "douyin", "vimeo", "podcasts"],
+    text: ["影音", "视频", "音乐", "播客", "直播", "media", "video", "music", "podcast", "stream"]
+  }
+};
 const SITE_NAME_BY_KEY = {
   "b.ai": "B.AI",
   "bilibili.com": "哔哩哔哩",
@@ -148,6 +184,10 @@ const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((po
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.icon];
 })));
+const PORTAL_CATEGORY_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
+  const url = new URL(portal.url);
+  return [canonicalSiteHost(url.hostname), portal.category];
+})));
 const DEFAULT_LOCALE = "zh-CN";
 const SUPPORTED_LOCALES = ["zh-CN", "zh-TW", "en", "ja", "ko", "es", "fr", "de"];
 const MESSAGES = {
@@ -171,8 +211,8 @@ const MESSAGES = {
     portalCategoryDesign: "设计",
     portalCategoryOther: "其他",
     portalCategories: "智能分类",
-    portalSourceBookmarks: "来自书签 · 按访问与收藏整理",
-    portalSourceFallback: "默认入口 · 授权后自动合并书签",
+    portalSourceBookmarks: "本地智能分类 · 自动合并书签",
+    portalSourceFallback: "默认入口 · 授权后自动智能分类",
     addPortal: "添加入口",
     portalName: "名称",
     portalUrl: "网址",
@@ -249,8 +289,8 @@ const MESSAGES = {
     portalCategories: "智能分類",
     portalCategoryFeatured: "常用入口",
     portalCategoryRecentBookmarks: "最近加入書籤",
-    portalSourceBookmarks: "來自書籤 · 依瀏覽與收藏整理",
-    portalSourceFallback: "預設入口 · 授權後自動合併書籤",
+    portalSourceBookmarks: "本地智能分類 · 自動合併書籤",
+    portalSourceFallback: "預設入口 · 授權後自動智能分類",
     historyJustNow: "剛剛",
     historyMinutesAgo: "{count} 分鐘前",
     historyHoursAgo: "{count} 小時前",
@@ -294,8 +334,8 @@ const MESSAGES = {
     portalCategoryDesign: "Design",
     portalCategoryOther: "Other",
     portalCategories: "Smart categories",
-    portalSourceBookmarks: "From bookmarks · Sorted by use and saved sites",
-    portalSourceFallback: "Default shortcuts · Bookmarks merge after permission",
+    portalSourceBookmarks: "Local smart sorting · Bookmarks merged automatically",
+    portalSourceFallback: "Default shortcuts · Smart sorting after bookmark permission",
     addPortal: "Add portal",
     portalName: "Name",
     portalUrl: "URL",
@@ -506,6 +546,7 @@ let activeBookmarkDeleteCard = null;
 let bookmarkLayout = "grid";
 let activePortalCategory = DEFAULT_PORTAL_CATEGORY;
 let activeSearchEngine = DEFAULT_SEARCH_ENGINE;
+let draggedPortalSectionRole = "";
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -841,6 +882,7 @@ async function renderPortals() {
   const portalData = await loadBookmarkDrivenPortals(customPortals);
   const featuredPortals = featuredPortalItems(portalData.items);
   const groups = groupPortalsByCategory(portalData.items);
+  const sectionOrder = await loadPortalSectionOrder();
   if (portalSourceText) {
     portalSourceText.textContent = t(portalData.usingBookmarks ? "portalSourceBookmarks" : "portalSourceFallback");
   }
@@ -848,20 +890,34 @@ async function renderPortals() {
   if (groups.length) {
     fragment.appendChild(createPortalCategoryTabs(groups));
   }
+  const sectionByRole = new Map();
   if (featuredPortals.length) {
-    fragment.appendChild(createPortalCategorySection({
+    sectionByRole.set("featured", createPortalCategorySection({
       category: "featured",
       items: featuredPortals,
-      featured: true
+      featured: true,
+      reorderRole: "featured"
     }));
   }
   const activeGroup = groups.find((group) => group.category === activePortalCategory);
   if (activeGroup) {
-    fragment.appendChild(createPortalCategorySection({
+    sectionByRole.set("active", createPortalCategorySection({
       ...activeGroup,
-      active: true
+      active: true,
+      reorderRole: "active"
     }));
   }
+  sectionOrder.forEach((role) => {
+    const section = sectionByRole.get(role);
+    if (section) {
+      fragment.appendChild(section);
+    }
+  });
+  sectionByRole.forEach((section, role) => {
+    if (!sectionOrder.includes(role)) {
+      fragment.appendChild(section);
+    }
+  });
   if (portalData.recentItems.length) {
     fragment.appendChild(createPortalCategorySection({
       category: "recentBookmarks",
@@ -870,6 +926,38 @@ async function renderPortals() {
     }));
   }
   portalGrid.replaceChildren(fragment);
+}
+
+async function loadPortalSectionOrder() {
+  try {
+    const result = await chrome.storage.local.get({ [PORTAL_SECTION_ORDER_STORAGE_KEY]: DEFAULT_PORTAL_SECTION_ORDER });
+    const parsed = result[PORTAL_SECTION_ORDER_STORAGE_KEY];
+    if (!Array.isArray(parsed)) {
+      return DEFAULT_PORTAL_SECTION_ORDER.slice();
+    }
+    const order = parsed.filter((role) => DEFAULT_PORTAL_SECTION_ORDER.includes(role));
+    return order.length ? order : DEFAULT_PORTAL_SECTION_ORDER.slice();
+  } catch {
+    return DEFAULT_PORTAL_SECTION_ORDER.slice();
+  }
+}
+
+async function savePortalSectionOrder(order) {
+  await chrome.storage.local.set({ [PORTAL_SECTION_ORDER_STORAGE_KEY]: order });
+}
+
+async function swapPortalSectionOrder(sourceRole, targetRole) {
+  if (!sourceRole || !targetRole || sourceRole === targetRole) {
+    return;
+  }
+  const order = await loadPortalSectionOrder();
+  const sourceIndex = order.indexOf(sourceRole);
+  const targetIndex = order.indexOf(targetRole);
+  if (sourceIndex === -1 || targetIndex === -1) {
+    return;
+  }
+  [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
+  await savePortalSectionOrder(order);
 }
 
 async function loadBookmarkDrivenPortals(customPortals) {
@@ -1062,36 +1150,42 @@ function folderPriorityScore(path) {
 }
 
 function bookmarkCategoryForEntry(entry, url) {
-  const text = `${entry.title} ${entry.path} ${url.hostname}`.toLowerCase();
-  if (matchesAny(text, ["github", "gitlab", "stackoverflow", "stack overflow", "developer", "mozilla", "mdn", "npm", "vercel", "cloudflare", "docs", "api", "开发", "代码", "工程"])) {
-    return "developer";
+  const siteKey = siteGroupKey(url);
+  const title = normalizeText(entry.title).toLowerCase();
+  const path = normalizeText(entry.path).toLowerCase();
+  const host = `${url.hostname} ${siteKey}`.toLowerCase();
+  const combinedText = `${title} ${path}`.toLowerCase();
+  const scores = new Map(PORTAL_CATEGORY_ORDER.map((category) => [category, 0]));
+  const knownCategory = PORTAL_CATEGORY_BY_SITE_KEY[siteKey];
+  if (knownCategory) {
+    scores.set(knownCategory, (scores.get(knownCategory) || 0) + 80);
   }
-  if (matchesAny(text, ["chatgpt", "claude", "gemini", "perplexity", "openai", "anthropic", "ai", "人工智能"])) {
-    return "ai";
-  }
-  if (matchesAny(text, ["notion", "drive", "gmail", "calendar", "slack", "teams", "feishu", "效率", "productivity", "work"])) {
-    return "productivity";
-  }
-  if (matchesAny(text, ["figma", "canva", "dribbble", "behance", "design", "设计"])) {
-    return "design";
-  }
-  if (matchesAny(text, ["google", "bing", "duckduckgo", "baidu", "kagi", "search", "搜索"])) {
-    return "search";
-  }
-  if (matchesAny(text, ["x.com", "twitter", "linkedin", "discord", "weibo", "zhihu", "xiaohongshu", "reddit", "social", "社交"])) {
-    return "social";
-  }
-  if (matchesAny(text, ["taobao", "tmall", "jd.com", "amazon", "shopping", "购物", "京东", "淘宝"])) {
-    return "shopping";
-  }
-  if (matchesAny(text, ["youtube", "bilibili", "netflix", "spotify", "video", "music", "影音", "音乐"])) {
-    return "media";
-  }
-  return "other";
+
+  Object.entries(BOOKMARK_CATEGORY_RULES).forEach(([category, rule]) => {
+    if (matchesAny(host, rule.hosts)) {
+      scores.set(category, (scores.get(category) || 0) + 36);
+    }
+    if (matchesAny(title, rule.text)) {
+      scores.set(category, (scores.get(category) || 0) + 18);
+    }
+    if (matchesAny(path, rule.text)) {
+      scores.set(category, (scores.get(category) || 0) + 14);
+    }
+    if (matchesAny(combinedText, rule.hosts)) {
+      scores.set(category, (scores.get(category) || 0) + 8);
+    }
+  });
+
+  const [bestCategory, bestScore] = [...scores.entries()]
+    .filter(([category]) => PORTAL_CATEGORY_ORDER.includes(category))
+    .sort(([categoryA, scoreA], [categoryB, scoreB]) => (
+      scoreB - scoreA || categoryOrderIndex(categoryA) - categoryOrderIndex(categoryB)
+    ))[0] || ["other", 0];
+  return bestScore > 0 ? bestCategory : "other";
 }
 
 function matchesAny(value, needles) {
-  return needles.some((needle) => value.includes(needle));
+  return needles.some((needle) => value.includes(String(needle).toLowerCase()));
 }
 
 function mergePortalItems(priorityItems, secondaryItems) {
@@ -1201,6 +1295,11 @@ function createPortalCategorySection(group) {
   section.classList.toggle("active-category", Boolean(group.active));
   section.classList.toggle("recent-bookmark-category", Boolean(group.recent));
   header.className = "portal-category-header";
+  if (group.reorderRole) {
+    section.dataset.portalSectionRole = group.reorderRole;
+    header.draggable = true;
+    bindPortalSectionDrag(section, header, group.reorderRole);
+  }
   title.className = "portal-category-title";
   title.textContent = portalCategoryLabel(group.category);
   count.className = "portal-category-count";
@@ -1212,6 +1311,39 @@ function createPortalCategorySection(group) {
   header.append(title, count);
   section.append(header, grid);
   return section;
+}
+
+function bindPortalSectionDrag(section, handle, role) {
+  handle.addEventListener("dragstart", (event) => {
+    draggedPortalSectionRole = role;
+    section.classList.add("dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", role);
+  });
+  handle.addEventListener("dragend", () => {
+    draggedPortalSectionRole = "";
+    document.querySelectorAll(".portal-category.dragging, .portal-category.drag-over").forEach((node) => {
+      node.classList.remove("dragging", "drag-over");
+    });
+  });
+  section.addEventListener("dragover", (event) => {
+    if (!draggedPortalSectionRole || draggedPortalSectionRole === role) {
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    section.classList.add("drag-over");
+  });
+  section.addEventListener("dragleave", () => {
+    section.classList.remove("drag-over");
+  });
+  section.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    const sourceRole = event.dataTransfer.getData("text/plain") || draggedPortalSectionRole;
+    section.classList.remove("drag-over");
+    await swapPortalSectionOrder(sourceRole, role);
+    renderPortals();
+  });
 }
 
 function portalCategoryLabel(category) {
@@ -1784,10 +1916,17 @@ function groupHistoryBySite(items, options = {}) {
         url: item.url,
         homeUrl: siteHomeUrl(key, item.url),
         pages: [],
-        pageKeys: new Set()
+        pageKeys: new Set(),
+        deleteUrls: [],
+        deleteUrlKeys: new Set()
       });
     }
     const group = groups.get(key);
+    const deleteKey = normalizeHistoryKey(item.url);
+    if (deleteKey && !group.deleteUrlKeys.has(deleteKey)) {
+      group.deleteUrlKeys.add(deleteKey);
+      group.deleteUrls.push(deleteKey);
+    }
     const pageKey = historyPageKey(item, url, key);
     if (!group.pageKeys.has(pageKey) && group.pages.length < maxPagesPerSite) {
       group.pageKeys.add(pageKey);
@@ -1796,7 +1935,7 @@ function groupHistoryBySite(items, options = {}) {
   }
 
   return [...groups.values()]
-    .map(({ pageKeys, ...group }) => group)
+    .map(({ pageKeys, deleteUrlKeys, ...group }) => group)
     .slice(0, maxGroups);
 }
 
@@ -1943,9 +2082,9 @@ function createHistoryFeedGroup(group) {
   deleteButton.className = "history-page-delete";
   deleteButton.type = "button";
   deleteButton.innerHTML = trashIcon();
-  deleteButton.title = t("deleteHistory", { title });
-  deleteButton.setAttribute("aria-label", t("deleteHistory", { title }));
-  deleteButton.addEventListener("click", () => deleteHistoryItem(item?.url || group.url));
+  deleteButton.title = t("deleteHistory", { title: group.name });
+  deleteButton.setAttribute("aria-label", t("deleteHistory", { title: group.name }));
+  deleteButton.addEventListener("click", () => deleteHistoryGroup(group));
 
   row.append(homeLink, copy, pinButton, deleteButton);
   return row;
@@ -2033,9 +2172,30 @@ async function deleteHistoryItem(url) {
   if (!key) {
     return;
   }
+  await deleteHistoryUrls([key]);
+}
+
+async function deleteHistoryGroup(group) {
+  const urls = Array.isArray(group.deleteUrls) && group.deleteUrls.length
+    ? group.deleteUrls
+    : group.pages.map((item) => normalizeHistoryKey(item.url)).filter(Boolean);
+  await deleteHistoryUrls(urls, group.key);
+}
+
+async function deleteHistoryUrls(urls, siteKey = "") {
+  const uniqueUrls = [...new Set(urls.map(normalizeHistoryKey).filter(Boolean))];
+  if (!uniqueUrls.length) {
+    return;
+  }
   try {
-    await chrome.history.deleteUrl({ url: key });
-    const nextPinnedItems = (await loadPinnedHistory()).filter((item) => normalizeHistoryKey(item.url) !== key);
+    await Promise.all(uniqueUrls.map((url) => chrome.history.deleteUrl({ url })));
+    const deletedKeys = new Set(uniqueUrls);
+    const nextPinnedItems = (await loadPinnedHistory()).filter((item) => {
+      if (deletedKeys.has(normalizeHistoryKey(item.url))) {
+        return false;
+      }
+      return !siteKey || siteGroupKey(safeUrl(item.url)) !== siteKey;
+    });
     await savePinnedHistory(nextPinnedItems);
     refreshHistory();
   } catch (error) {

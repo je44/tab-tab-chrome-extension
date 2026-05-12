@@ -111,7 +111,7 @@ button {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(44px, 1fr) minmax(420px, 690px) minmax(80px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 690px) minmax(80px, 1fr);
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -126,36 +126,9 @@ button {
   display: none;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  gap: 8px;
-  color: var(--ink);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  font-weight: 720;
-  line-height: 1;
-}
-
-.brand-mark span:last-child {
-  display: none;
-}
-
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(14, 104, 84, 0.11);
-}
-
-:root[data-theme="dark"] .brand-dot {
-  box-shadow: 0 0 0 4px rgba(104, 193, 158, 0.14);
-}
-
 .topbar-search {
   display: grid;
+  grid-column: 2;
   grid-template-columns: 42px 1px 30px minmax(0, 1fr) 64px;
   align-items: center;
   min-width: 0;
@@ -210,6 +183,7 @@ button {
   width: 18px;
   height: 18px;
   object-fit: contain;
+  transform: translateX(-2px);
 }
 
 .search-engine-control:hover .search-engine-visual {
@@ -218,15 +192,15 @@ button {
 
 .search-engine-caret {
   position: absolute;
-  right: 5px;
-  bottom: 8px;
+  top: 50%;
+  right: 4px;
   z-index: 1;
   width: 5px;
   height: 5px;
   border-right: 1.4px solid var(--accent-strong);
   border-bottom: 1.4px solid var(--accent-strong);
   pointer-events: none;
-  transform: rotate(45deg);
+  transform: translateY(-65%) rotate(45deg);
 }
 
 .topbar-search-divider {
@@ -299,6 +273,7 @@ button {
 
 .topbar-actions {
   display: flex;
+  grid-column: 3;
   justify-content: flex-end;
 }
 
@@ -694,6 +669,19 @@ select:focus-visible {
   padding: 0;
 }
 
+.portal-category-header[draggable="true"] {
+  cursor: grab;
+}
+
+.portal-category.dragging {
+  opacity: 0.72;
+}
+
+.portal-category.drag-over {
+  outline: 2px solid rgba(47, 139, 214, 0.38);
+  outline-offset: 4px;
+}
+
 .portal-category-header {
   display: flex;
   align-items: center;
@@ -953,6 +941,7 @@ select:focus-visible {
 
 .bookmark-grid.list-layout .bookmark-delete-button:hover,
 .bookmark-grid.list-layout .bookmark-delete-button:focus-visible {
+  outline: 0;
   transform: none;
 }
 
@@ -961,6 +950,11 @@ select:focus-visible {
   background: transparent;
   outline: 0;
   transform: translateY(0) scale(0.94);
+}
+
+.bookmark-site-card.pressing .site-link:focus-visible,
+.bookmark-site-card.delete-ready .site-link:focus-visible {
+  outline: 0;
 }
 
 .bookmark-site-card.pressing .site-icon {
@@ -999,10 +993,10 @@ select:focus-visible {
   width: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid rgba(184, 74, 66, 0.24);
+  border: 0;
   border-radius: 8px;
   background: rgba(255, 254, 250, 0.94);
-  box-shadow: 0 6px 16px rgba(28, 24, 18, 0.12);
+  box-shadow: none;
   color: var(--danger);
   cursor: pointer;
   font-size: 0;
@@ -1028,10 +1022,8 @@ select:focus-visible {
 
 .bookmark-delete-button:hover,
 .bookmark-delete-button:focus-visible {
-  border-color: rgba(184, 74, 66, 0.46);
   background: rgba(184, 74, 66, 0.1);
-  outline: 2px solid rgba(184, 74, 66, 0.24);
-  outline-offset: 2px;
+  outline: 0;
   transform: none;
 }
 
@@ -1571,10 +1563,18 @@ select:focus-visible {
   }
 
   .topbar {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
     height: var(--topbar-height);
     padding: 0 12px;
+  }
+
+  .topbar-search {
+    grid-column: 1;
+  }
+
+  .topbar-actions {
+    grid-column: 2;
   }
 
   .mobile-section-switcher {
