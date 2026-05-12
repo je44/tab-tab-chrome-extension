@@ -522,17 +522,31 @@ select:focus-visible {
 .portal-category-switcher {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 20;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
   min-width: 0;
   margin: -2px -2px 0;
-  padding: 2px 2px 12px;
+  padding: 8px 2px 12px;
   background: var(--panel);
 }
 
+.portal-category-switcher::before {
+  position: absolute;
+  inset: -18px -2px 0;
+  z-index: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 8px 14px rgba(16, 32, 26, 0.04);
+  content: "";
+  pointer-events: none;
+}
+
 .portal-switcher-title {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -555,6 +569,8 @@ select:focus-visible {
 }
 
 .portal-category-tabs {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
