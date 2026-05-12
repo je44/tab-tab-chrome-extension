@@ -48,11 +48,11 @@ const BOOKMARK_HISTORY_LOOKBACK_DAYS = 45;
 const DEFAULT_PORTAL_CATEGORY = "developer";
 const DEFAULT_SEARCH_ENGINE = "google";
 const SEARCH_ENGINES = [
-  { id: "google", label: "Google", searchUrl: "https://www.google.com/search", queryParam: "q" },
-  { id: "baidu", label: "百度", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
-  { id: "bing", label: "Bing", searchUrl: "https://www.bing.com/search", queryParam: "q" },
-  { id: "duckduckgo", label: "DuckDuckGo", searchUrl: "https://duckduckgo.com/", queryParam: "q" },
-  { id: "kagi", label: "Kagi", searchUrl: "https://kagi.com/search", queryParam: "q" }
+  { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q" },
+  { id: "baidu", label: "百度", icon: "icons/portals/baidu.svg", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
+  { id: "bing", label: "Bing", icon: "icons/portals/bing.svg", searchUrl: "https://www.bing.com/search", queryParam: "q" },
+  { id: "duckduckgo", label: "DuckDuckGo", icon: "icons/portals/duckduckgo.svg", searchUrl: "https://duckduckgo.com/", queryParam: "q" },
+  { id: "kagi", label: "Kagi", icon: "icons/portals/kagi.svg", searchUrl: "https://kagi.com/search", queryParam: "q" }
 ];
 const PORTAL_CATEGORY_ORDER = [
   "custom",
@@ -154,7 +154,7 @@ const MESSAGES = {
   "zh-CN": {
     topbarLabel: "顶部功能区",
     shellLabel: "tab-tab 控制台",
-    portalTitle: "快捷入口",
+    portalTitle: "常用网站",
     mobilePortalTab: "快捷",
     mobileBookmarkTab: "书签",
     mobileHistoryTab: "历史",
@@ -225,6 +225,8 @@ const MESSAGES = {
     historyMinutesAgo: "{count} 分钟前",
     historyHoursAgo: "{count} 小时前",
     historyReadFailed: "无法读取历史记录，请确认扩展已获得 history 权限。",
+    deleteHistory: "删除 {title}",
+    deleteHistoryFailed: "删除失败，可能已在其他位置变更。",
     noPinnedItems: "还没有置顶项目。",
     noHistoryItems: "暂无最近浏览记录。",
     openSiteHome: "打开 {name} 首页",
@@ -235,7 +237,7 @@ const MESSAGES = {
     website: "网站"
   },
   "zh-TW": {
-    portalTitle: "快捷入口",
+    portalTitle: "常用網站",
     mobilePortalTab: "快捷",
     mobileBookmarkTab: "書籤",
     mobileHistoryTab: "歷史",
@@ -275,7 +277,7 @@ const MESSAGES = {
   en: {
     topbarLabel: "Top bar",
     shellLabel: "tab-tab dashboard",
-    portalTitle: "Shortcuts",
+    portalTitle: "Top sites",
     mobilePortalTab: "Shortcuts",
     mobileBookmarkTab: "Bookmarks",
     mobileHistoryTab: "History",
@@ -346,6 +348,8 @@ const MESSAGES = {
     historyMinutesAgo: "{count} min ago",
     historyHoursAgo: "{count} hr ago",
     historyReadFailed: "Could not read history. Check that the extension has history permission.",
+    deleteHistory: "Remove {title}",
+    deleteHistoryFailed: "Could not remove it. It may have changed elsewhere.",
     noPinnedItems: "No pinned items yet.",
     noHistoryItems: "No recent browsing yet.",
     openSiteHome: "Open {name} home page",
@@ -488,6 +492,7 @@ const quickSearchForm = document.querySelector("#quickSearchForm");
 const quickSearchInput = document.querySelector("#quickSearchInput");
 const quickSearchButton = document.querySelector("#quickSearchButton");
 const quickSearchEngineSelect = document.querySelector("#quickSearchEngineSelect");
+const quickSearchEngineLogo = document.querySelector("#quickSearchEngineLogo");
 const togglePortalFormButton = document.querySelector("#togglePortalFormButton");
 const portalForm = document.querySelector("#portalForm");
 const portalTitleInput = document.querySelector("#portalTitleInput");
@@ -712,6 +717,11 @@ async function setQuickSearchEngine(engineId, options = {}) {
 function updateQuickSearchButtonLabel() {
   const engine = searchEngineById(activeSearchEngine);
   setButtonLabel(quickSearchButton, t("quickSearchWith", { engine: engine.label }));
+  quickSearchButton.textContent = t("quickSearch");
+  if (quickSearchEngineLogo) {
+    quickSearchEngineLogo.src = engine.icon;
+    quickSearchEngineLogo.alt = "";
+  }
 }
 
 function searchEngineById(engineId) {
@@ -1837,6 +1847,7 @@ function createHistoryPageItem(item, options = {}) {
   const row = document.createElement("div");
   const link = document.createElement("a");
   const pinButton = document.createElement("button");
+  const deleteButton = document.createElement("button");
   const isPinned = Boolean(options.pinned);
 
   row.className = "history-page-item";
@@ -1850,7 +1861,7 @@ function createHistoryPageItem(item, options = {}) {
   pinButton.className = "history-page-pin";
   pinButton.classList.toggle("active", isPinned);
   pinButton.type = "button";
-  pinButton.textContent = isPinned ? "×" : "★";
+  pinButton.innerHTML = historyPinIcon(isPinned);
   pinButton.title = isPinned ? t("unpin") : t("pin");
   pinButton.setAttribute("aria-label", `${isPinned ? t("unpin") : t("pin")} ${title}`);
   pinButton.addEventListener("click", () => {
@@ -1861,7 +1872,14 @@ function createHistoryPageItem(item, options = {}) {
     pinHistoryItem(item);
   });
 
-  row.append(link, pinButton);
+  deleteButton.className = "history-page-delete";
+  deleteButton.type = "button";
+  deleteButton.innerHTML = trashIcon();
+  deleteButton.title = t("deleteHistory", { title });
+  deleteButton.setAttribute("aria-label", t("deleteHistory", { title }));
+  deleteButton.addEventListener("click", () => deleteHistoryItem(item.url));
+
+  row.append(link, pinButton, deleteButton);
   return row;
 }
 
@@ -1876,6 +1894,7 @@ function createHistoryFeedGroup(group) {
   const page = document.createElement("a");
   const meta = document.createElement("span");
   const pinButton = document.createElement("button");
+  const deleteButton = document.createElement("button");
 
   row.className = "history-feed-item";
   homeLink.className = "history-feed-home";
@@ -1913,7 +1932,7 @@ function createHistoryFeedGroup(group) {
 
   pinButton.className = "history-page-pin";
   pinButton.type = "button";
-  pinButton.textContent = "★";
+  pinButton.innerHTML = historyPinIcon(false);
   pinButton.title = t("pin");
   pinButton.setAttribute("aria-label", `${t("pin")} ${title}`);
   pinButton.addEventListener("click", () => pinHistoryItem(item || {
@@ -1921,7 +1940,14 @@ function createHistoryFeedGroup(group) {
     url: group.url
   }));
 
-  row.append(homeLink, copy, pinButton);
+  deleteButton.className = "history-page-delete";
+  deleteButton.type = "button";
+  deleteButton.innerHTML = trashIcon();
+  deleteButton.title = t("deleteHistory", { title });
+  deleteButton.setAttribute("aria-label", t("deleteHistory", { title }));
+  deleteButton.addEventListener("click", () => deleteHistoryItem(item?.url || group.url));
+
+  row.append(homeLink, copy, pinButton, deleteButton);
   return row;
 }
 
@@ -2000,6 +2026,66 @@ async function unpinHistoryItem(url) {
   } catch (error) {
     console.warn("Failed to unpin history item", error);
   }
+}
+
+async function deleteHistoryItem(url) {
+  const key = normalizeHistoryKey(url);
+  if (!key) {
+    return;
+  }
+  try {
+    await chrome.history.deleteUrl({ url: key });
+    const nextPinnedItems = (await loadPinnedHistory()).filter((item) => normalizeHistoryKey(item.url) !== key);
+    await savePinnedHistory(nextPinnedItems);
+    refreshHistory();
+  } catch (error) {
+    console.warn("Failed to delete history item", error);
+    renderHistoryTransientMessage(t("deleteHistoryFailed"));
+  }
+}
+
+function renderHistoryTransientMessage(message) {
+  const previousMessage = document.querySelector(".history-transient-message");
+  if (previousMessage) {
+    previousMessage.remove();
+  }
+  const messageNode = document.createElement("p");
+  messageNode.className = "history-transient-message";
+  messageNode.textContent = message;
+  document.querySelector(".recent-group")?.prepend(messageNode);
+  window.setTimeout(() => {
+    messageNode.remove();
+  }, 2400);
+}
+
+function historyPinIcon(active) {
+  if (active) {
+    return `
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+        <path d="m6 6 8 8"></path>
+        <path d="m14 6-8 8"></path>
+      </svg>
+    `;
+  }
+  return `
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d="m8 4 6 6"></path>
+      <path d="M11.5 6.5 7 11l-2 .5 3.5 3.5.5-2 4.5-4.5"></path>
+      <path d="m5 15-2 2"></path>
+    </svg>
+  `;
+}
+
+function trashIcon() {
+  return `
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d="M4 6h12"></path>
+      <path d="M8 6V4h4v2"></path>
+      <path d="m6 8 .6 7h6.8L14 8"></path>
+      <path d="M9 10v3"></path>
+      <path d="M11 10v3"></path>
+    </svg>
+  `;
 }
 
 function faviconUrl(url, size) {

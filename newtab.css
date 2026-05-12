@@ -111,7 +111,7 @@ button {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(360px, 640px) minmax(120px, 1fr);
+  grid-template-columns: minmax(44px, 1fr) minmax(420px, 690px) minmax(80px, 1fr);
   align-items: center;
   gap: 16px;
   width: 100%;
@@ -138,6 +138,10 @@ button {
   line-height: 1;
 }
 
+.brand-mark span:last-child {
+  display: none;
+}
+
 .brand-dot {
   width: 10px;
   height: 10px;
@@ -152,7 +156,7 @@ button {
 
 .topbar-search {
   display: grid;
-  grid-template-columns: minmax(86px, auto) 1px 30px minmax(0, 1fr) 40px;
+  grid-template-columns: 42px 1px 30px minmax(0, 1fr) 64px;
   align-items: center;
   min-width: 0;
   height: 38px;
@@ -165,42 +169,64 @@ button {
 .search-engine-control {
   position: relative;
   display: grid;
+  grid-template-columns: 1fr;
   align-items: center;
+  justify-items: center;
   height: 100%;
   min-width: 0;
   padding-left: 5px;
 }
 
 .quick-search-engine {
-  width: 100%;
-  max-width: 112px;
+  position: absolute;
+  inset: 5px 0 5px 5px;
+  z-index: 2;
+  width: calc(100% - 5px);
   height: 28px;
-  padding: 0 24px 0 10px;
+  padding: 0;
   border: 0;
   border-radius: 7px;
   appearance: none;
-  background: var(--panel-soft);
-  color: var(--accent-strong);
+  background: transparent;
+  color: transparent;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 16px;
   line-height: 1;
   outline: none;
+  opacity: 0;
 }
 
-.quick-search-engine:hover {
+.search-engine-visual {
+  display: inline-grid;
+  width: 30px;
+  height: 28px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--panel-soft);
+  transition: background 160ms ease;
+}
+
+.search-engine-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.search-engine-control:hover .search-engine-visual {
   background: var(--hover-bg);
 }
 
 .search-engine-caret {
   position: absolute;
-  right: 9px;
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid var(--accent-strong);
-  border-bottom: 1.5px solid var(--accent-strong);
+  right: 5px;
+  bottom: 8px;
+  z-index: 1;
+  width: 5px;
+  height: 5px;
+  border-right: 1.4px solid var(--accent-strong);
+  border-bottom: 1.4px solid var(--accent-strong);
   pointer-events: none;
-  transform: translateY(-2px) rotate(45deg);
+  transform: rotate(45deg);
 }
 
 .topbar-search-divider {
@@ -251,7 +277,7 @@ button {
 
 .quick-search-submit {
   display: inline-grid;
-  width: 30px;
+  width: 58px;
   height: 28px;
   margin-right: 6px;
   place-items: center;
@@ -260,17 +286,9 @@ button {
   background: var(--accent);
   color: var(--on-accent);
   cursor: pointer;
+  font-size: 12px;
+  font-weight: 720;
   line-height: 1;
-}
-
-.quick-search-submit svg {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
 }
 
 .quick-search-submit:hover {
@@ -571,7 +589,7 @@ select:focus-visible {
 
 .portal-category-tab {
   display: grid;
-  grid-template-columns: 8px minmax(0, 1fr) auto;
+  grid-template-columns: 4px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -587,8 +605,8 @@ select:focus-visible {
 }
 
 .portal-category-marker {
-  width: 8px;
-  height: 24px;
+  width: 4px;
+  height: 22px;
   border-radius: 999px;
   background: var(--line-strong);
 }
@@ -973,19 +991,19 @@ select:focus-visible {
 
 .bookmark-delete-button {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 6px;
+  right: 6px;
   left: auto;
   z-index: 5;
   display: none;
-  width: 23px;
-  height: 23px;
+  width: 26px;
+  height: 26px;
   padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(237, 239, 226, 0.84);
-  box-shadow: 0 2px 8px rgba(31, 29, 26, 0.1);
-  color: #ff4e4e;
+  border: 1px solid rgba(184, 74, 66, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 254, 250, 0.94);
+  box-shadow: 0 6px 16px rgba(28, 24, 18, 0.12);
+  color: var(--danger);
   cursor: pointer;
   font-size: 0;
   line-height: 0;
@@ -1000,18 +1018,20 @@ select:focus-visible {
   position: absolute;
   top: 50%;
   left: 50%;
-  color: #ff4e4e;
+  color: currentColor;
   content: "×";
-  font-size: 25px;
-  font-weight: 260;
+  font-size: 18px;
+  font-weight: 520;
   line-height: 1;
-  transform: translate(-50%, -52%);
+  transform: translate(-50%, -54%);
 }
 
 .bookmark-delete-button:hover,
 .bookmark-delete-button:focus-visible {
-  background: rgba(237, 239, 226, 0.84);
-  outline: 0;
+  border-color: rgba(184, 74, 66, 0.46);
+  background: rgba(184, 74, 66, 0.1);
+  outline: 2px solid rgba(184, 74, 66, 0.24);
+  outline-offset: 2px;
   transform: none;
 }
 
@@ -1285,8 +1305,8 @@ select:focus-visible {
 .history-feed-item {
   position: relative;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 28px;
-  gap: 10px;
+  grid-template-columns: 30px minmax(0, 1fr) 28px 28px;
+  gap: 8px;
   align-items: center;
   min-width: 0;
   min-height: 62px;
@@ -1442,7 +1462,7 @@ select:focus-visible {
 
 .history-page-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 26px;
+  grid-template-columns: minmax(0, 1fr) 26px 26px;
   gap: 6px;
   align-items: center;
   min-width: 0;
@@ -1464,7 +1484,8 @@ select:focus-visible {
   text-decoration: underline;
 }
 
-.history-page-pin {
+.history-page-pin,
+.history-page-delete {
   display: inline-grid;
   width: 26px;
   height: 26px;
@@ -1478,7 +1499,19 @@ select:focus-visible {
   line-height: 1;
 }
 
-.history-page-pin:hover {
+.history-page-pin svg,
+.history-page-delete svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.history-page-pin:hover,
+.history-page-delete:hover {
   border-color: var(--line);
   border-radius: 7px;
   background: var(--glass-panel);
@@ -1487,6 +1520,20 @@ select:focus-visible {
 
 .history-page-pin.active {
   color: var(--accent);
+}
+
+.history-page-delete:hover {
+  color: var(--danger);
+}
+
+.history-transient-message {
+  margin: -2px 0 4px;
+  padding: 7px 9px;
+  border: 1px solid rgba(184, 74, 66, 0.22);
+  border-radius: 8px;
+  background: rgba(184, 74, 66, 0.08);
+  color: var(--danger);
+  font-size: 11px;
 }
 
 .empty-state {
@@ -1524,7 +1571,7 @@ select:focus-visible {
   }
 
   .topbar {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
     gap: 10px;
     height: var(--topbar-height);
     padding: 0 12px;
@@ -1594,12 +1641,12 @@ select:focus-visible {
 }
 
 @media (max-width: 560px) {
-  .brand-mark span:last-child {
-    display: none;
-  }
-
   .topbar-search input {
     font-size: 12px;
+  }
+
+  .topbar-search {
+    grid-template-columns: 38px 1px 28px minmax(0, 1fr) 56px;
   }
 
   .panel {

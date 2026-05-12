@@ -16,6 +16,9 @@
         <label class="visually-hidden" for="quickSearchInput">搜索或输入网址</label>
         <label class="visually-hidden" for="quickSearchEngineSelect">搜索引擎</label>
         <span class="search-engine-control">
+          <span class="search-engine-visual" id="quickSearchEngineVisual" aria-hidden="true">
+            <img class="search-engine-logo" id="quickSearchEngineLogo" alt="">
+          </span>
           <select class="quick-search-engine" id="quickSearchEngineSelect" name="engine" aria-label="搜索引擎"></select>
           <span class="search-engine-caret" aria-hidden="true"></span>
         </span>
@@ -27,12 +30,7 @@
           </svg>
         </span>
         <input id="quickSearchInput" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="搜索或输入网址">
-        <button class="quick-search-submit" id="quickSearchButton" type="submit" title="搜索" aria-label="搜索">
-          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-            <path d="M5 10h9"></path>
-            <path d="m11 6 4 4-4 4"></path>
-          </svg>
-        </button>
+        <button class="quick-search-submit" id="quickSearchButton" type="submit" title="搜索" aria-label="搜索">搜索</button>
       </form>
       <div class="topbar-actions">
         <button class="theme-toggle" id="themeToggleButton" type="button" aria-pressed="false" title="切换夜间模式">
