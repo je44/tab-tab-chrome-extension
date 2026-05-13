@@ -30,7 +30,9 @@
   --ui-icon-stroke: 1.75;
   --history-action-size: 32px;
   --history-action-gap: 4px;
+  --history-action-column-count: 3;
   --history-action-icon-size: 16px;
+  --history-action-rail-width: 16%;
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -1582,10 +1584,14 @@ select:focus-visible {
 
 .history-feed-summary {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(
+    calc((var(--history-action-size) * var(--history-action-column-count)) + (var(--history-action-gap) * (var(--history-action-column-count) - 1))),
+    var(--history-action-rail-width)
+  );
   gap: 8px;
   align-items: center;
   min-width: 0;
+  min-height: calc(var(--history-action-size) + 12px);
 }
 
 .history-feed-item::before {
@@ -1635,11 +1641,11 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, var(--history-action-size));
   grid-auto-rows: var(--history-action-size);
-  width: max-content;
+  width: 100%;
   column-gap: var(--history-action-gap);
   align-items: center;
   justify-self: end;
-  justify-content: end;
+  justify-content: center;
   justify-items: center;
 }
 
@@ -1855,8 +1861,11 @@ select:focus-visible {
 
 .history-page-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--history-action-size) var(--history-action-size);
-  gap: var(--history-action-gap);
+  grid-template-columns: minmax(0, 1fr) minmax(
+    calc((var(--history-action-size) * 2) + var(--history-action-gap)),
+    var(--history-action-rail-width)
+  );
+  column-gap: var(--history-action-gap);
   align-items: center;
   min-width: 0;
   min-height: var(--history-action-size);
@@ -1889,6 +1898,17 @@ select:focus-visible {
 
 .history-page-link:hover {
   text-decoration: underline;
+}
+
+.history-page-actions {
+  display: grid;
+  grid-template-columns: repeat(2, var(--history-action-size));
+  grid-auto-rows: var(--history-action-size);
+  width: 100%;
+  column-gap: var(--history-action-gap);
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
 }
 
 .history-page-pin,

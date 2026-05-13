@@ -2212,6 +2212,7 @@ function createHistoryPageItem(item, options = {}) {
   const row = document.createElement("div");
   const link = document.createElement("a");
   const label = document.createElement("span");
+  const actions = document.createElement("span");
   const pinButton = document.createElement("button");
   const deleteButton = document.createElement("button");
   const isPinned = Boolean(options.pinned);
@@ -2250,7 +2251,9 @@ function createHistoryPageItem(item, options = {}) {
   deleteButton.setAttribute("aria-label", t("deleteHistory", { title }));
   deleteButton.addEventListener("click", () => deleteHistoryItem(item.url));
 
-  row.append(link, pinButton, deleteButton);
+  actions.className = "history-page-actions";
+  actions.append(pinButton, deleteButton);
+  row.append(link, actions);
   return row;
 }
 
