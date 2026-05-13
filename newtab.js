@@ -2370,10 +2370,10 @@ function createHistoryFeedGroup(group) {
 
 function toggleHistoryFeedGroup(row) {
   const scrollParent = row.closest(".history-grid");
-  const previousTop = row.getBoundingClientRect().top;
   const isExpanded = row.classList.toggle("expanded");
   const button = row.querySelector(".history-feed-expand");
   const pageList = row.querySelector(".history-feed-pages");
+  row.classList.remove("open-up");
   if (button) {
     const count = Number(pageList?.dataset.relatedCount || 0);
     button.setAttribute("aria-expanded", String(isExpanded));
@@ -2383,9 +2383,11 @@ function toggleHistoryFeedGroup(row) {
   if (pageList) {
     pageList.hidden = !isExpanded;
   }
-  if (scrollParent) {
-    const nextTop = row.getBoundingClientRect().top;
-    scrollParent.scrollTop += nextTop - previousTop;
+  if (isExpanded && scrollParent && pageList) {
+    const rowRect = row.getBoundingClientRect();
+    const listRect = scrollParent.getBoundingClientRect();
+    const dropdownHeight = pageList.offsetHeight;
+    row.classList.toggle("open-up", rowRect.bottom + dropdownHeight + 4 > listRect.bottom);
   }
 }
 

@@ -1602,6 +1602,7 @@ select:focus-visible {
 }
 
 .history-feed-item.expanded {
+  z-index: 6;
   border-color: rgba(47, 130, 196, 0.36);
   background: linear-gradient(180deg, rgba(47, 130, 196, 0.06), transparent 56%), var(--panel);
 }
@@ -1673,19 +1674,33 @@ select:focus-visible {
 }
 
 .history-feed-pages {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  left: 8px;
+  z-index: 3;
   display: grid;
   gap: 7px;
   align-content: start;
   min-width: 0;
-  overflow: visible;
-  margin-top: 1px;
+  max-height: min(288px, calc(100vh - var(--topbar-height) - 142px));
+  overflow-y: auto;
+  margin-top: 0;
   padding: 9px 8px 8px 38px;
-  border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(47, 130, 196, 0.045), transparent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(47, 130, 196, 0.045), transparent), var(--panel);
+  box-shadow: var(--shadow);
+  scrollbar-width: thin;
 }
 
 .history-feed-item.expanded .history-feed-pages {
   animation: history-feed-pages-in 160ms ease-out both;
+}
+
+.history-feed-item.open-up .history-feed-pages {
+  top: auto;
+  bottom: calc(100% + 4px);
 }
 
 .history-feed-pages[hidden] {
