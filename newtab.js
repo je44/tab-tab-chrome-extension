@@ -2518,18 +2518,15 @@ function inlineIcon(markup) {
 function historyPinIcon(active) {
   if (active) {
     return inlineIcon(`
-      <line x1="2" x2="22" y1="2" y2="22"></line>
       <path d="M12 17v5"></path>
-      <path d="M9 9.76V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11"></path>
-      <path d="M6 17h11"></path>
+      <path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89"></path>
+      <path d="m2 2 20 20"></path>
+      <path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"></path>
     `);
   }
   return inlineIcon(`
     <path d="M12 17v5"></path>
-    <path d="M5 17h14"></path>
-    <path d="M17 17V7l2-3H5l2 3v10"></path>
-    <path d="M9 17V7"></path>
-    <path d="M15 17V7"></path>
+    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
   `);
 }
 
@@ -2599,11 +2596,11 @@ function moonIcon() {
 
 function trashIcon() {
   return inlineIcon(`
-    <path d="M3 6h18"></path>
-    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
     <path d="M10 11v6"></path>
     <path d="M14 11v6"></path>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+    <path d="M3 6h18"></path>
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
   `);
 }
 
