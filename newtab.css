@@ -28,6 +28,9 @@
   --shadow: 0 12px 28px rgba(16, 32, 26, 0.08);
   --shadow-soft: 0 1px 2px rgba(16, 32, 26, 0.05);
   --ui-icon-stroke: 1.75;
+  --history-action-size: 32px;
+  --history-action-gap: 4px;
+  --history-action-icon-size: 16px;
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -1629,11 +1632,15 @@ select:focus-visible {
 }
 
 .history-feed-actions {
-  display: inline-grid;
-  grid-auto-flow: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, var(--history-action-size));
+  grid-auto-rows: var(--history-action-size);
+  width: max-content;
+  column-gap: var(--history-action-gap);
   align-items: center;
+  justify-self: end;
   justify-content: end;
+  justify-items: center;
 }
 
 .history-feed-meta {
@@ -1646,15 +1653,16 @@ select:focus-visible {
 }
 
 .history-feed-expand {
-  display: inline-grid;
-  width: 28px;
-  height: 28px;
+  display: grid;
+  width: var(--history-action-size);
+  height: var(--history-action-size);
+  align-self: center;
+  justify-self: center;
   place-items: center;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
-  color: var(--faint);
   cursor: pointer;
   color: var(--accent);
   font-size: 0;
@@ -1670,13 +1678,18 @@ select:focus-visible {
   outline: 0;
 }
 
+.history-feed-expand:disabled {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .history-feed-item.expanded .history-feed-expand {
   transform: rotate(180deg);
 }
 
 .history-feed-expand svg {
-  width: 16px;
-  height: 16px;
+  width: var(--history-action-icon-size);
+  height: var(--history-action-icon-size);
 }
 
 .history-feed-pages {
@@ -1842,11 +1855,11 @@ select:focus-visible {
 
 .history-page-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px 28px;
-  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) var(--history-action-size) var(--history-action-size);
+  gap: var(--history-action-gap);
   align-items: center;
   min-width: 0;
-  min-height: 30px;
+  min-height: var(--history-action-size);
 }
 
 .history-page-link {
@@ -1880,9 +1893,11 @@ select:focus-visible {
 
 .history-page-pin,
 .history-page-delete {
-  display: inline-grid;
-  width: 28px;
-  height: 28px;
+  display: grid;
+  width: var(--history-action-size);
+  height: var(--history-action-size);
+  align-self: center;
+  justify-self: center;
   place-items: center;
   padding: 0;
   border: 1px solid transparent;
@@ -1896,8 +1911,20 @@ select:focus-visible {
 
 .history-page-pin svg,
 .history-page-delete svg {
-  width: 15px;
-  height: 15px;
+  width: var(--history-action-icon-size);
+  height: var(--history-action-icon-size);
+}
+
+.history-feed-actions > .history-feed-expand {
+  grid-column: 1;
+}
+
+.history-feed-actions > .history-page-pin {
+  grid-column: 2;
+}
+
+.history-feed-actions > .history-page-delete {
+  grid-column: 3;
 }
 
 .history-page-pin:hover,
@@ -2095,15 +2122,15 @@ select:focus-visible {
 }
 
 @media (pointer: coarse) {
+  :root {
+    --history-action-size: 44px;
+    --history-action-gap: 6px;
+  }
+
   .icon-button,
   .theme-toggle {
     width: 40px;
     height: 40px;
-  }
-
-  .history-page-pin {
-    width: 32px;
-    height: 32px;
   }
 
   .site-card.custom .site-remove {

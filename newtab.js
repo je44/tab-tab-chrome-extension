@@ -2318,11 +2318,13 @@ function createHistoryFeedGroup(group) {
 
   expandButton.className = "history-feed-expand";
   expandButton.type = "button";
-  expandButton.hidden = !isExpandable;
   expandButton.innerHTML = chevronDownIcon();
   expandButton.title = t("historyExpandPages", { count: relatedPages.length });
   expandButton.setAttribute("aria-label", t("historyExpandPages", { count: relatedPages.length }));
   expandButton.setAttribute("aria-expanded", "false");
+  expandButton.setAttribute("aria-hidden", String(!isExpandable));
+  expandButton.tabIndex = isExpandable ? 0 : -1;
+  expandButton.disabled = !isExpandable;
   expandButton.addEventListener("click", () => toggleHistoryFeedGroup(row));
 
   pinButton.className = "history-page-pin";
@@ -2361,12 +2363,12 @@ function createHistoryFeedGroup(group) {
   }
 
   actions.className = "history-feed-actions";
+  actions.appendChild(expandButton);
   if (isExpandable) {
     expandButton.setAttribute("aria-controls", pageList.id);
     requestAnimationFrame(() => {
       pageList.style.setProperty("--history-feed-pages-height", `${pageListInner.scrollHeight}px`);
     });
-    actions.appendChild(expandButton);
   }
   actions.append(pinButton, deleteButton);
   summary.className = "history-feed-summary";
