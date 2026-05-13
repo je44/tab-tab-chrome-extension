@@ -283,7 +283,8 @@ button {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .topbar-search input {
@@ -368,7 +369,8 @@ button {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.9;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .theme-toggle-icon svg {
@@ -1030,7 +1032,8 @@ select:focus-visible {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .site-card.custom .site-remove {
@@ -1207,7 +1210,8 @@ select:focus-visible {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .bookmark-delete-button:hover,
@@ -1600,7 +1604,8 @@ select:focus-visible {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.9;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .history-feed-pages {
@@ -1799,7 +1804,8 @@ select:focus-visible {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .history-page-pin:hover,
@@ -1859,7 +1865,8 @@ select:focus-visible {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.6;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 @media (max-width: 1280px) {
