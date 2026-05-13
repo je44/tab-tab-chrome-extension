@@ -27,7 +27,7 @@
   --danger: #b84a42;
   --shadow: 0 12px 28px rgba(16, 32, 26, 0.08);
   --shadow-soft: 0 1px 2px rgba(16, 32, 26, 0.05);
-  --ui-icon-stroke: 1;
+  --ui-icon-stroke: 1px;
   color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -285,6 +285,7 @@ button {
 
 .topbar-search-icon svg,
 .search-engine-caret svg,
+.portal-switcher-toggle-icon svg,
 .theme-toggle-icon svg,
 .button-icon svg,
 .site-remove svg,
@@ -301,6 +302,7 @@ button {
   stroke-linejoin: round;
   stroke-width: var(--ui-icon-stroke);
   vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
 }
 
 .topbar-search-icon svg {
@@ -694,8 +696,12 @@ select:focus-visible {
 }
 
 .portal-switcher-toggle {
+  display: inline-grid;
+  grid-template-columns: auto 12px;
+  align-items: center;
+  gap: 4px;
   min-height: 24px;
-  padding: 0 8px;
+  padding: 0 7px 0 9px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--panel-soft);
@@ -705,6 +711,7 @@ select:focus-visible {
   font-weight: 720;
   line-height: 1;
   white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .portal-switcher-toggle:hover,
@@ -715,6 +722,24 @@ select:focus-visible {
   outline: 0;
 }
 
+.portal-switcher-toggle-icon {
+  display: inline-grid;
+  width: 12px;
+  height: 12px;
+  place-items: center;
+  line-height: 0;
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portal-switcher-toggle-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.portal-category-switcher.expanded .portal-switcher-toggle-icon {
+  transform: rotate(180deg);
+}
+
 .portal-category-tabs {
   position: relative;
   z-index: 1;
@@ -722,7 +747,13 @@ select:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   min-width: 0;
-  overflow: visible;
+  max-height: var(--portal-tabs-expanded-height, 142px);
+  overflow: hidden;
+  transition: max-height 190ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portal-category-switcher.collapsed .portal-category-tabs {
+  max-height: var(--portal-tabs-collapsed-height, 42px);
 }
 
 .portal-category-tab {
@@ -739,7 +770,22 @@ select:focus-visible {
   color: var(--muted);
   cursor: pointer;
   text-align: left;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  transform-origin: top center;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, opacity 170ms ease, transform 190ms cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear;
+}
+
+.portal-category-tab[data-overflow="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.portal-category-switcher.collapsed .portal-category-tab[data-overflow="true"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.985);
+  transition: opacity 120ms ease, transform 170ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 170ms;
+  visibility: hidden;
 }
 
 .portal-category-marker {
@@ -1870,6 +1916,14 @@ select:focus-visible {
     grid-template-columns: minmax(250px, 0.85fr) minmax(280px, 0.95fr) minmax(360px, 1.2fr);
     width: 100%;
     margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-category-tabs,
+  .portal-category-tab,
+  .portal-switcher-toggle-icon {
+    transition: none;
   }
 }
 

@@ -686,9 +686,9 @@ function setButtonLabel(button, label) {
 
 function setStaticButtonIcons() {
   togglePortalFormButton.querySelector(".button-icon").innerHTML = plusIcon();
-  refreshBookmarkFolderButton.querySelector(".button-icon").innerHTML = refreshIcon();
+  refreshBookmarkFolderButton.querySelector(".button-icon").innerHTML = reloadIcon();
   chooseBookmarkFolderButton.querySelector(".button-icon").innerHTML = folderPlusIcon();
-  refreshHistoryButton.querySelector(".button-icon").innerHTML = refreshIcon();
+  refreshHistoryButton.querySelector(".button-icon").innerHTML = reloadIcon();
 }
 
 function init() {
@@ -1087,8 +1087,24 @@ async function savePortalCategoriesExpanded(expanded) {
 
 async function togglePortalCategoriesExpanded() {
   portalCategoriesExpanded = !portalCategoriesExpanded;
+  applyPortalCategoryExpansionState(portalCategoriesExpanded);
   await savePortalCategoriesExpanded(portalCategoriesExpanded);
-  renderPortals();
+}
+
+function applyPortalCategoryExpansionState(expanded) {
+  const switcher = portalGrid.querySelector(".portal-category-switcher");
+  const toggleButton = switcher?.querySelector(".portal-switcher-toggle");
+  if (!switcher || !toggleButton) {
+    return;
+  }
+  const hiddenCount = Number(switcher.dataset.hiddenCount || 0);
+  const isCollapsible = hiddenCount > 0;
+  switcher.classList.toggle("expanded", expanded || !isCollapsible);
+  switcher.classList.toggle("collapsed", !expanded && isCollapsible);
+  toggleButton.setAttribute("aria-expanded", String(expanded));
+  toggleButton.querySelector(".portal-switcher-toggle-label").textContent = expanded
+    ? t("portalCategoriesCollapse")
+    : t("portalCategoriesExpand", { count: hiddenCount });
 }
 
 async function swapPortalSectionOrder(sourceRole, targetRole) {
@@ -1364,13 +1380,20 @@ function createPortalCategoryTabs(groups, expanded) {
   const header = document.createElement("header");
   const title = document.createElement("h3");
   const toggleButton = document.createElement("button");
+  const toggleLabel = document.createElement("span");
+  const toggleIcon = document.createElement("span");
   const nav = document.createElement("nav");
   const hiddenCount = Math.max(0, groups.length - COLLAPSED_PORTAL_CATEGORY_COUNT);
-  const visibleGroups = expanded || hiddenCount === 0
-    ? groups
-    : groups.slice(0, COLLAPSED_PORTAL_CATEGORY_COUNT);
+  const visibleRowCount = Math.ceil(Math.min(groups.length, COLLAPSED_PORTAL_CATEGORY_COUNT) / 2);
+  const expandedRowCount = Math.ceil(groups.length / 2);
+  const collapsedHeight = Math.max(42, visibleRowCount * 42 + Math.max(0, visibleRowCount - 1) * 8);
+  const expandedHeight = Math.max(collapsedHeight, expandedRowCount * 42 + Math.max(0, expandedRowCount - 1) * 8);
   section.className = "portal-category-switcher";
+  section.classList.toggle("expanded", expanded || hiddenCount === 0);
   section.classList.toggle("collapsed", !expanded && hiddenCount > 0);
+  section.dataset.hiddenCount = String(hiddenCount);
+  section.style.setProperty("--portal-tabs-collapsed-height", `${collapsedHeight}px`);
+  section.style.setProperty("--portal-tabs-expanded-height", `${expandedHeight}px`);
   header.className = "portal-switcher-header";
   title.className = "portal-switcher-title";
   title.textContent = t("portalCategories");
@@ -1378,13 +1401,18 @@ function createPortalCategoryTabs(groups, expanded) {
   toggleButton.type = "button";
   toggleButton.hidden = hiddenCount === 0;
   toggleButton.setAttribute("aria-expanded", String(expanded));
-  toggleButton.textContent = expanded ? t("portalCategoriesCollapse") : t("portalCategoriesExpand", { count: hiddenCount });
+  toggleLabel.className = "portal-switcher-toggle-label";
+  toggleLabel.textContent = expanded ? t("portalCategoriesCollapse") : t("portalCategoriesExpand", { count: hiddenCount });
+  toggleIcon.className = "portal-switcher-toggle-icon";
+  toggleIcon.setAttribute("aria-hidden", "true");
+  toggleIcon.innerHTML = chevronDownIcon();
+  toggleButton.append(toggleLabel, toggleIcon);
   toggleButton.addEventListener("click", togglePortalCategoriesExpanded);
   nav.className = "portal-category-tabs";
   nav.setAttribute("aria-label", t("portalCategories"));
   header.append(title, toggleButton);
 
-  visibleGroups.forEach((group) => {
+  groups.forEach((group, index) => {
     const button = document.createElement("button");
     const marker = document.createElement("span");
     const copy = document.createElement("span");
@@ -1395,6 +1423,9 @@ function createPortalCategoryTabs(groups, expanded) {
 
     button.className = "portal-category-tab";
     button.dataset.category = group.category;
+    if (index >= COLLAPSED_PORTAL_CATEGORY_COUNT) {
+      button.dataset.overflow = "true";
+    }
     button.classList.toggle("active", isActive);
     button.type = "button";
     button.setAttribute("aria-pressed", String(isActive));
@@ -2478,22 +2509,21 @@ function renderHistoryTransientMessage(message) {
 }
 
 function inlineIcon(markup) {
-  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${markup}</svg>`;
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${markup.trim()}</svg>`;
 }
 
 function historyPinIcon(active) {
   if (active) {
     return inlineIcon(`
-      <path d="M4.5 19.5 19.5 4.5"></path>
-      <path d="M12.5 3.5 20.5 11.5"></path>
-      <path d="M16.5 7.5 11 13l-4 .75L10.25 17l.75-4"></path>
-      <path d="M7 17 4 20"></path>
+      <path d="M5 19 19 5"></path>
+      <path d="M10 6 18 14"></path>
+      <path d="M14.5 10.5 10 15l-3 .5L8 17.5l2.5-2.5"></path>
     `);
   }
   return inlineIcon(`
-    <path d="M12.5 3.5 20.5 11.5"></path>
-    <path d="M16.5 7.5 11 13l-4 .75L10.25 17l.75-4 5.5-5.5Z"></path>
-    <path d="M7 17 4 20"></path>
+    <path d="M10 5 19 14"></path>
+    <path d="M15 10 10 15l-3 .5.5-3L12.5 7.5"></path>
+    <path d="M9.5 15.5 5 20"></path>
   `);
 }
 
@@ -2504,78 +2534,78 @@ function plusIcon() {
   `);
 }
 
-function refreshIcon() {
+function reloadIcon() {
   return inlineIcon(`
-    <path d="M20 8v-4h-4"></path>
-    <path d="M4 16v4h4"></path>
-    <path d="M19 8.5a7.5 7.5 0 0 0-12.6-3L4 8"></path>
-    <path d="M5 15.5a7.5 7.5 0 0 0 12.6 3L20 16"></path>
+    <path d="M7 8h9l2 2"></path>
+    <path d="M16 6v4h4"></path>
+    <path d="M17 16H8l-2-2"></path>
+    <path d="M8 18v-4H4"></path>
   `);
 }
 
 function listIcon() {
   return inlineIcon(`
-    <path d="M8.5 6.5H19"></path>
-    <path d="M8.5 12H19"></path>
-    <path d="M8.5 17.5H19"></path>
     <path d="M5 6.5h.01"></path>
     <path d="M5 12h.01"></path>
     <path d="M5 17.5h.01"></path>
+    <path d="M8.5 6.5H18"></path>
+    <path d="M8.5 12H19"></path>
+    <path d="M8.5 17.5H18"></path>
   `);
 }
 
 function gridIcon() {
   return inlineIcon(`
-    <rect x="4.5" y="4.5" width="6" height="6" rx="1.3"></rect>
-    <rect x="13.5" y="4.5" width="6" height="6" rx="1.3"></rect>
-    <rect x="4.5" y="13.5" width="6" height="6" rx="1.3"></rect>
-    <rect x="13.5" y="13.5" width="6" height="6" rx="1.3"></rect>
+    <path d="M5 5h5v5H5Z"></path>
+    <path d="M14 5h5v5h-5Z"></path>
+    <path d="M5 14h5v5H5Z"></path>
+    <path d="M14 14h5v5h-5Z"></path>
   `);
 }
 
 function folderPlusIcon() {
   return inlineIcon(`
-    <path d="M3.5 6.5h5l2 2H20.5v9A2.5 2.5 0 0 1 18 20H6a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-    <path d="M15.5 12v5"></path>
-    <path d="M13 14.5h5"></path>
+    <path d="M4 7h5l2 2h9v9H4Z"></path>
+    <path d="M15.5 12.5v4"></path>
+    <path d="M13.5 14.5h4"></path>
   `);
 }
 
 function sunIcon() {
   return inlineIcon(`
-    <circle cx="12" cy="12" r="3.25"></circle>
-    <path d="M12 3.5v2"></path>
-    <path d="M12 18.5v2"></path>
-    <path d="M3.5 12h2"></path>
-    <path d="M18.5 12h2"></path>
-    <path d="m6 6 1.45 1.45"></path>
-    <path d="m16.55 16.55 1.45 1.45"></path>
-    <path d="m18 6-1.45 1.45"></path>
-    <path d="m7.45 16.55-1.45 1.45"></path>
+    <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path>
+    <path d="M12 3v2"></path>
+    <path d="M12 19v2"></path>
+    <path d="M3 12h2"></path>
+    <path d="M19 12h2"></path>
+    <path d="m5.5 5.5 1.4 1.4"></path>
+    <path d="m17.1 17.1 1.4 1.4"></path>
+    <path d="m18.5 5.5-1.4 1.4"></path>
+    <path d="m6.9 17.1-1.4 1.4"></path>
   `);
 }
 
 function moonIcon() {
   return inlineIcon(`
-    <path d="M18.6 14.35A7 7 0 0 1 9.65 5.4 7.7 7.7 0 1 0 18.6 14.35Z"></path>
+    <path d="M18 15.25A7 7 0 0 1 9 6a7.5 7.5 0 1 0 9 9.25Z"></path>
   `);
 }
 
 function trashIcon() {
   return inlineIcon(`
     <path d="M5 7h14"></path>
-    <path d="M9 7V4.5h6V7"></path>
-    <path d="M7.25 10 8 19.5h8l.75-9.5"></path>
-    <path d="M10.5 11.5v5.5"></path>
-    <path d="M13.5 11.5v5.5"></path>
+    <path d="M9 7V5h6v2"></path>
+    <path d="M7.5 10v9h9v-9"></path>
+    <path d="M10.5 12v4.5"></path>
+    <path d="M13.5 12v4.5"></path>
   `);
 }
 
 function emptyStateIcon() {
   return inlineIcon(`
-    <path d="M5 6.5h14l-1.4 7H14a2 2 0 0 1-4 0H6.4Z"></path>
-    <path d="M6.4 13.5v3A2.5 2.5 0 0 0 8.9 19h6.2a2.5 2.5 0 0 0 2.5-2.5v-3"></path>
-    <path d="M9 9.5h6"></path>
+    <path d="M6 7h12l-1.25 6H14a2 2 0 0 1-4 0H7.25Z"></path>
+    <path d="M7.25 13v4h9.5v-4"></path>
+    <path d="M9.25 10h5.5"></path>
   `);
 }
 
