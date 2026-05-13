@@ -1526,7 +1526,7 @@ select:focus-visible {
   grid-auto-flow: column;
   grid-auto-columns: minmax(172px, 1fr);
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 1px 0 2px;
   scrollbar-width: none;
 }
 
@@ -1538,8 +1538,10 @@ select:focus-visible {
   flex: 1 1 auto;
   max-height: 100%;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .recent-group .history-grid {
@@ -1728,6 +1730,10 @@ select:focus-visible {
   border-color: var(--line-strong);
   box-shadow: var(--shadow);
   transform: translateY(-1px);
+}
+
+.pinned-grid .history-site-group:hover {
+  transform: none;
 }
 
 .history-site-group.pinned {
