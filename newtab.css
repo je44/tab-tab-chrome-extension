@@ -1869,6 +1869,7 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: var(--history-action-size);
   overflow: hidden;
   color: var(--ink);
   font-size: 12px;
@@ -1927,6 +1928,14 @@ select:focus-visible {
 .history-page-delete svg {
   width: var(--history-action-icon-size);
   height: var(--history-action-icon-size);
+}
+
+.history-page-pin svg {
+  transform: translateY(1px);
+}
+
+.history-page-pin.active svg {
+  transform: none;
 }
 
 .history-feed-actions > .history-feed-expand {
