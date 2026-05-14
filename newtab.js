@@ -1177,8 +1177,8 @@ function renderThemePalettePresets() {
     const darkMode = palette.modes.dark;
     button.innerHTML = `
       <span class="palette-swatch-pair" aria-hidden="true">
-        <span style="background:linear-gradient(135deg, ${lightMode.paper} 0 48%, ${lightMode.panelSoft} 48% 72%, ${lightMode.accent} 72%)"></span>
-        <span style="background:linear-gradient(135deg, ${darkMode.paper} 0 48%, ${darkMode.panelSoft} 48% 72%, ${darkMode.accent} 72%)"></span>
+        <span style="background:${lightMode.accent}"></span>
+        <span style="background:${darkMode.accent}"></span>
       </span>
       <span class="palette-preset-name">${palette.label}</span>
     `;
@@ -1254,11 +1254,8 @@ function setModeThemeVariables(rootStyle, mode, colors) {
   rootStyle.setProperty(`${prefix}-glass-panel-soft`, mode === "dark"
     ? `rgba(${hexToRgb(colors.panelSoft).join(", ")}, 0.78)`
     : "rgba(255, 255, 255, 0.7)");
-  rootStyle.setProperty(`${prefix}-history-sheen`, mode === "dark" ? "rgba(255, 255, 255, 0.04)" : "rgba(255, 255, 255, 0.72)");
   rootStyle.setProperty(`${prefix}-icon-tile`, mode === "dark" ? "rgba(255, 255, 255, 0.9)" : "#ffffff");
   rootStyle.setProperty(`${prefix}-icon-line`, mode === "dark" ? "rgba(244, 250, 247, 0.1)" : "rgba(20, 27, 24, 0.08)");
-  rootStyle.setProperty(`${prefix}-grid-line-x`, mode === "dark" ? "rgba(238, 248, 244, 0.034)" : "rgba(19, 25, 21, 0.024)");
-  rootStyle.setProperty(`${prefix}-grid-line-y`, mode === "dark" ? "rgba(238, 248, 244, 0.03)" : "rgba(19, 25, 21, 0.02)");
   rootStyle.setProperty(`${prefix}-line`, mode === "dark" ? "rgba(239, 246, 243, 0.12)" : "rgba(19, 25, 21, 0.12)");
   rootStyle.setProperty(`${prefix}-line-strong`, mode === "dark" ? "rgba(239, 246, 243, 0.24)" : "rgba(19, 25, 21, 0.23)");
 }
@@ -2642,8 +2639,6 @@ function createHistorySiteGroup(group, options = {}) {
   header.className = "history-site-header";
   homeLink.className = "history-site-home";
   homeLink.href = homeHref;
-  homeLink.target = "_blank";
-  homeLink.rel = "noopener noreferrer";
   homeLink.title = homeLabel;
   homeLink.setAttribute("aria-label", homeLabel);
   icon.className = "history-site-logo";
@@ -2693,8 +2688,6 @@ function createHistoryPageItem(item, options = {}) {
   }
   link.className = "history-page-link";
   link.href = item.url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
   link.title = title;
   link.setAttribute("aria-label", t("openPage", { title }));
   link.textContent = title;
@@ -2767,8 +2760,6 @@ function createHistoryFeedGroup(group) {
   });
   homeLink.className = "history-feed-home";
   homeLink.href = group.homeUrl || siteHomeUrl(group.key, group.url);
-  homeLink.target = "_blank";
-  homeLink.rel = "noopener noreferrer";
   homeLink.title = t("openSiteHome", { name: group.name });
   homeLink.setAttribute("aria-label", t("openSiteHome", { name: group.name }));
   icon.className = "history-site-logo";
@@ -2784,8 +2775,6 @@ function createHistoryFeedGroup(group) {
   name.textContent = group.name;
   pageLink.className = "history-page-link history-feed-page-link";
   pageLink.href = item?.url || group.url;
-  pageLink.target = "_blank";
-  pageLink.rel = "noopener noreferrer";
   pageLink.title = title;
   pageLink.setAttribute("aria-label", t("openPage", { title }));
   pageLink.textContent = group.name;
