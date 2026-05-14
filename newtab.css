@@ -1786,9 +1786,39 @@ select:focus-visible {
     var(--panel-soft);
 }
 
+.history-site-group.pinned.single-page-duplicate {
+  grid-template-rows: auto;
+  grid-template-columns: minmax(0, 1fr) var(--history-page-action-rail-width);
+  align-items: center;
+  min-height: 74px;
+  gap: 12px;
+  padding: 12px;
+}
+
 .history-site-group.pinned .history-site-count {
   border-color: rgba(216, 108, 91, 0.28);
   color: var(--coral);
+}
+
+.history-site-group.pinned.single-page-duplicate .history-site-count,
+.history-site-group.pinned.single-page-duplicate .history-page-link {
+  display: none;
+}
+
+.history-site-group.pinned.single-page-duplicate .history-site-header {
+  grid-column: 1;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.history-site-group.pinned.single-page-duplicate .history-page-list {
+  grid-column: 2;
+  align-self: center;
+}
+
+.history-site-group.pinned.single-page-duplicate .history-page-item {
+  grid-template-columns: var(--history-page-action-rail-width);
+  column-gap: 0;
 }
 
 .history-site-header {

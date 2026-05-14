@@ -2173,16 +2173,31 @@ function createHistorySiteGroup(group, options = {}) {
   const name = document.createElement("strong");
   const count = document.createElement("span");
   const list = document.createElement("div");
+  const isPinned = Boolean(options.pinned);
+  const singlePinnedPage = isPinned && group.pages.length === 1 ? group.pages[0] : null;
+  const singlePinnedTitle = singlePinnedPage
+    ? (normalizeText(singlePinnedPage.title) || historyFallbackTitle(safeUrl(singlePinnedPage.url)))
+    : "";
+  const isSinglePinnedDuplicate = isPinned
+    && group.pages.length === 1
+    && singlePinnedTitle === normalizeText(group.name);
+  const homeHref = isSinglePinnedDuplicate
+    ? singlePinnedPage.url
+    : (group.homeUrl || siteHomeUrl(group.key, group.url));
+  const homeLabel = isSinglePinnedDuplicate
+    ? t("openPage", { title: singlePinnedTitle })
+    : t("openSiteHome", { name: group.name });
 
   card.className = "history-site-group";
-  card.classList.toggle("pinned", Boolean(options.pinned));
+  card.classList.toggle("pinned", isPinned);
+  card.classList.toggle("single-page-duplicate", isSinglePinnedDuplicate);
   header.className = "history-site-header";
   homeLink.className = "history-site-home";
-  homeLink.href = group.homeUrl || siteHomeUrl(group.key, group.url);
+  homeLink.href = homeHref;
   homeLink.target = "_blank";
   homeLink.rel = "noopener noreferrer";
-  homeLink.title = t("openSiteHome", { name: group.name });
-  homeLink.setAttribute("aria-label", t("openSiteHome", { name: group.name }));
+  homeLink.title = homeLabel;
+  homeLink.setAttribute("aria-label", homeLabel);
   icon.className = "history-site-logo";
   applyHistoryIcon(icon, {
     title: group.name,
