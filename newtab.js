@@ -55,11 +55,113 @@ const COLLAPSED_PORTAL_CATEGORY_COUNT = 2;
 const DEFAULT_THEME_MODE = "system";
 const DEFAULT_THEME_PALETTE = "forest";
 const CUSTOM_THEME_PALETTE_ID = "custom";
-const DEFAULT_CUSTOM_THEME_COLORS = Object.freeze({ light: "#0d6d59", dark: "#68c19e" });
+const DEFAULT_CUSTOM_THEME_COLORS = Object.freeze({ light: "#0d6d59", dark: "#82c8ae" });
 const THEME_PALETTES = [
-  { id: "forest", label: "松石", light: "#0d6d59", dark: "#68c19e" },
-  { id: "cobalt", label: "钴蓝", light: "#2f6fd6", dark: "#7cb7ff" },
-  { id: "rose", label: "玫瑰", light: "#b94f67", dark: "#ff9ab1" }
+  {
+    id: "forest",
+    label: "松石",
+    light: "#0d6d59",
+    dark: "#82c8ae",
+    modes: {
+      light: {
+        accent: "#0d6d59",
+        accentStrong: "#074b3e",
+        focus: "#2f82c4",
+        paper: "#f7f8f3",
+        panel: "#fffefa",
+        panelSoft: "#f0f4ef",
+        inputBg: "#fffefa",
+        hoverBg: "#e8f2ee",
+        ink: "#131915",
+        muted: "#59655f",
+        faint: "#6d7872"
+      },
+      dark: {
+        accent: "#82c8ae",
+        accentStrong: "#a8dcc8",
+        focus: "#8abfe8",
+        paper: "#101512",
+        panel: "#171d1a",
+        panelSoft: "#202922",
+        inputBg: "#121815",
+        hoverBg: "#25332d",
+        ink: "#eff6f3",
+        muted: "#b6c2bd",
+        faint: "#83918b",
+        onAccent: "#102019"
+      }
+    }
+  },
+  {
+    id: "cobalt",
+    label: "钴蓝",
+    light: "#2f6fd6",
+    dark: "#91c2ff",
+    modes: {
+      light: {
+        accent: "#2f6fd6",
+        accentStrong: "#1d4f9d",
+        focus: "#0f8e8e",
+        paper: "#f6f8fb",
+        panel: "#ffffff",
+        panelSoft: "#edf3fb",
+        inputBg: "#ffffff",
+        hoverBg: "#e5eefb",
+        ink: "#111827",
+        muted: "#586575",
+        faint: "#728093"
+      },
+      dark: {
+        accent: "#91c2ff",
+        accentStrong: "#b4d6ff",
+        focus: "#77d5c7",
+        paper: "#0f141a",
+        panel: "#161d25",
+        panelSoft: "#202a36",
+        inputBg: "#111820",
+        hoverBg: "#273545",
+        ink: "#eef5fb",
+        muted: "#b5c1ce",
+        faint: "#8291a1",
+        onAccent: "#0d1b2a"
+      }
+    }
+  },
+  {
+    id: "rose",
+    label: "玫瑰",
+    light: "#aa4d65",
+    dark: "#eda2b4",
+    modes: {
+      light: {
+        accent: "#aa4d65",
+        accentStrong: "#7c3046",
+        focus: "#7367c7",
+        paper: "#faf7f5",
+        panel: "#fffdfb",
+        panelSoft: "#f5eeee",
+        inputBg: "#fffdfb",
+        hoverBg: "#f2e6e8",
+        ink: "#1c1618",
+        muted: "#675b5f",
+        faint: "#827376"
+      },
+      dark: {
+        accent: "#eda2b4",
+        accentStrong: "#f3bdca",
+        focus: "#b4abf0",
+        paper: "#151112",
+        panel: "#21171b",
+        panelSoft: "#2b2024",
+        inputBg: "#181316",
+        hoverBg: "#35272d",
+        ink: "#f8eff1",
+        muted: "#c9b7bd",
+        faint: "#97858b",
+        onAccent: "#271116"
+      }
+    }
+  }
 ];
 const SEARCH_ENGINES = [
   { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q" },
@@ -259,8 +361,8 @@ const MESSAGES = {
     themeModeSystem: "跟随",
     themeModeLight: "日间",
     themeModeDark: "夜间",
-    presetPaletteTitle: "默认双色",
-    customPaletteTitle: "自定义双色",
+    presetPaletteTitle: "主题配色",
+    customPaletteTitle: "自定义强调色",
     lightAccent: "日间",
     darkAccent: "夜间",
     portalNameRequired: "请填写入口名称。",
@@ -403,8 +505,8 @@ const MESSAGES = {
     themeModeSystem: "Follow",
     themeModeLight: "Light",
     themeModeDark: "Dark",
-    presetPaletteTitle: "Preset pairs",
-    customPaletteTitle: "Custom pair",
+    presetPaletteTitle: "Theme palettes",
+    customPaletteTitle: "Custom accents",
     lightAccent: "Light",
     darkAccent: "Dark",
     portalNameRequired: "Enter a portal name.",
@@ -1071,10 +1173,12 @@ function renderThemePalettePresets() {
     button.type = "button";
     button.dataset.palette = palette.id;
     button.setAttribute("role", "radio");
+    const lightMode = palette.modes.light;
+    const darkMode = palette.modes.dark;
     button.innerHTML = `
       <span class="palette-swatch-pair" aria-hidden="true">
-        <span style="background:${palette.light}"></span>
-        <span style="background:${palette.dark}"></span>
+        <span style="background:linear-gradient(135deg, ${lightMode.paper} 0 48%, ${lightMode.panelSoft} 48% 72%, ${lightMode.accent} 72%)"></span>
+        <span style="background:linear-gradient(135deg, ${darkMode.paper} 0 48%, ${darkMode.panelSoft} 48% 72%, ${darkMode.accent} 72%)"></span>
       </span>
       <span class="palette-preset-name">${palette.label}</span>
     `;
@@ -1096,24 +1200,94 @@ async function setThemePalette(paletteId, options = {}) {
 }
 
 function applyThemePalette() {
-  const colors = activeThemePalette === CUSTOM_THEME_PALETTE_ID
-    ? activeCustomThemeColors
-    : themePaletteById(activeThemePalette);
-  setAccentVariables(colors.light, colors.dark);
+  if (activeThemePalette === CUSTOM_THEME_PALETTE_ID) {
+    const basePalette = themePaletteById(DEFAULT_THEME_PALETTE);
+    setThemeVariables({
+      modes: {
+        light: {
+          ...basePalette.modes.light,
+          accent: activeCustomThemeColors.light,
+          accentStrong: mixHexColors(activeCustomThemeColors.light, "#000000", 0.32),
+          focus: mixHexColors(activeCustomThemeColors.light, "#2f82c4", 0.48)
+        },
+        dark: {
+          ...basePalette.modes.dark,
+          accent: activeCustomThemeColors.dark,
+          accentStrong: mixHexColors(activeCustomThemeColors.dark, "#ffffff", 0.28),
+          focus: mixHexColors(activeCustomThemeColors.dark, "#68b7f2", 0.4),
+          onAccent: readableTextColor(activeCustomThemeColors.dark)
+        }
+      }
+    });
+    return;
+  }
+  setThemeVariables(themePaletteById(activeThemePalette));
 }
 
 function themePaletteById(paletteId) {
   return THEME_PALETTES.find((palette) => palette.id === paletteId) || THEME_PALETTES[0];
 }
 
-function setAccentVariables(lightColor, darkColor) {
+function setThemeVariables(palette) {
   const rootStyle = document.documentElement.style;
-  rootStyle.setProperty("--light-accent", lightColor);
-  rootStyle.setProperty("--light-accent-strong", mixHexColors(lightColor, "#000000", 0.32));
-  rootStyle.setProperty("--light-focus", mixHexColors(lightColor, "#2f82c4", 0.48));
-  rootStyle.setProperty("--dark-accent", darkColor);
-  rootStyle.setProperty("--dark-accent-strong", mixHexColors(darkColor, "#ffffff", 0.28));
-  rootStyle.setProperty("--dark-focus", mixHexColors(darkColor, "#68b7f2", 0.4));
+  setModeThemeVariables(rootStyle, "light", palette.modes.light);
+  setModeThemeVariables(rootStyle, "dark", palette.modes.dark);
+}
+
+function setModeThemeVariables(rootStyle, mode, colors) {
+  const prefix = `--${mode}`;
+  setColorVariable(rootStyle, `${prefix}-accent`, colors.accent);
+  setColorVariable(rootStyle, `${prefix}-focus`, colors.focus);
+  rootStyle.setProperty(`${prefix}-accent-strong`, colors.accentStrong);
+  rootStyle.setProperty(`${prefix}-on-accent`, colors.onAccent || readableTextColor(colors.accent));
+  rootStyle.setProperty(`${prefix}-paper`, colors.paper);
+  rootStyle.setProperty(`${prefix}-panel`, colors.panel);
+  rootStyle.setProperty(`${prefix}-panel-soft`, colors.panelSoft);
+  rootStyle.setProperty(`${prefix}-input-bg`, colors.inputBg);
+  rootStyle.setProperty(`${prefix}-hover-bg`, colors.hoverBg);
+  rootStyle.setProperty(`${prefix}-ink`, colors.ink);
+  rootStyle.setProperty(`${prefix}-muted`, colors.muted);
+  rootStyle.setProperty(`${prefix}-faint`, colors.faint);
+  rootStyle.setProperty(`${prefix}-glass-panel`, mode === "dark"
+    ? `rgba(${hexToRgb(colors.panel).join(", ")}, 0.86)`
+    : "rgba(255, 255, 255, 0.86)");
+  rootStyle.setProperty(`${prefix}-glass-panel-soft`, mode === "dark"
+    ? `rgba(${hexToRgb(colors.panelSoft).join(", ")}, 0.78)`
+    : "rgba(255, 255, 255, 0.7)");
+  rootStyle.setProperty(`${prefix}-history-sheen`, mode === "dark" ? "rgba(255, 255, 255, 0.04)" : "rgba(255, 255, 255, 0.72)");
+  rootStyle.setProperty(`${prefix}-icon-tile`, mode === "dark" ? "rgba(255, 255, 255, 0.9)" : "#ffffff");
+  rootStyle.setProperty(`${prefix}-icon-line`, mode === "dark" ? "rgba(244, 250, 247, 0.1)" : "rgba(20, 27, 24, 0.08)");
+  rootStyle.setProperty(`${prefix}-grid-line-x`, mode === "dark" ? "rgba(238, 248, 244, 0.034)" : "rgba(19, 25, 21, 0.024)");
+  rootStyle.setProperty(`${prefix}-grid-line-y`, mode === "dark" ? "rgba(238, 248, 244, 0.03)" : "rgba(19, 25, 21, 0.02)");
+  rootStyle.setProperty(`${prefix}-line`, mode === "dark" ? "rgba(239, 246, 243, 0.12)" : "rgba(19, 25, 21, 0.12)");
+  rootStyle.setProperty(`${prefix}-line-strong`, mode === "dark" ? "rgba(239, 246, 243, 0.24)" : "rgba(19, 25, 21, 0.23)");
+}
+
+function setColorVariable(rootStyle, name, color) {
+  rootStyle.setProperty(name, color);
+  rootStyle.setProperty(`${name}-rgb`, hexToRgb(color).join(" "));
+}
+
+function readableTextColor(backgroundColor) {
+  const darkText = "#102019";
+  const lightText = "#ffffff";
+  return contrastRatio(backgroundColor, darkText) >= contrastRatio(backgroundColor, lightText) ? darkText : lightText;
+}
+
+function contrastRatio(colorA, colorB) {
+  const [lighter, darker] = [relativeLuminance(colorA), relativeLuminance(colorB)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function relativeLuminance(color) {
+  return hexToRgb(color)
+    .map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= 0.03928
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4;
+    })
+    .reduce((total, channel, index) => total + channel * [0.2126, 0.7152, 0.0722][index], 0);
 }
 
 function mixHexColors(color, target, amount) {
