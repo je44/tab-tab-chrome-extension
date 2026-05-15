@@ -294,6 +294,56 @@ const TITLE_SUFFIX_SEPARATORS = [
   "_",
   "-"
 ];
+const AUTH_RELATED_HISTORY_HOSTS = new Set([
+  "accounts.google.com",
+  "appleid.apple.com",
+  "auth.openai.com",
+  "id.atlassian.com",
+  "login.live.com",
+  "login.microsoftonline.com",
+  "oauth.telegram.org"
+]);
+const AUTH_RELATED_HISTORY_HOST_SUFFIXES = [
+  ".auth0.com",
+  ".okta.com",
+  ".okta-emea.com",
+  ".onelogin.com"
+];
+const AUTH_RELATED_HISTORY_HOST_PARTS = new Set([
+  "auth",
+  "login",
+  "oauth",
+  "signin",
+  "sso"
+]);
+const STRONG_AUTH_HISTORY_PATH_SEGMENTS = new Set([
+  "authorize",
+  "authorization",
+  "callback",
+  "callbacks",
+  "oauth",
+  "oauth2",
+  "saml",
+  "sso"
+]);
+const AUTH_HISTORY_PATH_SEGMENTS = new Set([
+  ...STRONG_AUTH_HISTORY_PATH_SEGMENTS,
+  "auth",
+  "login",
+  "signin",
+  "sign-in"
+]);
+const AUTH_HISTORY_QUERY_PARAMS = new Set([
+  "client_id",
+  "code",
+  "oauth_token",
+  "redirect_uri",
+  "response_type",
+  "samlrequest",
+  "samlresponse",
+  "scope",
+  "state"
+]);
 const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.icon];
@@ -2526,7 +2576,7 @@ function dedupeHistory(items) {
   for (const item of items) {
     const url = safeUrl(item.url);
     const key = normalizeHistoryKey(item.url);
-    if (!url || !/^https?:$/.test(url.protocol) || !key || seen.has(key)) {
+    if (!isDisplayableHistoryUrl(url) || !key || seen.has(key)) {
       continue;
     }
     seen.add(key);
@@ -2930,7 +2980,7 @@ async function loadPinnedHistory() {
       return [];
     }
     return parsed
-      .filter((item) => item?.url && isWebUrl(item.url))
+      .filter((item) => item?.url && isDisplayableHistoryUrl(safeUrl(item.url)))
       .sort((a, b) => Number(b.pinnedAt || 0) - Number(a.pinnedAt || 0))
       .slice(0, MAX_PINNED_HISTORY_ITEMS);
   } catch (error) {
@@ -2945,6 +2995,9 @@ async function savePinnedHistory(items) {
 
 async function pinHistoryItem(item) {
   try {
+    if (!isDisplayableHistoryUrl(safeUrl(item?.url))) {
+      return;
+    }
     const key = normalizeHistoryKey(item.url);
     if (!key) {
       return;
@@ -3310,6 +3363,89 @@ function normalizeHistoryDeleteUrl(value) {
     return "";
   }
   return url.href;
+}
+
+function isDisplayableHistoryUrl(url) {
+  return Boolean(url
+    && /^https?:$/.test(url.protocol)
+    && !url.username
+    && !url.password
+    && !isLocalHistoryUrl(url)
+    && !isAuthRelatedHistoryUrl(url));
+}
+
+function isLocalHistoryUrl(url) {
+  const host = normalizeHostname(url?.hostname).replace(/^\[|\]$/g, "");
+  if (!host) {
+    return true;
+  }
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) {
+    return true;
+  }
+  if (!host.includes(".") && !host.includes(":")) {
+    return true;
+  }
+  if (isPrivateIpv4Host(host) || isPrivateIpv6Host(host)) {
+    return true;
+  }
+  return false;
+}
+
+function isPrivateIpv4Host(host) {
+  if (!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) {
+    return false;
+  }
+  const parts = host.split(".").map((part) => Number(part));
+  if (parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return false;
+  }
+  const [first, second] = parts;
+  return first === 0
+    || first === 10
+    || first === 127
+    || (first === 169 && second === 254)
+    || (first === 172 && second >= 16 && second <= 31)
+    || (first === 192 && second === 168);
+}
+
+function isPrivateIpv6Host(host) {
+  const normalized = host.toLowerCase();
+  return normalized === "::1"
+    || normalized.startsWith("fc")
+    || normalized.startsWith("fd")
+    || normalized.startsWith("fe80:");
+}
+
+function isAuthRelatedHistoryUrl(url) {
+  const host = normalizeHostname(url?.hostname);
+  const pathSegments = url.pathname
+    .split("/")
+    .map((segment) => normalizeText(decodeURIComponentSafe(segment)).toLowerCase())
+    .filter(Boolean);
+  const authPathScore = pathSegments.filter((segment) => AUTH_HISTORY_PATH_SEGMENTS.has(segment)).length;
+  const hasStrongAuthPath = pathSegments.some((segment) => STRONG_AUTH_HISTORY_PATH_SEGMENTS.has(segment));
+  const queryScore = [...url.searchParams.keys()]
+    .filter((key) => AUTH_HISTORY_QUERY_PARAMS.has(key.toLowerCase()))
+    .length;
+  const hasAuthHost = AUTH_RELATED_HISTORY_HOSTS.has(host)
+    || AUTH_RELATED_HISTORY_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+  const hasAuthHostHint = hasAuthHost || host
+    .split(/[.-]/)
+    .some((part) => AUTH_RELATED_HISTORY_HOST_PARTS.has(part));
+
+  return hasAuthHost
+    || (hasAuthHostHint && (url.pathname === "/" || authPathScore > 0 || queryScore > 0))
+    || (hasStrongAuthPath && queryScore > 0)
+    || (authPathScore > 0 && (hasAuthHostHint || queryScore > 0))
+    || (queryScore >= 2 && hasAuthHostHint);
+}
+
+function decodeURIComponentSafe(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 function applyGeneratedFallbackIcon(icon, site) {
