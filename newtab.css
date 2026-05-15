@@ -2115,7 +2115,7 @@ select:focus-visible {
   text-decoration: none;
 }
 
-.history-site-home:hover .history-site-name {
+a.history-site-home:hover .history-site-name {
   text-decoration: underline;
 }
 
@@ -2195,7 +2195,7 @@ select:focus-visible {
   line-height: 1;
 }
 
-.history-page-link:hover {
+a.history-page-link:hover {
   text-decoration: underline;
 }
 

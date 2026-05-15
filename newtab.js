@@ -2663,12 +2663,12 @@ function groupHistoryBySite(items, options = {}) {
 function createHistorySiteGroup(group, options = {}) {
   const card = document.createElement("section");
   const header = document.createElement("div");
-  const homeLink = document.createElement("a");
+  const isPinned = Boolean(options.pinned);
+  const homeLink = document.createElement(isPinned ? "span" : "a");
   const icon = document.createElement("img");
   const name = document.createElement("strong");
   const count = document.createElement("span");
   const list = document.createElement("div");
-  const isPinned = Boolean(options.pinned);
   const singlePinnedPage = isPinned && group.pages.length === 1 ? group.pages[0] : null;
   const singlePinnedTitle = singlePinnedPage
     ? (normalizeText(singlePinnedPage.title) || historyFallbackTitle(safeUrl(singlePinnedPage.url)))
@@ -2688,9 +2688,11 @@ function createHistorySiteGroup(group, options = {}) {
   card.classList.toggle("single-page-duplicate", isSinglePinnedDuplicate);
   header.className = "history-site-header";
   homeLink.className = "history-site-home";
-  homeLink.href = homeHref;
-  homeLink.title = homeLabel;
-  homeLink.setAttribute("aria-label", homeLabel);
+  if (!isPinned) {
+    homeLink.href = homeHref;
+    homeLink.title = homeLabel;
+    homeLink.setAttribute("aria-label", homeLabel);
+  }
   icon.className = "history-site-logo";
   applyHistoryIcon(icon, {
     title: group.name,
@@ -2720,13 +2722,13 @@ function createHistoryPageItem(item, options = {}) {
   const row = document.createElement("div");
   const time = document.createElement("time");
   const timelineCard = document.createElement("span");
+  const isPinned = Boolean(options.pinned);
+  const showTimeline = Boolean(options.timeline);
   const link = document.createElement("a");
   const label = document.createElement("span");
   const actions = document.createElement("span");
   const pinButton = document.createElement("button");
   const deleteButton = document.createElement("button");
-  const isPinned = Boolean(options.pinned);
-  const showTimeline = Boolean(options.timeline);
 
   row.className = "history-page-item";
   row.classList.toggle("timeline", showTimeline);
