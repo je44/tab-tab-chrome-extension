@@ -427,10 +427,6 @@ button {
   justify-content: flex-end;
 }
 
-.settings-toggle:active {
-  transform: none;
-}
-
 .theme-toggle-icon {
   display: inline-grid;
   width: 22px;
@@ -753,7 +749,7 @@ h2 {
   background: var(--hover-bg);
 }
 
-.icon-button:active,
+.icon-button:active:not(.settings-toggle),
 .text-button:active {
   transform: translateY(1px);
 }
@@ -873,7 +869,8 @@ select:focus-visible {
   gap: 14px;
   align-content: start;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 2px 2px 20px;
 }
 
@@ -1604,7 +1601,8 @@ select:focus-visible {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
   align-content: start;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
@@ -1670,7 +1668,8 @@ select:focus-visible {
   gap: 6px;
   align-content: start;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
@@ -2401,7 +2400,8 @@ a.history-page-link:hover {
     height: calc(100vh - var(--topbar-height) - 44px);
     border-right: 0;
     border-bottom: 1px solid var(--line);
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .panel.mobile-active {
