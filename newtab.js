@@ -40,16 +40,118 @@ const SEARCH_ENGINE_STORAGE_KEY = "quickSearchEngine";
 const MAX_HISTORY_SITE_GROUPS = 9;
 const MAX_HISTORY_PAGES_PER_SITE = 4;
 const MAX_PINNED_HISTORY_ITEMS = 6;
+const RECENT_HISTORY_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+const MIN_RECENT_DOMAIN_VISITS = 2;
 const MAX_CUSTOM_PORTALS = 48;
 const MAX_PORTAL_TITLE_LENGTH = 32;
 const MAX_PORTAL_URL_LENGTH = 512;
 const MAX_BOOKMARK_FOLDER_OPTIONS = 160;
 const MAX_PORTAL_FEATURED_ITEMS = 6;
-const COLLAPSED_FEATURED_PORTAL_ITEMS = 3;
+const COLLAPSED_FEATURED_PORTAL_ITEMS = 2;
 const MAX_BOOKMARK_PORTAL_ITEMS = 120;
 const MAX_BOOKMARK_HISTORY_ITEMS = 180;
 const MAX_RECENT_BOOKMARK_ITEMS = 2;
 const BOOKMARK_HISTORY_LOOKBACK_DAYS = 45;
+const MEDIA_FEED_SOURCES = [
+  { id: "infoq-cn", title: "InfoQ 中文", language: "zh", url: "https://www.infoq.cn/feed" },
+  { id: "solidot", title: "Solidot", language: "zh", url: "https://www.solidot.org/index.rss" },
+  { id: "qbitai", title: "量子位", language: "zh", url: "https://www.qbitai.com/feed" },
+  { id: "oschina", title: "OSCHINA", language: "zh", url: "https://www.oschina.net/news/rss" },
+  { id: "ruanyifeng", title: "科技爱好者周刊", language: "zh", url: "https://feeds.feedburner.com/ruanyifeng" },
+  { id: "openai-news", title: "OpenAI News", language: "en", url: "https://openai.com/news/rss.xml" },
+  { id: "huggingface-blog", title: "Hugging Face Blog", language: "en", url: "https://huggingface.co/blog/feed.xml" },
+  { id: "latent-space", title: "Latent Space", language: "en", url: "https://www.latent.space/feed" },
+  { id: "pragmatic-engineer", title: "The Pragmatic Engineer", language: "en", url: "https://newsletter.pragmaticengineer.com/feed" },
+  { id: "github-engineering", title: "GitHub Engineering", language: "en", url: "https://github.blog/engineering/feed/" },
+  { id: "cloudflare-blog", title: "Cloudflare Blog", language: "en", url: "https://blog.cloudflare.com/rss/" },
+  { id: "netflix-techblog", title: "Netflix TechBlog", language: "en", url: "https://netflixtechblog.com/feed" },
+  { id: "dan-luu", title: "Dan Luu", language: "en", url: "https://danluu.com/atom.xml" },
+  { id: "lethain", title: "Irrational Exuberance", language: "en", url: "https://lethain.com/feeds.xml" },
+  { id: "mit-tech-review", title: "MIT Technology Review", language: "en", url: "https://www.technologyreview.com/feed/" },
+  { id: "ieee-spectrum", title: "IEEE Spectrum", language: "en", url: "https://spectrum.ieee.org/rss/fulltext" }
+];
+const MEDIA_FEED_SOURCE_PROFILES = {
+  "infoq-cn": { topic: "engineering", score: 9 },
+  solidot: { topic: "science", score: 8 },
+  qbitai: { topic: "ai", score: 9 },
+  oschina: { topic: "engineering", score: 8 },
+  ruanyifeng: { topic: "engineering", score: 9 },
+  "openai-news": { topic: "ai", score: 11 },
+  "huggingface-blog": { topic: "ai", score: 10 },
+  "latent-space": { topic: "ai", score: 10 },
+  "pragmatic-engineer": { topic: "engineering", score: 10 },
+  "github-engineering": { topic: "engineering", score: 10 },
+  "cloudflare-blog": { topic: "engineering", score: 10 },
+  "netflix-techblog": { topic: "engineering", score: 9 },
+  "dan-luu": { topic: "engineering", score: 10 },
+  lethain: { topic: "engineering", score: 9 },
+  "mit-tech-review": { topic: "ai", score: 9 },
+  "ieee-spectrum": { topic: "science", score: 9 }
+};
+const MEDIA_FEED_TOPIC_RULES = [
+  {
+    id: "ai",
+    labelKey: "mediaFeedTopicAi",
+    reasonKey: "mediaFeedReasonAi",
+    keywords: ["ai", "agent", "agents", "llm", "model", "openai", "google ai", "anthropic", "deepseek", "gemini", "gpt", "机器学习", "模型", "智能体", "大模型", "人工智能", "生成式"]
+  },
+  {
+    id: "engineering",
+    labelKey: "mediaFeedTopicEngineering",
+    reasonKey: "mediaFeedReasonEngineering",
+    keywords: ["developer", "github", "open source", "api", "kubernetes", "database", "security", "cloud", "linux", "javascript", "python", "rust", "go ", "工程", "开源", "开发者", "数据库", "云原生", "安全", "漏洞", "代码"]
+  },
+  {
+    id: "business",
+    labelKey: "mediaFeedTopicBusiness",
+    reasonKey: "mediaFeedReasonBusiness",
+    keywords: ["startup", "funding", "ipo", "acquisition", "market", "business", "revenue", "company", "founder", "融资", "上市", "收购", "商业", "创业", "公司", "市场"]
+  },
+  {
+    id: "product",
+    labelKey: "mediaFeedTopicProduct",
+    reasonKey: "mediaFeedReasonProduct",
+    keywords: ["product", "launch", "app", "workflow", "design", "tool", "productivity", "发布", "产品", "工具", "效率", "设计", "体验", "应用"]
+  },
+  {
+    id: "science",
+    labelKey: "mediaFeedTopicScience",
+    reasonKey: "mediaFeedReasonScience",
+    keywords: ["research", "science", "chip", "robot", "quantum", "energy", "space", "ieee", "研究", "科学", "芯片", "机器人", "量子", "航天", "能源"]
+  },
+  {
+    id: "consumer",
+    labelKey: "mediaFeedTopicConsumer",
+    reasonKey: "mediaFeedReasonConsumer",
+    keywords: ["apple", "android", "iphone", "tesla", "ev", "device", "hardware", "gadget", "小米", "苹果", "手机", "硬件", "汽车", "设备", "消费"]
+  }
+];
+const MEDIA_FEED_TYPE_FILTERS = new Set(["all", ...MEDIA_FEED_TOPIC_RULES.map((rule) => rule.id)]);
+const MEDIA_FEED_DISCOVERY_SOURCES = [
+  { id: "v2ex-hot", sourceTitle: "V2EX 热门", language: "zh", topic: "engineering", type: "v2ex", url: "https://www.v2ex.com/api/topics/hot.json", score: 9 },
+  { id: "hackernews-top", sourceTitle: "Hacker News Top", language: "en", topic: "engineering", type: "hn", listUrl: "https://hacker-news.firebaseio.com/v0/topstories.json", score: 10 },
+  { id: "hackernews-best", sourceTitle: "Hacker News Best", language: "en", topic: "engineering", type: "hn", listUrl: "https://hacker-news.firebaseio.com/v0/beststories.json", score: 11 },
+  { id: "hackernews-show", sourceTitle: "Show HN", language: "en", topic: "product", type: "hn", listUrl: "https://hacker-news.firebaseio.com/v0/showstories.json", score: 9 },
+  { id: "lobsters-hot", sourceTitle: "Lobsters", language: "en", topic: "engineering", type: "lobsters", url: "https://lobste.rs/hottest.json", score: 9 },
+  { id: "arxiv-ai", sourceTitle: "arXiv AI", language: "en", topic: "ai", type: "arxiv", category: "cs.AI", score: 10 },
+  { id: "devto-ai", sourceTitle: "DEV.to AI", language: "en", topic: "engineering", type: "devto", tag: "ai", score: 7 },
+  { id: "devto-webdev", sourceTitle: "DEV.to Web Dev", language: "en", topic: "engineering", type: "devto", tag: "webdev", score: 7 }
+];
+const CUSTOM_MEDIA_FEEDS_STORAGE_KEY = "customMediaFeeds";
+const MEDIA_FEED_FEEDBACK_STORAGE_KEY = "mediaFeedFeedback";
+const MEDIA_FEED_ITEM_LIMIT = 48;
+const MEDIA_FEED_SOURCE_ITEM_LIMIT = 8;
+const MEDIA_FEED_DISCOVERY_ITEM_LIMIT = 8;
+const MEDIA_FEED_INITIAL_ITEMS = 12;
+const MEDIA_FEED_PAGE_SIZE = 8;
+const MEDIA_FEED_TIMEOUT_MS = 8500;
+const MAX_CUSTOM_MEDIA_FEEDS = 12;
+const MAX_MEDIA_FEED_FEEDBACK_KEYS = 120;
+const MEDIA_FEED_LARGE_CARD_INTERVAL = 5;
+const LOW_VALUE_MEDIA_FEED_PATTERNS = [
+  /早报|晚报|日报|周报|一周|盘点|合集|汇总|速览|快讯|活动|直播|中奖|优惠|招聘|促销|广告|发布会邀请/,
+  /newsletter|roundup|daily brief|weekly recap|sponsored|webinar|event|hiring|coupon|deal/i
+];
 const DEFAULT_PORTAL_CATEGORY = "developer";
 const DEFAULT_SEARCH_ENGINE = "google";
 const DEFAULT_PORTAL_SECTION_ORDER = ["featured", "active"];
@@ -247,9 +349,14 @@ const SITE_NAME_BY_KEY = {
 const SITE_GROUP_OVERRIDES = {
   "docs.b.ai": "docs.b.ai",
   "drive.google.com": "drive.google.com",
+  "console.firebase.google.com": "firebase.google.com",
+  "firebase.google.com": "firebase.google.com",
   "mail.google.com": "gmail.com",
+  "music.163.com": "music.163.com",
   "developer.mozilla.org": "developer.mozilla.org",
-  "gemini.google.com": "gemini.google.com"
+  "gemini.google.com": "gemini.google.com",
+  "web.wechat.com": "wechat.com",
+  "weixin.qq.com": "wechat.com"
 };
 const HOME_URL_BY_KEY = {
   "developer.mozilla.org": "https://developer.mozilla.org/",
@@ -350,6 +457,107 @@ const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((po
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.icon];
 })));
+const DEFAULT_SITE_ICON_BY_SITE_KEY = Object.freeze({
+  "airbnb.com": "icons/sites/airbnb.svg",
+  "airtable.com": "icons/sites/airtable.svg",
+  "alibabacloud.com": "icons/sites/alibabacloud.svg",
+  "aliexpress.com": "icons/sites/aliexpress.svg",
+  "alipay.com": "icons/sites/alipay.svg",
+  "amd.com": "icons/sites/amd.svg",
+  "angular.dev": "icons/sites/angular.svg",
+  "anthropic.com": "icons/sites/anthropic.svg",
+  "apple.com": "icons/sites/apple.svg",
+  "arxiv.org": "icons/sites/arxiv.svg",
+  "asana.com": "icons/sites/asana.svg",
+  "atlassian.com": "icons/sites/atlassian.svg",
+  "behance.net": "icons/sites/behance.svg",
+  "bitbucket.org": "icons/sites/bitbucket.svg",
+  "booking.com": "icons/sites/bookingdotcom.svg",
+  "box.com": "icons/sites/box.svg",
+  "bsky.app": "icons/sites/bluesky.svg",
+  "bytedance.com": "icons/sites/bytedance.svg",
+  "codesandbox.io": "icons/sites/codesandbox.svg",
+  "coursera.org": "icons/sites/coursera.svg",
+  "deepseek.com": "icons/sites/deepseek.svg",
+  "digitalocean.com": "icons/sites/digitalocean.svg",
+  "docker.com": "icons/sites/docker.svg",
+  "douban.com": "icons/sites/douban.svg",
+  "dribbble.com": "icons/sites/dribbble.svg",
+  "dropbox.com": "icons/sites/dropbox.svg",
+  "duolingo.com": "icons/sites/duolingo.svg",
+  "ebay.com": "icons/sites/ebay.svg",
+  "epicgames.com": "icons/sites/epicgames.svg",
+  "expedia.com": "icons/sites/expedia.svg",
+  "facebook.com": "icons/sites/facebook.svg",
+  "firebase.google.com": "icons/sites/firebase.svg",
+  "gitbook.io": "icons/sites/gitbook.svg",
+  "gitlab.com": "icons/sites/gitlab.svg",
+  "huggingface.co": "icons/sites/huggingface.svg",
+  "icloud.com": "icons/sites/icloud.svg",
+  "ieee.org": "icons/sites/ieee.svg",
+  "instagram.com": "icons/sites/instagram.svg",
+  "intel.com": "icons/sites/intel.svg",
+  "itch.io": "icons/sites/itchdotio.svg",
+  "khanacademy.org": "icons/sites/khanacademy.svg",
+  "kuaishou.com": "icons/sites/kuaishou.svg",
+  "kubernetes.io": "icons/sites/kubernetes.svg",
+  "leetcode.com": "icons/sites/leetcode.svg",
+  "line.me": "icons/sites/line.svg",
+  "linear.app": "icons/sites/linear.svg",
+  "mastodon.social": "icons/sites/mastodon.svg",
+  "medium.com": "icons/sites/medium.svg",
+  "messenger.com": "icons/sites/messenger.svg",
+  "music.163.com": "icons/sites/neteasecloudmusic.svg",
+  "netflix.com": "icons/sites/netflix.svg",
+  "netlify.com": "icons/sites/netlify.svg",
+  "nodejs.org": "icons/sites/nodedotjs.svg",
+  "npmjs.com": "icons/sites/npm.svg",
+  "nvidia.com": "icons/sites/nvidia.svg",
+  "obsidian.md": "icons/sites/obsidian.svg",
+  "paypal.com": "icons/sites/paypal.svg",
+  "pinterest.com": "icons/sites/pinterest.svg",
+  "producthunt.com": "icons/sites/producthunt.svg",
+  "proton.me": "icons/sites/protonmail.svg",
+  "pypi.org": "icons/sites/pypi.svg",
+  "python.org": "icons/sites/python.svg",
+  "quora.com": "icons/sites/quora.svg",
+  "react.dev": "icons/sites/react.svg",
+  "reddit.com": "icons/sites/reddit.svg",
+  "replit.com": "icons/sites/replit.svg",
+  "roblox.com": "icons/sites/roblox.svg",
+  "shopify.com": "icons/sites/shopify.svg",
+  "soundcloud.com": "icons/sites/soundcloud.svg",
+  "spotify.com": "icons/sites/spotify.svg",
+  "stackoverflow.com": "icons/sites/stackoverflow.svg",
+  "steamcommunity.com": "icons/sites/steam.svg",
+  "steampowered.com": "icons/sites/steam.svg",
+  "stripe.com": "icons/sites/stripe.svg",
+  "substack.com": "icons/sites/substack.svg",
+  "supabase.com": "icons/sites/supabase.svg",
+  "svelte.dev": "icons/sites/svelte.svg",
+  "telegram.org": "icons/sites/telegram.svg",
+  "threads.net": "icons/sites/threads.svg",
+  "tiktok.com": "icons/sites/tiktok.svg",
+  "trello.com": "icons/sites/trello.svg",
+  "tripadvisor.com": "icons/sites/tripadvisor.svg",
+  "tumblr.com": "icons/sites/tumblr.svg",
+  "twitch.tv": "icons/sites/twitch.svg",
+  "udemy.com": "icons/sites/udemy.svg",
+  "vimeo.com": "icons/sites/vimeo.svg",
+  "vuejs.org": "icons/sites/vuedotjs.svg",
+  "wechat.com": "icons/sites/wechat.svg",
+  "whatsapp.com": "icons/sites/whatsapp.svg",
+  "wikipedia.org": "icons/sites/wikipedia.svg",
+  "wolfram.com": "icons/sites/wolfram.svg",
+  "wordpress.com": "icons/sites/wordpress.svg",
+  "x.com": "icons/sites/x.svg",
+  "yelp.com": "icons/sites/yelp.svg",
+  "zoom.us": "icons/sites/zoom.svg"
+});
+const SITE_ICON_BY_SITE_KEY = Object.freeze({
+  ...DEFAULT_SITE_ICON_BY_SITE_KEY,
+  ...PORTAL_ICON_BY_SITE_KEY
+});
 const PORTAL_CATEGORY_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.category];
@@ -360,10 +568,12 @@ const MESSAGES = {
   "zh-CN": {
     topbarLabel: "顶部功能区",
     shellLabel: "tab-tab 控制台",
-    portalTitle: "常用网站",
+    portalTitle: "导航中枢",
     mobilePortalTab: "快捷",
-    mobileBookmarkTab: "书签",
+    mobileMediaTab: "信息",
     mobileHistoryTab: "历史",
+    smartPortalTab: "智能常用",
+    bookmarkPortalTab: "自选书签",
     portalCategoryFeatured: "常用入口",
     portalCategoryRecentBookmarks: "最近加入书签",
     portalCategoryCustom: "自定义",
@@ -377,12 +587,10 @@ const MESSAGES = {
     portalCategoryDesign: "设计",
     portalCategoryOther: "其他",
     portalCategories: "智能分类",
-    portalCategoriesExpand: "展开 {count} 项",
+    portalCategoriesExpand: "展开",
     portalCategoriesCollapse: "收起",
     featuredPortalsExpand: "展开",
     featuredPortalsCollapse: "收起",
-    portalSourceBookmarks: "本地智能分类 · 自动合并书签",
-    portalSourceFallback: "默认入口 · 授权后自动智能分类",
     addPortal: "添加入口",
     portalName: "名称",
     portalUrl: "网址",
@@ -391,7 +599,49 @@ const MESSAGES = {
     portalUrlPlaceholder: "https://www.notion.so",
     cancel: "取消",
     add: "添加",
-    bookmarksTitle: "书签",
+    mediaTitle: "信息流",
+    mediaFeedLoadingTitle: "正在读取信息流",
+    mediaFeedLoadingBody: "稍后会显示最新资讯。",
+    mediaFeedUpdated: "刚刚更新",
+    mediaFeedFailedTitle: "暂时无法读取",
+    mediaFeedFailedBody: "接口没有返回可显示内容，请稍后刷新。",
+    mediaFeedEmptyTitle: "暂无资讯",
+    mediaFeedEmptyBody: "接口暂时没有返回可显示内容。",
+    mediaFeedRefresh: "刷新信息流",
+    mediaFeedMore: "更多",
+    mediaFeedNotInterested: "不感兴趣",
+    mediaFeedNotInterestedDone: "已减少类似内容",
+    mediaFeedAutoLoad: "继续滚动加载更多",
+    mediaFeedAgentFocus: "Agent 重点",
+    mediaFeedAgentStream: "继续跟踪",
+    mediaFeedTopicAi: "AI",
+    mediaFeedTopicEngineering: "工程",
+    mediaFeedTopicBusiness: "商业",
+    mediaFeedTopicProduct: "产品",
+    mediaFeedTopicScience: "深科技",
+    mediaFeedTopicConsumer: "消费科技",
+    mediaFeedReasonAi: "模型、智能体或 AI 基础设施信号",
+    mediaFeedReasonEngineering: "工程实践、开源或开发者生态信号",
+    mediaFeedReasonBusiness: "公司、市场或商业模式变化",
+    mediaFeedReasonProduct: "新产品、工具或效率工作流",
+    mediaFeedReasonScience: "研究、硬件或前沿技术进展",
+    mediaFeedReasonConsumer: "设备、平台或消费科技变化",
+    mediaFeedReasonDefault: "来源多样化后的高价值条目",
+    mediaFeedMetricHn: "{score} 分 · {comments} 条讨论",
+    mediaFeedMetricReplies: "{count} 条回复",
+    mediaFeedMetricReactions: "{reactions} 个反应 · {comments} 条讨论",
+    mediaFeedAdd: "添加信息源",
+    mediaFeedTypeTabs: "资讯流类型",
+    mediaFeedTypeAll: "全部",
+    mediaFeedUrl: "RSS 地址",
+    mediaFeedLanguage: "语言",
+    mediaFeedUrlPlaceholder: "https://example.com/feed.xml",
+    mediaFeedDefaultSources: "默认源",
+    mediaFeedInvalidUrl: "请输入 http 或 https 开头的 RSS 地址。",
+    mediaFeedLimit: "自定义信息源最多 {count} 个。",
+    mediaFeedSaveFailed: "保存信息源失败，请稍后重试。",
+    mediaFeedLanguageZh: "中文",
+    mediaFeedLanguageEn: "English",
     refreshBookmarkFolder: "刷新当前书签文件夹",
     switchBookmarkLayoutToList: "切换为列表显示",
     switchBookmarkLayoutToGrid: "切换为一行 4 个显示",
@@ -461,9 +711,11 @@ const MESSAGES = {
     website: "网站"
   },
   "zh-TW": {
-    portalTitle: "常用網站",
+    portalTitle: "導航中樞",
     mobilePortalTab: "快捷",
-    mobileBookmarkTab: "書籤",
+    mobileMediaTab: "資訊",
+    smartPortalTab: "智能常用",
+    bookmarkPortalTab: "自選書籤",
     mobileHistoryTab: "歷史",
     quickSearchPlaceholder: "搜尋或輸入網址",
     quickSearch: "搜尋",
@@ -471,14 +723,12 @@ const MESSAGES = {
     quickSearchWith: "使用 {engine} 搜尋",
     portalCategoryItems: "{count} 個入口",
     portalCategories: "智能分類",
-    portalCategoriesExpand: "展開 {count} 項",
+    portalCategoriesExpand: "展開",
     portalCategoriesCollapse: "收起",
     featuredPortalsExpand: "展开",
     featuredPortalsCollapse: "收起",
     portalCategoryFeatured: "常用入口",
     portalCategoryRecentBookmarks: "最近加入書籤",
-    portalSourceBookmarks: "本地智能分類 · 自動合併書籤",
-    portalSourceFallback: "預設入口 · 授權後自動智能分類",
     historyJustNow: "剛剛",
     historyMinutesAgo: "{count} 分鐘前",
     historyHoursAgo: "{count} 小時前",
@@ -487,7 +737,49 @@ const MESSAGES = {
     cancel: "取消",
     add: "新增",
     addPortal: "新增入口",
-    bookmarksTitle: "書籤",
+    mediaTitle: "資訊流",
+    mediaFeedLoadingTitle: "正在讀取資訊流",
+    mediaFeedLoadingBody: "稍後會顯示最新資訊。",
+    mediaFeedUpdated: "剛剛更新",
+    mediaFeedFailedTitle: "暫時無法讀取",
+    mediaFeedFailedBody: "介面沒有返回可顯示內容，請稍後刷新。",
+    mediaFeedEmptyTitle: "暫無資訊",
+    mediaFeedEmptyBody: "介面暫時沒有返回可顯示內容。",
+    mediaFeedRefresh: "刷新資訊流",
+    mediaFeedMore: "更多",
+    mediaFeedNotInterested: "不感興趣",
+    mediaFeedNotInterestedDone: "已減少類似內容",
+    mediaFeedAutoLoad: "繼續滾動載入更多",
+    mediaFeedAgentFocus: "Agent 重點",
+    mediaFeedAgentStream: "繼續跟蹤",
+    mediaFeedTopicAi: "AI",
+    mediaFeedTopicEngineering: "工程",
+    mediaFeedTopicBusiness: "商業",
+    mediaFeedTopicProduct: "產品",
+    mediaFeedTopicScience: "深科技",
+    mediaFeedTopicConsumer: "消費科技",
+    mediaFeedReasonAi: "模型、智能體或 AI 基礎設施信號",
+    mediaFeedReasonEngineering: "工程實踐、開源或開發者生態信號",
+    mediaFeedReasonBusiness: "公司、市場或商業模式變化",
+    mediaFeedReasonProduct: "新產品、工具或效率工作流",
+    mediaFeedReasonScience: "研究、硬體或前沿技術進展",
+    mediaFeedReasonConsumer: "設備、平台或消費科技變化",
+    mediaFeedReasonDefault: "來源多樣化後的高價值條目",
+    mediaFeedMetricHn: "{score} 分 · {comments} 條討論",
+    mediaFeedMetricReplies: "{count} 條回覆",
+    mediaFeedMetricReactions: "{reactions} 個反應 · {comments} 條討論",
+    mediaFeedAdd: "新增資訊源",
+    mediaFeedTypeTabs: "資訊流類型",
+    mediaFeedTypeAll: "全部",
+    mediaFeedUrl: "RSS 地址",
+    mediaFeedLanguage: "語言",
+    mediaFeedUrlPlaceholder: "https://example.com/feed.xml",
+    mediaFeedDefaultSources: "預設源",
+    mediaFeedInvalidUrl: "請輸入 http 或 https 開頭的 RSS 地址。",
+    mediaFeedLimit: "自訂資訊源最多 {count} 個。",
+    mediaFeedSaveFailed: "儲存資訊源失敗，請稍後重試。",
+    mediaFeedLanguageZh: "中文",
+    mediaFeedLanguageEn: "English",
     back: "返回",
     chooseBookmarkFolderPrompt: "選擇一個書籤資料夾",
     historyTitle: "最近瀏覽",
@@ -508,10 +800,12 @@ const MESSAGES = {
   en: {
     topbarLabel: "Top bar",
     shellLabel: "tab-tab dashboard",
-    portalTitle: "Top sites",
+    portalTitle: "Navigation hub",
     mobilePortalTab: "Shortcuts",
-    mobileBookmarkTab: "Bookmarks",
+    mobileMediaTab: "Media",
     mobileHistoryTab: "History",
+    smartPortalTab: "Smart",
+    bookmarkPortalTab: "Bookmarks",
     portalCategoryFeatured: "Frequent shortcuts",
     portalCategoryRecentBookmarks: "Recently bookmarked",
     portalCategoryCustom: "Custom",
@@ -525,12 +819,10 @@ const MESSAGES = {
     portalCategoryDesign: "Design",
     portalCategoryOther: "Other",
     portalCategories: "Smart categories",
-    portalCategoriesExpand: "Show {count} more",
+    portalCategoriesExpand: "Expand",
     portalCategoriesCollapse: "Collapse",
     featuredPortalsExpand: "Expand",
     featuredPortalsCollapse: "Collapse",
-    portalSourceBookmarks: "Local smart sorting · Bookmarks merged automatically",
-    portalSourceFallback: "Default shortcuts · Smart sorting after bookmark permission",
     addPortal: "Add portal",
     portalName: "Name",
     portalUrl: "URL",
@@ -539,7 +831,47 @@ const MESSAGES = {
     portalUrlPlaceholder: "https://www.notion.so",
     cancel: "Cancel",
     add: "Add",
-    bookmarksTitle: "Bookmarks",
+    mediaTitle: "Media feed",
+    mediaFeedLoadingTitle: "Loading feed",
+    mediaFeedLoadingBody: "Latest stories will appear here shortly.",
+    mediaFeedUpdated: "Updated just now",
+    mediaFeedFailedTitle: "Could not load feed",
+    mediaFeedFailedBody: "The feed API did not return displayable items. Refresh later.",
+    mediaFeedEmptyTitle: "No stories",
+    mediaFeedEmptyBody: "The feed API has no displayable stories right now.",
+    mediaFeedRefresh: "Refresh feed",
+    mediaFeedMore: "More",
+    mediaFeedAutoLoad: "Scroll for more",
+    mediaFeedAgentFocus: "Agent focus",
+    mediaFeedAgentStream: "Tracking next",
+    mediaFeedTopicAi: "AI",
+    mediaFeedTopicEngineering: "Engineering",
+    mediaFeedTopicBusiness: "Business",
+    mediaFeedTopicProduct: "Product",
+    mediaFeedTopicScience: "Deep tech",
+    mediaFeedTopicConsumer: "Consumer tech",
+    mediaFeedReasonAi: "Model, agent, or AI infrastructure signal",
+    mediaFeedReasonEngineering: "Engineering, open-source, or developer ecosystem signal",
+    mediaFeedReasonBusiness: "Company, market, or business model shift",
+    mediaFeedReasonProduct: "New product, tool, or productivity workflow",
+    mediaFeedReasonScience: "Research, hardware, or frontier technology progress",
+    mediaFeedReasonConsumer: "Device, platform, or consumer technology shift",
+    mediaFeedReasonDefault: "High-value item after source diversification",
+    mediaFeedMetricHn: "{score} points · {comments} comments",
+    mediaFeedMetricReplies: "{count} replies",
+    mediaFeedMetricReactions: "{reactions} reactions · {comments} comments",
+    mediaFeedAdd: "Add feed",
+    mediaFeedTypeTabs: "Feed type",
+    mediaFeedTypeAll: "All",
+    mediaFeedUrl: "RSS URL",
+    mediaFeedLanguage: "Language",
+    mediaFeedUrlPlaceholder: "https://example.com/feed.xml",
+    mediaFeedDefaultSources: "Default feeds",
+    mediaFeedInvalidUrl: "Enter an RSS URL that starts with http or https.",
+    mediaFeedLimit: "You can add up to {count} custom feeds.",
+    mediaFeedSaveFailed: "Could not save this feed. Try again later.",
+    mediaFeedLanguageZh: "Chinese",
+    mediaFeedLanguageEn: "English",
     refreshBookmarkFolder: "Refresh current bookmark folder",
     switchBookmarkLayoutToList: "Switch to list view",
     switchBookmarkLayoutToGrid: "Switch to 4-column grid view",
@@ -603,13 +935,16 @@ const MESSAGES = {
     noHistoryItems: "No recent browsing yet.",
     openSiteHome: "Open {name} home page",
     openPage: "Open {title}",
+    mediaFeedMore: "More",
+    mediaFeedNotInterested: "Not interested",
+    mediaFeedNotInterestedDone: "Showing fewer like this",
     unpin: "Unpin",
     pin: "Pin",
     unnamedPage: "Untitled page",
     website: "Website"
   },
   ja: {
-    portalTitle: "人気のおすすめ",
+    portalTitle: "ナビゲーションハブ",
     addPortal: "入口を追加",
     portalName: "名前",
     portalUrl: "URL",
@@ -629,7 +964,7 @@ const MESSAGES = {
     website: "Website"
   },
   ko: {
-    portalTitle: "인기 추천",
+    portalTitle: "탐색 허브",
     addPortal: "항목 추가",
     portalName: "이름",
     portalUrl: "URL",
@@ -649,7 +984,7 @@ const MESSAGES = {
     website: "Website"
   },
   es: {
-    portalTitle: "Recomendados",
+    portalTitle: "Centro de navegación",
     addPortal: "Agregar acceso",
     portalName: "Nombre",
     portalUrl: "URL",
@@ -669,7 +1004,7 @@ const MESSAGES = {
     website: "Website"
   },
   fr: {
-    portalTitle: "Recommandés",
+    portalTitle: "Centre de navigation",
     addPortal: "Ajouter un raccourci",
     portalName: "Nom",
     portalUrl: "URL",
@@ -689,7 +1024,7 @@ const MESSAGES = {
     website: "Website"
   },
   de: {
-    portalTitle: "Empfohlen",
+    portalTitle: "Navigationszentrale",
     addPortal: "Eintrag hinzufügen",
     portalName: "Name",
     portalUrl: "URL",
@@ -710,21 +1045,38 @@ const MESSAGES = {
   }
 };
 const LOCALE = resolveLocale();
+const MEDIA_FEED_LOCALE_LANGUAGE = mediaFeedLanguageForLocale(LOCALE);
 
 const portalGrid = document.querySelector("#portalGrid");
-const portalSourceText = document.querySelector("#portalSourceText");
+const portalModeTabs = [...document.querySelectorAll("[data-portal-view]")];
+const portalViews = [...document.querySelectorAll(".portal-view")];
 const bookmarkGrid = document.querySelector("#bookmarkGrid");
 const bookmarkMainView = document.querySelector("#bookmarkMainView");
 const bookmarkFolderMeta = document.querySelector("#bookmarkFolderMeta");
 const bookmarkPicker = document.querySelector("#bookmarkPicker");
+const bookmarkPickerToolbar = document.querySelector("#bookmarkPickerToolbar");
 const bookmarkFolderList = document.querySelector("#bookmarkFolderList");
 const chooseBookmarkFolderButton = document.querySelector("#chooseBookmarkFolderButton");
 const refreshBookmarkFolderButton = document.querySelector("#refreshBookmarkFolderButton");
 const toggleBookmarkLayoutButton = document.querySelector("#toggleBookmarkLayoutButton");
 const closeBookmarkPickerButton = document.querySelector("#closeBookmarkPickerButton");
+const bookmarkPickerTitle = document.querySelector("#bookmarkPickerTitle");
 const pinnedGrid = document.querySelector("#pinnedGrid");
 const historyGrid = document.querySelector("#historyGrid");
 const refreshHistoryButton = document.querySelector("#refreshHistoryButton");
+const mediaFeedList = document.querySelector("#mediaFeedList");
+const mediaFeedState = document.querySelector("#mediaFeedState");
+const mediaFeedUpdated = document.querySelector("#mediaFeedUpdated");
+const refreshMediaFeedButton = document.querySelector("#refreshMediaFeedButton");
+const toggleMediaFeedFormButton = document.querySelector("#toggleMediaFeedFormButton");
+const mediaFeedForm = document.querySelector("#mediaFeedForm");
+const mediaFeedUrlInput = document.querySelector("#mediaFeedUrlInput");
+const mediaFeedLanguageSelect = document.querySelector("#mediaFeedLanguageSelect");
+const mediaFeedDefaultList = document.querySelector("#mediaFeedDefaultList");
+const mediaFeedFormError = document.querySelector("#mediaFeedFormError");
+const cancelMediaFeedButton = document.querySelector("#cancelMediaFeedButton");
+const mediaFeedTypeTabs = document.querySelector("#mediaFeedTypeTabs");
+const mediaFeedTypeButtons = [...document.querySelectorAll("[data-media-feed-type]")];
 const siteCardTemplate = document.querySelector("#siteCardTemplate");
 const settingsButton = document.querySelector("#settingsButton");
 const settingsPanel = document.querySelector("#settingsPanel");
@@ -757,13 +1109,77 @@ let activeSearchEngine = DEFAULT_SEARCH_ENGINE;
 let draggedPortalSectionRole = "";
 let portalCategoriesExpanded = false;
 let featuredPortalsExpanded = true;
+let activePortalView = "smart";
 let activeThemeMode = DEFAULT_THEME_MODE;
 let activeThemePalette = DEFAULT_THEME_PALETTE;
 let activeCustomThemeColors = { ...DEFAULT_CUSTOM_THEME_COLORS };
 let systemThemeQuery = null;
 let settingsPanelCloseTimer = 0;
+let activeMediaFeedType = "all";
+let latestMediaFeedItems = [];
+let visibleMediaFeedItems = [];
+let mediaFeedVisibleCount = MEDIA_FEED_INITIAL_ITEMS;
+let mediaFeedObserver = null;
+let mediaFeedRefreshSeed = 0;
+let activeMediaFeedFeedback = normalizeMediaFeedFeedback();
+let activeMediaFeedActionMenu = null;
+const mediaFeedLoadMoreSentinel = document.createElement("div");
+mediaFeedLoadMoreSentinel.className = "media-feed-load-more";
+mediaFeedLoadMoreSentinel.setAttribute("role", "status");
 
+ensureChromeApiFallback();
 document.addEventListener("DOMContentLoaded", init);
+
+function ensureChromeApiFallback() {
+  if (globalThis.chrome?.storage?.local && globalThis.chrome?.history && globalThis.chrome?.bookmarks) {
+    return;
+  }
+  const memoryStore = {};
+  const emptyEvent = { addListener: () => {}, removeListener: () => {} };
+  globalThis.chrome = {
+    ...globalThis.chrome,
+    i18n: globalThis.chrome?.i18n || { getUILanguage: () => navigator.language },
+    runtime: globalThis.chrome?.runtime || { getURL: (path) => path },
+    storage: {
+      ...globalThis.chrome?.storage,
+      local: globalThis.chrome?.storage?.local || {
+        async get(defaults = {}) {
+          return { ...defaults, ...memoryStore };
+        },
+        async set(values = {}) {
+          Object.assign(memoryStore, values);
+        }
+      }
+    },
+    history: globalThis.chrome?.history || {
+      async search() {
+        return [];
+      },
+      async getVisits() {
+        return [];
+      },
+      async deleteUrl() {}
+    },
+    bookmarks: globalThis.chrome?.bookmarks || {
+      async getTree() {
+        return [{ id: "0", title: "Bookmarks", children: [] }];
+      },
+      async getChildren() {
+        return [];
+      },
+      async get() {
+        return [];
+      },
+      async remove() {},
+      onCreated: emptyEvent,
+      onRemoved: emptyEvent,
+      onChanged: emptyEvent,
+      onMoved: emptyEvent,
+      onChildrenReordered: emptyEvent,
+      onImportEnded: emptyEvent
+    }
+  };
+}
 
 function resolveLocale() {
   const languageCandidates = [
@@ -796,6 +1212,10 @@ function t(key, values = {}) {
   return template.replace(/\{(\w+)\}/g, (_, valueKey) => String(values[valueKey] ?? ""));
 }
 
+function mediaFeedLanguageForLocale(locale) {
+  return String(locale || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
 function messageTemplate(key) {
   if (MESSAGES[LOCALE]?.[key]) {
     return MESSAGES[LOCALE][key];
@@ -811,15 +1231,15 @@ function applyLocale() {
   document.querySelector(".topbar")?.setAttribute("aria-label", t("topbarLabel"));
   document.querySelector(".shell")?.setAttribute("aria-label", t("shellLabel"));
   document.querySelector("#portal-title").textContent = t("portalTitle");
-  if (portalSourceText) {
-    portalSourceText.textContent = t("portalSourceFallback");
-  }
-  document.querySelector("#bookmark-title").textContent = t("bookmarksTitle");
+  document.querySelector("#smartPortalTab").textContent = t("smartPortalTab");
+  document.querySelector("#bookmarkPortalTab").textContent = t("bookmarkPortalTab");
+  document.querySelector("#media-title").textContent = t("mediaTitle");
+  applyMediaFeedTypeLocale();
   document.querySelector("#history-title").textContent = t("historyTitle");
   document.querySelector("#pinned-title").textContent = t("pinnedTitle");
   document.querySelector("#recent-title").textContent = t("recentTitle");
   setMobileTabLabel("portalPanel", t("mobilePortalTab"));
-  setMobileTabLabel("bookmarkPanel", t("mobileBookmarkTab"));
+  setMobileTabLabel("mediaPanel", t("mobileMediaTab"));
   setMobileTabLabel("historyPanel", t("mobileHistoryTab"));
 
   setButtonLabel(togglePortalFormButton, t("addPortal"));
@@ -827,6 +1247,8 @@ function applyLocale() {
   updateBookmarkLayoutButton();
   setButtonLabel(chooseBookmarkFolderButton, t("chooseBookmarkFolder"));
   setButtonLabel(refreshHistoryButton, t("refreshHistory"));
+  setButtonLabel(refreshMediaFeedButton, t("mediaFeedRefresh"));
+  setButtonLabel(toggleMediaFeedFormButton, t("mediaFeedAdd"));
   setButtonLabel(settingsButton, t("openSettings"));
   setButtonLabel(closeSettingsButton, t("closeSettings"));
   setStaticButtonIcons();
@@ -853,11 +1275,9 @@ function applyLocale() {
   portalUrlInput.placeholder = t("portalUrlPlaceholder");
   cancelPortalButton.textContent = t("cancel");
   portalForm.querySelector('button[type="submit"]').textContent = t("add");
-  closeBookmarkPickerButton.textContent = t("back");
-  const bookmarkPickerTitle = document.querySelector(".bookmark-picker-toolbar span");
-  if (bookmarkPickerTitle) {
-    bookmarkPickerTitle.textContent = t("chooseBookmarkFolderPrompt");
-  }
+  applyMediaFeedFormLocale();
+  setButtonLabel(closeBookmarkPickerButton, t("back"));
+  bookmarkPickerTitle.textContent = t("chooseBookmarkFolderPrompt");
 }
 
 function setMobileTabLabel(panelId, label) {
@@ -879,9 +1299,37 @@ function setStaticButtonIcons() {
   togglePortalFormButton.querySelector(".button-icon").innerHTML = plusIcon();
   refreshBookmarkFolderButton.querySelector(".button-icon").innerHTML = refreshIcon();
   chooseBookmarkFolderButton.querySelector(".button-icon").innerHTML = folderPlusIcon();
+  closeBookmarkPickerButton.querySelector(".button-icon").innerHTML = arrowLeftIcon();
   refreshHistoryButton.querySelector(".button-icon").innerHTML = refreshIcon();
+  refreshMediaFeedButton.querySelector(".button-icon").innerHTML = refreshIcon();
+  toggleMediaFeedFormButton.querySelector(".button-icon").innerHTML = plusIcon();
   settingsButton.querySelector(".theme-toggle-icon").innerHTML = settingsIcon();
   closeSettingsButton.querySelector(".button-icon").innerHTML = closeIcon();
+  document.querySelector(".media-placeholder .empty-mark").innerHTML = newspaperIcon();
+}
+
+function applyMediaFeedFormLocale() {
+  mediaFeedUrlInput.closest("label").querySelector("span").textContent = t("mediaFeedUrl");
+  mediaFeedLanguageSelect.closest("label").querySelector("span").textContent = t("mediaFeedLanguage");
+  mediaFeedUrlInput.placeholder = t("mediaFeedUrlPlaceholder");
+  mediaFeedLanguageSelect.querySelector('option[value="zh"]').textContent = t("mediaFeedLanguageZh");
+  mediaFeedLanguageSelect.querySelector('option[value="en"]').textContent = t("mediaFeedLanguageEn");
+  cancelMediaFeedButton.textContent = t("cancel");
+  mediaFeedForm.querySelector('button[type="submit"]').textContent = t("add");
+  renderMediaFeedDefaultList();
+}
+
+function applyMediaFeedTypeLocale() {
+  mediaFeedTypeTabs?.setAttribute("aria-label", t("mediaFeedTypeTabs"));
+  mediaFeedTypeButtons.forEach((button) => {
+    const type = button.dataset.mediaFeedType;
+    if (type === "all") {
+      button.textContent = t("mediaFeedTypeAll");
+    } else {
+      const rule = MEDIA_FEED_TOPIC_RULES.find((topic) => topic.id === type);
+      button.textContent = rule ? t(rule.labelKey) : type;
+    }
+  });
 }
 
 function applySettingsLocale() {
@@ -903,6 +1351,7 @@ function init() {
   renderPortals();
   initBookmarkLayout();
   renderSelectedBookmarkFolder();
+  initMediaFeedFeedback().finally(refreshMediaFeed);
   refreshHistory();
 
   chooseBookmarkFolderButton.addEventListener("click", openBookmarkPicker);
@@ -910,10 +1359,22 @@ function init() {
   toggleBookmarkLayoutButton.addEventListener("click", toggleBookmarkLayout);
   closeBookmarkPickerButton.addEventListener("click", closeBookmarkPicker);
   refreshHistoryButton.addEventListener("click", refreshHistory);
+  refreshMediaFeedButton.addEventListener("click", refreshMediaFeed);
+  toggleMediaFeedFormButton.addEventListener("click", toggleMediaFeedForm);
+  cancelMediaFeedButton.addEventListener("click", hideMediaFeedForm);
+  mediaFeedForm.addEventListener("submit", handleMediaFeedSubmit);
+  mediaFeedList.addEventListener("scroll", loadMoreMediaFeedIfNeeded, { passive: true });
+  document.addEventListener("click", handleDocumentClickForMediaFeedMenu);
+  mediaFeedTypeButtons.forEach((button) => {
+    button.addEventListener("click", () => activateMediaFeedType(button.dataset.mediaFeedType));
+  });
   quickSearchForm.addEventListener("submit", handleQuickSearchSubmit);
   quickSearchInput.addEventListener("keydown", handleQuickSearchInputKeydown);
   quickSearchEngineButton.addEventListener("click", toggleSearchEngineMenu);
   quickSearchEngineButton.addEventListener("keydown", handleSearchEngineButtonKeydown);
+  portalModeTabs.forEach((tab) => {
+    tab.addEventListener("click", () => activatePortalView(tab.dataset.portalView));
+  });
   togglePortalFormButton.addEventListener("click", showPortalForm);
   cancelPortalButton.addEventListener("click", hidePortalForm);
   portalForm.addEventListener("submit", handlePortalSubmit);
@@ -933,6 +1394,28 @@ function init() {
   document.addEventListener("keydown", handleBookmarkDeleteEscape);
   document.addEventListener("keydown", handleGlobalEscape);
   bindBookmarkChangeEvents();
+}
+
+function activatePortalView(view) {
+  const nextView = view === "bookmarks" ? "bookmarks" : "smart";
+  activePortalView = nextView;
+  document.querySelector(".portal-mode-tabs")?.setAttribute("data-active-view", nextView);
+  portalModeTabs.forEach((tab) => {
+    const isActive = tab.dataset.portalView === nextView;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+    tab.tabIndex = isActive ? 0 : -1;
+  });
+  portalViews.forEach((viewNode) => {
+    const isActive = viewNode.id === (nextView === "bookmarks" ? "bookmarkPortalView" : "smartPortalView");
+    viewNode.classList.toggle("active", isActive);
+    viewNode.hidden = !isActive;
+  });
+  togglePortalFormButton.hidden = nextView === "bookmarks";
+  clearBookmarkDeleteMode();
+  if (nextView === "bookmarks" && bookmarkPicker.hidden) {
+    renderSelectedBookmarkFolder();
+  }
 }
 
 function activateMobilePanel(panelId) {
@@ -1397,7 +1880,10 @@ async function saveThemePaletteSettings() {
 }
 
 function updateThemeSettingsUi() {
-  document.querySelectorAll("[data-theme-mode]").forEach((button) => {
+  const themeModeOptions = [...document.querySelectorAll("[data-theme-mode]")];
+  const activeThemeModeIndex = Math.max(0, themeModeOptions.findIndex((button) => button.dataset.themeMode === activeThemeMode));
+  document.querySelector(".theme-mode-control")?.setAttribute("data-active-index", String(activeThemeModeIndex));
+  themeModeOptions.forEach((button) => {
     const isActive = button.dataset.themeMode === activeThemeMode;
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
@@ -1513,9 +1999,6 @@ async function renderPortals() {
   const sectionOrder = await loadPortalSectionOrder();
   portalCategoriesExpanded = await loadPortalCategoriesExpanded();
   featuredPortalsExpanded = await loadFeaturedPortalsExpanded();
-  if (portalSourceText) {
-    portalSourceText.textContent = t(portalData.usingBookmarks ? "portalSourceBookmarks" : "portalSourceFallback");
-  }
   activePortalCategory = resolvedActivePortalCategory(groups);
   if (groups.length) {
     fragment.appendChild(createPortalCategoryTabs(groups, portalCategoriesExpanded));
@@ -1622,7 +2105,7 @@ function applyPortalCategoryExpansionState(expanded) {
   toggleButton.setAttribute("aria-expanded", String(expanded));
   toggleButton.querySelector(".portal-switcher-toggle-label").textContent = expanded
     ? t("portalCategoriesCollapse")
-    : t("portalCategoriesExpand", { count: hiddenCount });
+    : t("portalCategoriesExpand");
 }
 
 async function toggleFeaturedPortalsExpanded(section) {
@@ -1647,6 +2130,9 @@ function applyFeaturedPortalsExpansionState(section, expanded) {
   toggleButton.querySelector(".portal-category-toggle-label").textContent = expanded || !isCollapsible
     ? t("featuredPortalsCollapse")
     : t("featuredPortalsExpand");
+  toggleButton.querySelector(".portal-category-toggle-icon").innerHTML = expanded || !isCollapsible
+    ? chevronUpIcon()
+    : chevronDownIcon();
 }
 
 async function swapPortalSectionOrder(sourceRole, targetRole) {
@@ -1944,7 +2430,7 @@ function createPortalCategoryTabs(groups, expanded) {
   toggleButton.hidden = hiddenCount === 0;
   toggleButton.setAttribute("aria-expanded", String(expanded));
   toggleLabel.className = "portal-switcher-toggle-label";
-  toggleLabel.textContent = expanded ? t("portalCategoriesCollapse") : t("portalCategoriesExpand", { count: hiddenCount });
+  toggleLabel.textContent = expanded ? t("portalCategoriesCollapse") : t("portalCategoriesExpand");
   toggleIcon.className = "portal-switcher-toggle-icon";
   toggleIcon.setAttribute("aria-hidden", "true");
   toggleIcon.innerHTML = chevronDownIcon();
@@ -2020,7 +2506,6 @@ function createPortalCategorySection(group) {
   const section = document.createElement("section");
   const header = document.createElement("header");
   const title = document.createElement("h3");
-  const count = document.createElement("span");
   const headingActions = document.createElement("span");
   const grid = document.createElement("div");
   const visibleItems = group.featured
@@ -2046,8 +2531,6 @@ function createPortalCategorySection(group) {
   }
   title.className = "portal-category-title";
   title.textContent = portalCategoryLabel(group.category);
-  count.className = "portal-category-count";
-  count.textContent = String(group.items.length);
   grid.className = "portal-category-grid";
   if (group.featured) {
     grid.id = "featuredPortalGrid";
@@ -2060,7 +2543,6 @@ function createPortalCategorySection(group) {
     grid.appendChild(card);
   });
   headingActions.className = "portal-category-actions";
-  headingActions.appendChild(count);
   if (group.featured && hiddenCount > 0) {
     const toggleButton = document.createElement("button");
     const toggleLabel = document.createElement("span");
@@ -2075,7 +2557,7 @@ function createPortalCategorySection(group) {
       : t("featuredPortalsExpand");
     toggleIcon.className = "portal-category-toggle-icon";
     toggleIcon.setAttribute("aria-hidden", "true");
-    toggleIcon.innerHTML = chevronDownIcon();
+    toggleIcon.innerHTML = isExpanded ? chevronUpIcon() : chevronDownIcon();
     toggleButton.append(toggleLabel, toggleIcon);
     toggleButton.addEventListener("click", () => toggleFeaturedPortalsExpanded(section));
     headingActions.appendChild(toggleButton);
@@ -2205,7 +2687,7 @@ function applySiteIcon(icon, site) {
 function localIconForUrl(url) {
   const parsedUrl = safeUrl(url);
   const siteKey = siteGroupKey(parsedUrl);
-  return siteKey ? PORTAL_ICON_BY_SITE_KEY[siteKey] || "" : "";
+  return siteKey ? SITE_ICON_BY_SITE_KEY[siteKey] || "" : "";
 }
 
 function applyHistoryIcon(icon, site) {
@@ -2533,6 +3015,7 @@ function requestBookmarkRefresh() {
 async function openBookmarkPicker() {
   bookmarkMainView.hidden = true;
   bookmarkPicker.hidden = false;
+  setBookmarkPickerMode(true);
   bookmarkFolderList.innerHTML = emptyState(t("loadingBookmarkFolders"));
 
   try {
@@ -2546,9 +3029,17 @@ async function openBookmarkPicker() {
   }
 }
 
-function closeBookmarkPicker() {
+async function closeBookmarkPicker() {
   bookmarkPicker.hidden = true;
   bookmarkMainView.hidden = false;
+  setBookmarkPickerMode(false);
+  await renderSelectedBookmarkFolder();
+}
+
+function setBookmarkPickerMode(isPicking) {
+  bookmarkPickerToolbar.hidden = !isPicking;
+  bookmarkFolderMeta.closest(".bookmark-toolbar").hidden = isPicking;
+  closeBookmarkPickerButton.hidden = !isPicking;
 }
 
 function renderBookmarkFolderOptions(folders, selectedId) {
@@ -2634,19 +3125,1145 @@ async function saveSelectedBookmarkFolderId(folderId) {
   await chrome.storage.local.set({ [BOOKMARK_FOLDER_STORAGE_KEY]: folderId });
 }
 
+function renderMediaFeedDefaultList() {
+  const fragment = document.createDocumentFragment();
+  const heading = document.createElement("span");
+  heading.className = "media-feed-default-heading";
+  heading.textContent = t("mediaFeedDefaultSources");
+  fragment.appendChild(heading);
+  MEDIA_FEED_SOURCES
+    .filter((source) => source.language === MEDIA_FEED_LOCALE_LANGUAGE)
+    .forEach((source) => {
+    const item = document.createElement("button");
+    const title = document.createElement("strong");
+    const url = document.createElement("span");
+    item.className = "media-feed-default-item";
+    item.type = "button";
+    title.textContent = `${source.title} · ${t(source.language === "zh" ? "mediaFeedLanguageZh" : "mediaFeedLanguageEn")}`;
+    url.textContent = source.url;
+    item.append(title, url);
+    item.addEventListener("click", () => {
+      mediaFeedUrlInput.value = source.url;
+      mediaFeedLanguageSelect.value = source.language;
+      mediaFeedFormError.textContent = "";
+      mediaFeedUrlInput.focus();
+    });
+    fragment.appendChild(item);
+  });
+  mediaFeedDefaultList.replaceChildren(fragment);
+}
+
+function activateMediaFeedType(type) {
+  const nextType = MEDIA_FEED_TYPE_FILTERS.has(type) ? type : "all";
+  activeMediaFeedType = nextType;
+  mediaFeedTypeButtons.forEach((button) => {
+    const isActive = button.dataset.mediaFeedType === nextType;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  renderMediaFeedForActiveType();
+}
+
+function toggleMediaFeedForm() {
+  if (mediaFeedForm.hidden) {
+    showMediaFeedForm();
+    return;
+  }
+  hideMediaFeedForm();
+}
+
+function showMediaFeedForm() {
+  mediaFeedForm.hidden = false;
+  toggleMediaFeedFormButton.setAttribute("aria-expanded", "true");
+  mediaFeedFormError.textContent = "";
+  mediaFeedUrlInput.focus();
+}
+
+function hideMediaFeedForm() {
+  mediaFeedForm.hidden = true;
+  toggleMediaFeedFormButton.setAttribute("aria-expanded", "false");
+  mediaFeedForm.reset();
+  mediaFeedLanguageSelect.value = "zh";
+  mediaFeedFormError.textContent = "";
+}
+
+async function handleMediaFeedSubmit(event) {
+  event.preventDefault();
+  const url = normalizeMediaFeedUrl(mediaFeedUrlInput.value);
+  if (!url) {
+    mediaFeedFormError.textContent = t("mediaFeedInvalidUrl");
+    mediaFeedUrlInput.focus();
+    return;
+  }
+
+  try {
+    const feeds = await loadCustomMediaFeeds();
+    const nextFeeds = [
+      {
+        id: `custom-${Date.now()}`,
+        title: readableHostName(new URL(url).hostname),
+        language: mediaFeedLanguageSelect.value === "en" ? "en" : "zh",
+        url
+      },
+      ...feeds.filter((feed) => feed.url !== url)
+    ].slice(0, MAX_CUSTOM_MEDIA_FEEDS);
+    if (feeds.length >= MAX_CUSTOM_MEDIA_FEEDS && !feeds.some((feed) => feed.url === url)) {
+      mediaFeedFormError.textContent = t("mediaFeedLimit", { count: MAX_CUSTOM_MEDIA_FEEDS });
+      return;
+    }
+    await saveCustomMediaFeeds(nextFeeds);
+    hideMediaFeedForm();
+    refreshMediaFeed();
+  } catch (error) {
+    console.warn("Failed to save custom media feed", error);
+    mediaFeedFormError.textContent = t("mediaFeedSaveFailed");
+  }
+}
+
+function normalizeMediaFeedUrl(value) {
+  const text = normalizeText(value);
+  if (!text || text.length > MAX_PORTAL_URL_LENGTH) {
+    return "";
+  }
+  const url = safeUrl(text);
+  if (!url || !["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+    return "";
+  }
+  return url.href;
+}
+
+async function loadMediaFeedSources() {
+  const customFeeds = await loadCustomMediaFeeds();
+  const seen = new Set();
+  const localeSources = MEDIA_FEED_SOURCES.filter((source) => source.language === MEDIA_FEED_LOCALE_LANGUAGE);
+  return [...customFeeds, ...localeSources].filter((source) => {
+    if (!source.url || seen.has(source.url)) {
+      return false;
+    }
+    seen.add(source.url);
+    return true;
+  });
+}
+
+async function loadCustomMediaFeeds() {
+  const result = await chrome.storage.local.get({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: [] });
+  return Array.isArray(result[CUSTOM_MEDIA_FEEDS_STORAGE_KEY])
+    ? result[CUSTOM_MEDIA_FEEDS_STORAGE_KEY].map(normalizeStoredMediaFeed).filter(Boolean).slice(0, MAX_CUSTOM_MEDIA_FEEDS)
+    : [];
+}
+
+function normalizeStoredMediaFeed(feed) {
+  const url = normalizeMediaFeedUrl(feed?.url);
+  if (!url) {
+    return null;
+  }
+  return {
+    id: normalizeText(feed?.id) || `custom-${url}`,
+    title: normalizeText(feed?.title) || readableHostName(safeUrl(url)?.hostname),
+    language: feed?.language === "en" ? "en" : "zh",
+    url
+  };
+}
+
+async function saveCustomMediaFeeds(feeds) {
+  await chrome.storage.local.set({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: feeds });
+}
+
+async function initMediaFeedFeedback() {
+  try {
+    const result = await chrome.storage.local.get({ [MEDIA_FEED_FEEDBACK_STORAGE_KEY]: normalizeMediaFeedFeedback() });
+    activeMediaFeedFeedback = normalizeMediaFeedFeedback(result[MEDIA_FEED_FEEDBACK_STORAGE_KEY]);
+  } catch (error) {
+    console.warn("Failed to load media feed feedback", error);
+    activeMediaFeedFeedback = normalizeMediaFeedFeedback();
+  }
+}
+
+async function saveMediaFeedFeedback() {
+  await chrome.storage.local.set({
+    [MEDIA_FEED_FEEDBACK_STORAGE_KEY]: normalizeMediaFeedFeedback(activeMediaFeedFeedback)
+  });
+}
+
+function normalizeMediaFeedFeedback(feedback = {}) {
+  return {
+    version: 1,
+    updatedAt: Number(feedback.updatedAt || 0),
+    items: normalizeMediaFeedFeedbackBucket(feedback.items),
+    topics: normalizeMediaFeedFeedbackBucket(feedback.topics),
+    sources: normalizeMediaFeedFeedbackBucket(feedback.sources),
+    signatures: normalizeMediaFeedFeedbackBucket(feedback.signatures),
+    keywords: normalizeMediaFeedFeedbackBucket(feedback.keywords)
+  };
+}
+
+function normalizeMediaFeedFeedbackBucket(bucket = {}) {
+  return Object.fromEntries(Object.entries(bucket)
+    .map(([key, value]) => [normalizeText(key), Math.max(0, Math.min(99, Number(value) || 0))])
+    .filter(([key, value]) => key && value > 0)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, MAX_MEDIA_FEED_FEEDBACK_KEYS));
+}
+
+function incrementMediaFeedFeedback(bucket, key, amount = 1) {
+  const normalizedKey = normalizeText(key);
+  if (!normalizedKey) {
+    return;
+  }
+  bucket[normalizedKey] = Math.min(99, Number(bucket[normalizedKey] || 0) + amount);
+}
+
+async function refreshMediaFeed() {
+  mediaFeedRefreshSeed += 1;
+  mediaFeedList.replaceChildren();
+  mediaFeedList.scrollTop = 0;
+  setMediaFeedState("loading", t("mediaFeedLoadingTitle"), t("mediaFeedLoadingBody"));
+  refreshMediaFeedButton.disabled = true;
+  try {
+    latestMediaFeedItems = await fetchMediaFeedItems();
+    renderMediaFeedForActiveType();
+    mediaFeedUpdated.textContent = "";
+    if (!latestMediaFeedItems.length) {
+      setMediaFeedState("empty", t("mediaFeedEmptyTitle"), t("mediaFeedEmptyBody"));
+    }
+  } catch (error) {
+    console.warn("Failed to load media feed", error);
+    latestMediaFeedItems = [];
+    mediaFeedList.replaceChildren();
+    mediaFeedUpdated.textContent = "";
+    setMediaFeedState("error", t("mediaFeedFailedTitle"), t("mediaFeedFailedBody"));
+  } finally {
+    refreshMediaFeedButton.disabled = false;
+  }
+}
+
+async function fetchMediaFeedItems() {
+  const sources = await loadMediaFeedSources();
+  const [sourceResults, discoveryResults] = await Promise.all([
+    Promise.allSettled(sources.map(fetchMediaFeedSource)),
+    Promise.allSettled(mediaFeedDiscoverySourcesForLocale().map(fetchMediaFeedDiscoverySource))
+  ]);
+  const seenUrls = new Set();
+  const allResults = [...sourceResults, ...discoveryResults];
+  let candidates = allResults
+    .flatMap((result) => result.status === "fulfilled" ? result.value : [])
+    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
+    .filter((item) => {
+      if (seenUrls.has(item.url)) {
+        return false;
+      }
+      seenUrls.add(item.url);
+      return true;
+    })
+    .map(enrichMediaFeedItem)
+    .sort(compareAgentMediaFeedItems);
+  if (!candidates.length && isFilePreviewMode()) {
+    candidates = await fetchMediaFeedPreviewFallback();
+  }
+  const displayCandidates = candidates.filter((item) => !isMediaFeedItemDismissed(item));
+  const filteredItems = displayCandidates.filter(isHighValueMediaFeedItem);
+  const items = (filteredItems.length ? filteredItems : displayCandidates).slice(0, MEDIA_FEED_ITEM_LIMIT);
+  if (!items.length && allResults.some((result) => result.status === "rejected")) {
+    throw new Error("All media feed sources failed or returned no displayable items.");
+  }
+  return items;
+}
+
+function isFilePreviewMode() {
+  return location.protocol === "file:";
+}
+
+async function fetchMediaFeedPreviewFallback() {
+  const sources = (await loadMediaFeedSources()).slice(0, 4);
+  const results = await Promise.allSettled(sources.map(fetchMediaFeedReaderSource));
+  const seenUrls = new Set();
+  return results
+    .flatMap((result) => result.status === "fulfilled" ? result.value : [])
+    .filter((item) => {
+      if (seenUrls.has(item.url)) {
+        return false;
+      }
+      seenUrls.add(item.url);
+      return true;
+    })
+    .map(enrichMediaFeedItem)
+    .sort(compareAgentMediaFeedItems)
+    .slice(0, MEDIA_FEED_ITEM_LIMIT);
+}
+
+async function fetchMediaFeedReaderSource(source) {
+  const readerUrl = `https://r.jina.ai/http://r.jina.ai/http://${source.url}`;
+  const response = await fetch(readerUrl, { cache: "reload" });
+  if (!response.ok) {
+    return [];
+  }
+  const markdown = await response.text();
+  return mediaFeedItemsFromReaderMarkdown(markdown, source);
+}
+
+function mediaFeedItemsFromReaderMarkdown(markdown, source) {
+  const items = [];
+  const headingPattern = /^#{2,3}\s+\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gm;
+  let match;
+  while ((match = headingPattern.exec(markdown)) && items.length < MEDIA_FEED_SOURCE_ITEM_LIMIT) {
+    const title = cleanFeedText(match[1]);
+    const url = normalizeFeedUrl(match[2]);
+    if (!title || !url) {
+      continue;
+    }
+    const followingText = markdown.slice(headingPattern.lastIndex, headingPattern.lastIndex + 220);
+    const dateMatch = followingText.match(/[A-Z][a-z]{2},\s+\d{1,2}\s+[A-Z][a-z]{2}\s+\d{4}[^\\n]*/);
+    items.push({
+      id: `${source.id}-${url}`,
+      title,
+      url,
+      language: source.language,
+      sourceId: source.id,
+      sourceTitle: source.title,
+      sourceIcon: fallbackIconDataUrl(source.title),
+      sourceIconCandidates: [],
+      image: "",
+      imageCandidates: [],
+      createdAt: dateMatch ? Date.parse(dateMatch[0]) : Date.now() - items.length * 60000,
+      summary: ""
+    });
+  }
+  return items;
+}
+
+async function fetchMediaFeedSource(source) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), MEDIA_FEED_TIMEOUT_MS);
+  try {
+    const response = await fetch(withMediaFeedRefreshParam(source.url), {
+      cache: "reload",
+      signal: controller.signal,
+      headers: { "Cache-Control": "no-cache" }
+    });
+    if (!response.ok) {
+      throw new Error(`Media feed request failed: ${response.status}`);
+    }
+    const xmlText = await response.text();
+    const documentNode = new DOMParser().parseFromString(xmlText, "application/xml");
+    if (documentNode.querySelector("parsererror")) {
+      throw new Error("Media feed XML parse failed.");
+    }
+    const sourceMeta = mediaFeedSourceMeta(documentNode, source);
+    return feedDescendants(documentNode)
+      .filter((node) => ["item", "entry"].includes(node.localName?.toLowerCase()))
+      .map((item) => normalizeMediaFeedItem(item, source, sourceMeta))
+      .filter(Boolean)
+      .slice(0, MEDIA_FEED_SOURCE_ITEM_LIMIT);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function mediaFeedDiscoverySourcesForLocale() {
+  return MEDIA_FEED_DISCOVERY_SOURCES.filter((source) => source.language === MEDIA_FEED_LOCALE_LANGUAGE);
+}
+
+async function fetchMediaFeedDiscoverySource(source) {
+  if (source.type === "hn") {
+    return fetchHackerNewsFeed(source);
+  }
+  if (source.type === "v2ex") {
+    return fetchV2exFeed(source);
+  }
+  if (source.type === "lobsters") {
+    return fetchLobstersFeed(source);
+  }
+  if (source.type === "arxiv") {
+    return fetchArxivFeed(source);
+  }
+  if (source.type === "devto") {
+    return fetchDevtoFeed(source);
+  }
+  return [];
+}
+
+async function fetchJsonWithTimeout(url) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), MEDIA_FEED_TIMEOUT_MS);
+  try {
+    const response = await fetch(withMediaFeedRefreshParam(url), {
+      cache: "reload",
+      signal: controller.signal,
+      headers: { "Cache-Control": "no-cache" }
+    });
+    if (!response.ok) {
+      throw new Error(`Media discovery request failed: ${response.status}`);
+    }
+    return response.json();
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function withMediaFeedRefreshParam(url) {
+  const parsed = safeUrl(url);
+  if (!parsed) {
+    return url;
+  }
+  parsed.searchParams.set("_tabtab_refresh", String(mediaFeedRefreshSeed));
+  return parsed.href;
+}
+
+async function fetchHackerNewsFeed(source) {
+  const ids = await fetchJsonWithTimeout(source.listUrl);
+  if (!Array.isArray(ids)) {
+    return [];
+  }
+  const offset = mediaFeedRefreshSeed % 3;
+  const selectedIds = ids.slice(offset, offset + MEDIA_FEED_DISCOVERY_ITEM_LIMIT);
+  const storyResults = await Promise.allSettled(selectedIds.map((id) => fetchJsonWithTimeout(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)));
+  return storyResults
+    .flatMap((result) => result.status === "fulfilled" ? [result.value] : [])
+    .filter((story) => story?.title && !story.deleted && !story.dead)
+    .map((story) => createDiscoveryMediaFeedItem(source, {
+      id: story.id,
+      title: story.title,
+      url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
+      summary: t("mediaFeedMetricHn", { score: Number(story.score || 0), comments: Number(story.descendants || 0) }),
+      createdAt: Number(story.time || 0) * 1000,
+      metrics: { score: Number(story.score || 0), comments: Number(story.descendants || 0) }
+    }))
+    .filter(Boolean);
+}
+
+async function fetchV2exFeed(source) {
+  const items = await fetchJsonWithTimeout(source.url);
+  return Array.isArray(items) ? items.slice(0, MEDIA_FEED_DISCOVERY_ITEM_LIMIT).map((item) => createDiscoveryMediaFeedItem(source, {
+    id: item.id,
+    title: item.title,
+    url: item.url,
+    summary: `${item.node?.title || "V2EX"} · ${t("mediaFeedMetricReplies", { count: Number(item.replies || 0) })}`,
+    createdAt: Number(item.last_touched || item.created || 0) * 1000,
+    metrics: { comments: Number(item.replies || 0) }
+  })).filter(Boolean) : [];
+}
+
+async function fetchLobstersFeed(source) {
+  const items = await fetchJsonWithTimeout(source.url);
+  return Array.isArray(items) ? items.slice(0, MEDIA_FEED_DISCOVERY_ITEM_LIMIT).map((item) => createDiscoveryMediaFeedItem(source, {
+    id: item.short_id,
+    title: item.title,
+    url: item.url || item.comments_url,
+    summary: `${item.tags?.join(", ") || "Lobsters"} · ${t("mediaFeedMetricHn", { score: Number(item.score || 0), comments: Number(item.comment_count || 0) })}`,
+    createdAt: Date.parse(item.created_at || ""),
+    metrics: { score: Number(item.score || 0), comments: Number(item.comment_count || 0) }
+  })).filter(Boolean) : [];
+}
+
+async function fetchArxivFeed(source) {
+  const query = `https://export.arxiv.org/api/query?search_query=cat:${encodeURIComponent(source.category)}&max_results=${MEDIA_FEED_DISCOVERY_ITEM_LIMIT}&sortBy=submittedDate&sortOrder=descending`;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), MEDIA_FEED_TIMEOUT_MS);
+  try {
+    const response = await fetch(withMediaFeedRefreshParam(query), { cache: "reload", signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`arXiv request failed: ${response.status}`);
+    }
+    const xmlText = await response.text();
+    const documentNode = new DOMParser().parseFromString(xmlText, "application/xml");
+    return feedDescendants(documentNode)
+      .filter((node) => node.localName?.toLowerCase() === "entry")
+      .map((entry) => createDiscoveryMediaFeedItem(source, {
+        id: feedNodeText(entry, ["id"]),
+        title: cleanFeedText(feedNodeText(entry, ["title"])),
+        url: normalizeFeedUrl(feedNodeText(entry, ["id"])),
+        summary: truncateText(cleanFeedText(feedNodeText(entry, ["summary"])), 140),
+        createdAt: Date.parse(feedNodeText(entry, ["published", "updated"]) || ""),
+        metrics: { score: 12 }
+      }))
+      .filter(Boolean);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+async function fetchDevtoFeed(source) {
+  const items = await fetchJsonWithTimeout(`https://dev.to/api/articles?tag=${encodeURIComponent(source.tag)}&per_page=${MEDIA_FEED_DISCOVERY_ITEM_LIMIT}`);
+  return Array.isArray(items) ? items.map((item) => createDiscoveryMediaFeedItem(source, {
+    id: item.id,
+    title: item.title,
+    url: item.url,
+    summary: `${item.tag_list?.slice(0, 4).join(", ") || "DEV.to"} · ${t("mediaFeedMetricReactions", { reactions: Number(item.public_reactions_count || 0), comments: Number(item.comments_count || 0) })}`,
+    createdAt: Date.parse(item.published_at || ""),
+    metrics: { score: Number(item.public_reactions_count || 0), comments: Number(item.comments_count || 0) }
+  })).filter(Boolean) : [];
+}
+
+function createDiscoveryMediaFeedItem(source, data) {
+  const url = normalizeFeedUrl(data.url);
+  const title = cleanFeedText(data.title);
+  if (!url || !title) {
+    return null;
+  }
+  return {
+    id: `${source.id}-${data.id || url}`,
+    title,
+    url,
+    language: /[\u4e00-\u9fff]/.test(title) ? "zh" : "en",
+    sourceId: source.id,
+    sourceTitle: source.sourceTitle,
+    sourceIcon: fallbackIconDataUrl(source.sourceTitle),
+    sourceIconCandidates: [],
+    image: "",
+    imageCandidates: [],
+    createdAt: Number.isFinite(data.createdAt) ? data.createdAt : 0,
+    summary: normalizeText(data.summary),
+    discoveryTopic: source.topic,
+    discoveryScore: source.score,
+    discoveryMetrics: data.metrics || {}
+  };
+}
+
+function normalizeMediaFeedItem(item, source, sourceMeta) {
+  const title = cleanFeedText(feedNodeText(item, ["title"]));
+  const url = normalizeFeedUrl(feedNodeText(item, ["link"]) || feedLinkHref(item));
+  if (!title || !url) {
+    return null;
+  }
+
+  const summary = mediaFeedSummary(item);
+  const imageCandidates = mediaFeedImages(item);
+  const createdAt = Date.parse(feedNodeText(item, ["pubDate", "published", "updated", "date"]) || "");
+  const sourceTitle = sourceMeta.title;
+  return {
+    id: `${source.id}-${url}`,
+    title,
+    url,
+    language: source.language,
+    sourceId: source.id,
+    sourceTitle,
+    sourceIcon: sourceMeta.icon,
+    sourceIconCandidates: sourceMeta.iconCandidates,
+    image: imageCandidates[0] || "",
+    imageCandidates,
+    createdAt: Number.isFinite(createdAt) ? createdAt : 0,
+    summary
+  };
+}
+
+function mediaFeedSourceMeta(documentNode, source) {
+  const root = feedDescendants(documentNode).find((node) => ["channel", "feed"].includes(node.localName?.toLowerCase())) || documentNode.documentElement;
+  const title = cleanFeedText(feedNodeText(root, ["title"])) || normalizeText(source.title) || readableHostName(safeUrl(source.url)?.hostname);
+  const siteUrl = normalizeFeedUrl(feedNodeText(root, ["link"]) || feedLinkHref(root)) || safeUrl(source.url)?.origin || source.url;
+  const iconCandidates = [
+    feedNodeText(root, ["icon"]),
+    feedNodeText(root, ["logo"]),
+    feedNodeText(root, ["image"]),
+    ...mediaFeedImages(root),
+    mediaFeedFaviconUrl(siteUrl, title)
+  ].map(normalizeFeedUrl).filter(Boolean);
+  return {
+    title,
+    siteUrl,
+    icon: iconCandidates[0] || fallbackIconDataUrl(title),
+    iconCandidates
+  };
+}
+
+function mediaFeedFaviconUrl(siteUrl, title) {
+  const url = safeUrl(siteUrl);
+  if (!url?.origin) {
+    return fallbackIconDataUrl(title);
+  }
+  return faviconUrl(url.origin, 64);
+}
+
+function normalizeFeedUrl(value) {
+  const text = normalizeText(value).replaceAll("&amp;", "&");
+  return isWebUrl(text) ? text : "";
+}
+
+function feedNodeText(root, selectors) {
+  for (const selector of selectors) {
+    const node = feedFirstElement(root, selector);
+    if (node) {
+      return normalizeText(node.textContent);
+    }
+  }
+  return "";
+}
+
+function feedLinkHref(item) {
+  const alternateLink = feedChildElements(item, "link")
+    .find((link) => !link.getAttribute("rel") || link.getAttribute("rel") === "alternate");
+  return normalizeText(alternateLink?.getAttribute("href"));
+}
+
+function mediaFeedSummary(item) {
+  const body = cleanFeedText(feedNodeText(item, ["description", "summary", "encoded", "content"]));
+  if (body) {
+    return truncateText(body, 110);
+  }
+  return "";
+}
+
+function mediaFeedImages(item) {
+  const candidates = [];
+  const directImage = feedNodeText(item, ["image"]);
+  if (directImage) {
+    candidates.push(directImage);
+  }
+  feedDescendants(item).forEach((node) => {
+    const name = node.localName?.toLowerCase();
+    const type = node.getAttribute("type") || "";
+    const url = node.getAttribute("url");
+    if ((["thumbnail", "content"].includes(name) && url) || (name === "enclosure" && /^image\//i.test(type) && url)) {
+      candidates.push(url);
+    }
+  });
+  const html = feedNodeText(item, ["encoded", "content", "description", "summary"]);
+  candidates.push(...imagesFromHtml(html));
+  return [...new Set(candidates.map(normalizeFeedUrl).filter(Boolean))];
+}
+
+function feedFirstElement(root, localName) {
+  return feedChildElements(root, localName)[0] || null;
+}
+
+function feedChildElements(root, localName) {
+  const expected = String(localName || "").toLowerCase();
+  return [...root.children].filter((node) => node.localName?.toLowerCase() === expected);
+}
+
+function feedDescendants(root) {
+  return [...root.getElementsByTagName("*")];
+}
+
+function imagesFromHtml(html) {
+  if (!html) {
+    return [];
+  }
+  const element = document.createElement("div");
+  element.innerHTML = html;
+  return [...element.querySelectorAll("img")].flatMap((image) => [
+    image.currentSrc,
+    image.getAttribute("src"),
+    ...srcsetUrls(image.getAttribute("srcset")),
+    ...srcsetUrls(image.getAttribute("data-srcset")),
+    image.getAttribute("data-src")
+  ].filter(Boolean));
+}
+
+function srcsetUrls(value) {
+  return normalizeText(value)
+    .split(",")
+    .map((candidate) => normalizeText(candidate).split(/\s+/)[0])
+    .filter(Boolean);
+}
+
+function cleanFeedText(value) {
+  const html = normalizeText(value);
+  if (!html) {
+    return "";
+  }
+  const element = document.createElement("div");
+  element.innerHTML = html;
+  return normalizeText(element.textContent || "");
+}
+
+function truncateText(value, maxLength) {
+  const text = normalizeText(value);
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 1).trim()}…`;
+}
+
+function enrichMediaFeedItem(item) {
+  const profile = MEDIA_FEED_SOURCE_PROFILES[item.sourceId] || {};
+  const topic = detectMediaFeedTopic(item, item.discoveryTopic || profile.topic);
+  const createdAt = Number(item.createdAt || 0);
+  const hoursAgo = createdAt ? Math.max(0, (Date.now() - createdAt) / 3600000) : 72;
+  const freshnessScore = Math.max(0, 18 - Math.min(18, hoursAgo));
+  const titleBoost = mediaFeedSignalScore(item.title);
+  const summaryBoost = mediaFeedSignalScore(item.summary) * 0.45;
+  const metricBoost = mediaFeedMetricScore(item.discoveryMetrics);
+  const refreshBoost = mediaFeedRefreshJitter(item.id) * 8;
+  const baseScore = (item.discoveryScore || profile.score || 6) + freshnessScore + titleBoost + summaryBoost + metricBoost + refreshBoost;
+  const agentSignature = mediaFeedSignature(`${item.title} ${item.summary}`);
+  const feedbackPenalty = mediaFeedFeedbackPenalty({ ...item, agentTopic: topic.id, agentSignature });
+  return {
+    ...item,
+    agentTopic: topic.id,
+    agentTopicLabelKey: topic.labelKey,
+    agentReasonKey: topic.reasonKey,
+    agentBaseScore: Math.round(baseScore),
+    agentFeedbackPenalty: feedbackPenalty,
+    agentScore: Math.round(baseScore - feedbackPenalty),
+    agentSignature
+  };
+}
+
+function mediaFeedFeedbackPenalty(item) {
+  const feedback = activeMediaFeedFeedback || normalizeMediaFeedFeedback();
+  const sourceKey = mediaFeedFeedbackSourceKey(item);
+  const keywordPenalty = mediaFeedFeedbackKeywords(item)
+    .reduce((total, keyword) => total + Math.min(4, Number(feedback.keywords[keyword] || 0) * 1.4), 0);
+  return Math.min(34,
+    (Number(feedback.topics[item.agentTopic] || 0) * 5) +
+    (Number(feedback.sources[sourceKey] || 0) * 7) +
+    (Number(feedback.signatures[item.agentSignature] || 0) * 16) +
+    Math.min(12, keywordPenalty)
+  );
+}
+
+function isMediaFeedItemDismissed(item) {
+  const feedback = activeMediaFeedFeedback || normalizeMediaFeedFeedback();
+  return Boolean(feedback.items[item.id] || feedback.signatures[item.agentSignature]);
+}
+
+function mediaFeedFeedbackSourceKey(item) {
+  return normalizeText(item.sourceId || item.sourceTitle).toLowerCase();
+}
+
+function mediaFeedFeedbackKeywords(item) {
+  return normalizeText(`${item.title} ${item.summary}`)
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && !["the", "and", "for", "with", "from", "this", "that"].includes(token))
+    .slice(0, 8);
+}
+
+function detectMediaFeedTopic(item, fallbackTopic = "product") {
+  const text = `${item.title} ${item.summary} ${item.sourceTitle}`.toLowerCase();
+  let bestRule = MEDIA_FEED_TOPIC_RULES.find((rule) => rule.id === fallbackTopic) || MEDIA_FEED_TOPIC_RULES[0];
+  let bestScore = 0;
+  MEDIA_FEED_TOPIC_RULES.forEach((rule) => {
+    const score = rule.keywords.reduce((total, keyword) => total + (text.includes(keyword.toLowerCase()) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestRule = rule;
+      bestScore = score;
+    }
+  });
+  return bestRule;
+}
+
+function mediaFeedSignalScore(value) {
+  const text = normalizeText(value).toLowerCase();
+  const signalWords = ["release", "launch", "open source", "research", "security", "funding", "ipo", "breakthrough", "agent", "api", "architecture", "benchmark", "postmortem", "deep dive", "发布", "开源", "研究", "漏洞", "融资", "上市", "突破", "模型", "智能体", "架构", "基准", "复盘", "深度"];
+  return signalWords.reduce((total, word) => total + (text.includes(word) ? 2 : 0), 0);
+}
+
+function isHighValueMediaFeedItem(item) {
+  const text = `${item.title} ${item.summary}`.trim();
+  if (!text || LOW_VALUE_MEDIA_FEED_PATTERNS.some((pattern) => pattern.test(text))) {
+    return false;
+  }
+  if (item.discoveryMetrics?.score || item.discoveryMetrics?.comments) {
+    return true;
+  }
+  if (item.agentScore >= 18) {
+    return true;
+  }
+  return mediaFeedSignalScore(text) >= 2;
+}
+
+function mediaFeedMetricScore(metrics = {}) {
+  const score = Math.min(10, Math.log10(Math.max(1, Number(metrics.score || 0))) * 3);
+  const comments = Math.min(8, Math.log10(Math.max(1, Number(metrics.comments || 0))) * 2.5);
+  return score + comments;
+}
+
+function mediaFeedRefreshJitter(value) {
+  const text = `${mediaFeedRefreshSeed}:${value}`;
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return (Math.abs(hash) % 1000) / 1000;
+}
+
+function mediaFeedSignature(value) {
+  return normalizeText(value)
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && !["the", "and", "for", "with", "from", "this", "that"].includes(token))
+    .slice(0, 8)
+    .sort()
+    .join("-");
+}
+
+function compareAgentMediaFeedItems(a, b) {
+  if (b.agentScore !== a.agentScore) {
+    return b.agentScore - a.agentScore;
+  }
+  return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+}
+
+function organizeAgentMediaFeed(items) {
+  const focusItems = selectDiverseMediaFeedItems(items, 5);
+  const focusIds = new Set(focusItems.map((item) => item.id));
+  const topicGroups = new Map();
+  items
+    .filter((item) => !focusIds.has(item.id))
+    .sort(compareAgentMediaFeedItems)
+    .forEach((item) => {
+      const group = topicGroups.get(item.agentTopic) || [];
+      group.push(item);
+      topicGroups.set(item.agentTopic, group);
+    });
+  const ordered = focusItems.map((item) => ({ ...item, agentSection: "focus" }));
+  [...topicGroups.entries()]
+    .sort(([, aItems], [, bItems]) => (bItems[0]?.agentScore || 0) - (aItems[0]?.agentScore || 0))
+    .forEach(([topic, groupItems]) => {
+      selectDiverseMediaFeedItems(groupItems, groupItems.length).forEach((item) => {
+        ordered.push({ ...item, agentSection: topic });
+      });
+    });
+  return ordered;
+}
+
+function selectDiverseMediaFeedItems(items, limit) {
+  const selected = [];
+  const sourceCounts = new Map();
+  const topicCounts = new Map();
+  const signatureSeen = new Set();
+  const candidates = [...items].sort(compareAgentMediaFeedItems);
+
+  while (candidates.length && selected.length < limit) {
+    let bestIndex = -1;
+    let bestScore = -Infinity;
+    candidates.forEach((item, index) => {
+      const sourcePenalty = (sourceCounts.get(item.sourceTitle) || 0) * 7;
+      const topicPenalty = (topicCounts.get(item.agentTopic) || 0) * 3;
+      const duplicatePenalty = item.agentSignature && signatureSeen.has(item.agentSignature) ? 20 : 0;
+      const score = item.agentScore - sourcePenalty - topicPenalty - duplicatePenalty;
+      if (score > bestScore) {
+        bestIndex = index;
+        bestScore = score;
+      }
+    });
+    if (bestIndex < 0) {
+      break;
+    }
+    const [item] = candidates.splice(bestIndex, 1);
+    selected.push(item);
+    sourceCounts.set(item.sourceTitle, (sourceCounts.get(item.sourceTitle) || 0) + 1);
+    topicCounts.set(item.agentTopic, (topicCounts.get(item.agentTopic) || 0) + 1);
+    if (item.agentSignature) {
+      signatureSeen.add(item.agentSignature);
+    }
+  }
+  return selected;
+}
+
+function mediaFeedSectionTitle(section, item) {
+  if (section === "focus") {
+    return t("mediaFeedAgentFocus");
+  }
+  return item?.agentTopicLabelKey ? t(item.agentTopicLabelKey) : t("mediaFeedAgentStream");
+}
+
+function renderMediaFeedForActiveType() {
+  const items = activeMediaFeedType === "all"
+    ? latestMediaFeedItems
+    : latestMediaFeedItems.filter((item) => item.agentTopic === activeMediaFeedType);
+  visibleMediaFeedItems = organizeAgentMediaFeed(items);
+  mediaFeedVisibleCount = Math.min(MEDIA_FEED_INITIAL_ITEMS, visibleMediaFeedItems.length);
+  renderMediaFeed();
+  if (items.length) {
+    mediaFeedState.hidden = true;
+    return;
+  }
+  setMediaFeedState("empty", t("mediaFeedEmptyTitle"), t("mediaFeedEmptyBody"));
+}
+
+function renderMediaFeed() {
+  mediaFeedObserver?.disconnect();
+  const items = visibleMediaFeedItems.slice(0, mediaFeedVisibleCount);
+  const hasMore = mediaFeedVisibleCount < visibleMediaFeedItems.length;
+  const fragment = document.createDocumentFragment();
+  let currentSection = "";
+  items.forEach((item, index) => {
+    if (item.agentSection !== currentSection) {
+      currentSection = item.agentSection;
+      fragment.appendChild(createMediaFeedSectionHeader(mediaFeedSectionTitle(currentSection, item)));
+    }
+    fragment.appendChild(createMediaFeedItem(item, index));
+  });
+  if (hasMore) {
+    mediaFeedLoadMoreSentinel.textContent = t("mediaFeedAutoLoad");
+    fragment.appendChild(mediaFeedLoadMoreSentinel);
+  } else {
+    mediaFeedLoadMoreSentinel.remove();
+  }
+  mediaFeedList.replaceChildren(fragment);
+  if (hasMore) {
+    observeMediaFeedLoadMore();
+    loadMoreMediaFeedIfNeeded();
+  }
+}
+
+function observeMediaFeedLoadMore() {
+  if (!("IntersectionObserver" in window)) {
+    return;
+  }
+  mediaFeedObserver = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting)) {
+      loadMoreMediaFeedPage();
+    }
+  }, {
+    root: mediaFeedList,
+    rootMargin: "180px 0px",
+    threshold: 0.01
+  });
+  mediaFeedObserver.observe(mediaFeedLoadMoreSentinel);
+}
+
+function loadMoreMediaFeedIfNeeded() {
+  const distanceToEnd = mediaFeedList.scrollHeight - mediaFeedList.scrollTop - mediaFeedList.clientHeight;
+  if (distanceToEnd <= 180) {
+    loadMoreMediaFeedPage();
+  }
+}
+
+function loadMoreMediaFeedPage() {
+  if (mediaFeedVisibleCount >= visibleMediaFeedItems.length) {
+    return;
+  }
+  mediaFeedVisibleCount = Math.min(mediaFeedVisibleCount + MEDIA_FEED_PAGE_SIZE, visibleMediaFeedItems.length);
+  renderMediaFeed();
+}
+
+function createMediaFeedSectionHeader(title) {
+  const header = document.createElement("div");
+  header.className = "media-feed-section";
+  header.textContent = title;
+  return header;
+}
+
+function createMediaFeedItem(item, index = 0) {
+  const featured = index % MEDIA_FEED_LARGE_CARD_INTERVAL === MEDIA_FEED_LARGE_CARD_INTERVAL - 1;
+  const imageCandidates = Array.isArray(item.imageCandidates) ? item.imageCandidates.filter(Boolean) : [];
+  const hasContentImage = Boolean(item.image || imageCandidates.length);
+  const article = document.createElement("article");
+  article.className = "media-feed-item";
+  article.classList.toggle("featured", featured);
+  article.classList.toggle("no-image", !hasContentImage);
+
+  const link = document.createElement("a");
+  link.className = "media-feed-link";
+  link.href = item.url;
+  link.setAttribute("aria-label", t("openPage", { title: item.title }));
+
+  const meta = document.createElement("div");
+  meta.className = "media-feed-item-meta";
+
+  const sourceIcon = document.createElement("img");
+  sourceIcon.className = "media-feed-source-icon";
+  sourceIcon.alt = "";
+  sourceIcon.loading = "lazy";
+  sourceIcon.decoding = "async";
+  sourceIcon.dataset.candidateIndex = "0";
+  sourceIcon.src = item.sourceIcon || fallbackIconDataUrl(item.sourceTitle);
+  sourceIcon.addEventListener("error", () => {
+    const candidates = Array.isArray(item.sourceIconCandidates) ? item.sourceIconCandidates : [];
+    const nextIndex = Number(sourceIcon.dataset.candidateIndex || 0) + 1;
+    if (candidates[nextIndex]) {
+      sourceIcon.dataset.candidateIndex = String(nextIndex);
+      sourceIcon.src = candidates[nextIndex];
+      return;
+    }
+    sourceIcon.src = fallbackIconDataUrl(item.sourceTitle);
+  });
+
+  const sourceName = document.createElement("span");
+  sourceName.className = "media-feed-source-name";
+  sourceName.textContent = item.sourceTitle;
+  meta.append(sourceIcon, sourceName);
+
+  if (item.createdAt) {
+    const time = document.createElement("time");
+    time.dateTime = new Date(item.createdAt).toISOString();
+    time.textContent = mediaFeedRelativeTime(item.createdAt);
+    meta.append(time);
+  }
+
+  const moreButton = document.createElement("button");
+  moreButton.className = "media-feed-more";
+  moreButton.type = "button";
+  moreButton.title = t("mediaFeedMore");
+  moreButton.setAttribute("aria-haspopup", "menu");
+  moreButton.setAttribute("aria-expanded", "false");
+  moreButton.setAttribute("aria-label", t("mediaFeedMore"));
+  moreButton.innerHTML = moreHorizontalIcon();
+  moreButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleMediaFeedActionMenu(article, moreButton, item);
+  });
+
+  const title = document.createElement("h3");
+  title.className = "media-feed-title";
+  title.textContent = item.title;
+
+  const agentMeta = document.createElement("span");
+  agentMeta.className = "media-feed-agent-meta";
+  const topicBadge = document.createElement("span");
+  topicBadge.className = "media-feed-topic";
+  topicBadge.textContent = item.agentTopicLabelKey ? t(item.agentTopicLabelKey) : t("mediaFeedAgentStream");
+  const reason = document.createElement("span");
+  reason.className = "media-feed-reason";
+  reason.textContent = item.agentReasonKey ? t(item.agentReasonKey) : t("mediaFeedReasonDefault");
+  agentMeta.append(topicBadge, reason);
+
+  const summary = document.createElement("p");
+  summary.className = "media-feed-summary";
+  summary.textContent = item.summary;
+
+  const copy = document.createElement("span");
+  copy.className = "media-feed-copy";
+  copy.append(meta, title, agentMeta);
+  if (item.summary) {
+    copy.append(summary);
+  }
+
+  if (hasContentImage) {
+    const image = document.createElement("img");
+    image.className = "media-feed-image";
+    image.alt = "";
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.referrerPolicy = "no-referrer";
+    image.dataset.candidateIndex = "0";
+    image.addEventListener("error", () => {
+      const nextIndex = Number(image.dataset.candidateIndex || 0) + 1;
+      if (imageCandidates[nextIndex]) {
+        image.dataset.candidateIndex = String(nextIndex);
+        image.src = imageCandidates[nextIndex];
+        return;
+      }
+      image.remove();
+      article.classList.add("no-image");
+    });
+    image.src = item.image || imageCandidates[0];
+    if (featured) {
+      link.append(image, copy);
+    } else {
+      link.append(copy, image);
+    }
+  } else {
+    link.append(copy);
+  }
+  article.append(link, moreButton);
+  return article;
+}
+
+function toggleMediaFeedActionMenu(article, button, item) {
+  if (activeMediaFeedActionMenu?.button === button) {
+    closeMediaFeedActionMenu();
+    return;
+  }
+  closeMediaFeedActionMenu();
+
+  const menu = document.createElement("div");
+  menu.className = "media-feed-action-menu";
+  menu.setAttribute("role", "menu");
+
+  const notInterestedButton = document.createElement("button");
+  notInterestedButton.type = "button";
+  notInterestedButton.className = "media-feed-action";
+  notInterestedButton.setAttribute("role", "menuitem");
+  notInterestedButton.textContent = t("mediaFeedNotInterested");
+  notInterestedButton.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    await markMediaFeedNotInterested(item);
+  });
+
+  menu.append(notInterestedButton);
+  article.append(menu);
+  button.setAttribute("aria-expanded", "true");
+  activeMediaFeedActionMenu = { element: menu, button };
+}
+
+function closeMediaFeedActionMenu() {
+  if (!activeMediaFeedActionMenu) {
+    return;
+  }
+  activeMediaFeedActionMenu.button?.setAttribute("aria-expanded", "false");
+  activeMediaFeedActionMenu.element?.remove();
+  activeMediaFeedActionMenu = null;
+}
+
+function handleDocumentClickForMediaFeedMenu(event) {
+  if (!activeMediaFeedActionMenu) {
+    return;
+  }
+  if (activeMediaFeedActionMenu.element.contains(event.target) || activeMediaFeedActionMenu.button.contains(event.target)) {
+    return;
+  }
+  closeMediaFeedActionMenu();
+}
+
+async function markMediaFeedNotInterested(item) {
+  closeMediaFeedActionMenu();
+  const nextFeedback = normalizeMediaFeedFeedback(activeMediaFeedFeedback);
+  incrementMediaFeedFeedback(nextFeedback.items, item.id, 1);
+  incrementMediaFeedFeedback(nextFeedback.topics, item.agentTopic, 1);
+  incrementMediaFeedFeedback(nextFeedback.sources, mediaFeedFeedbackSourceKey(item), 1);
+  incrementMediaFeedFeedback(nextFeedback.signatures, item.agentSignature, 1);
+  mediaFeedFeedbackKeywords(item).forEach((keyword) => incrementMediaFeedFeedback(nextFeedback.keywords, keyword, 1));
+  nextFeedback.updatedAt = Date.now();
+  activeMediaFeedFeedback = normalizeMediaFeedFeedback(nextFeedback);
+
+  try {
+    await saveMediaFeedFeedback();
+  } catch (error) {
+    console.warn("Failed to save media feed feedback", error);
+  }
+
+  latestMediaFeedItems = latestMediaFeedItems
+    .map(enrichMediaFeedItem)
+    .filter((feedItem) => !isMediaFeedItemDismissed(feedItem))
+    .sort(compareAgentMediaFeedItems);
+  renderMediaFeedForActiveType();
+  mediaFeedUpdated.textContent = t("mediaFeedNotInterestedDone");
+}
+
+function mediaFeedRelativeTime(timestamp) {
+  const minutesAgo = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  if (minutesAgo < 1) {
+    return t("historyJustNow");
+  }
+  if (minutesAgo < 60) {
+    return t("historyMinutesAgo", { count: minutesAgo });
+  }
+  if (minutesAgo < 24 * 60) {
+    return t("historyHoursAgo", { count: Math.floor(minutesAgo / 60) });
+  }
+  return new Intl.DateTimeFormat(LOCALE, { month: "short", day: "numeric" }).format(new Date(timestamp));
+}
+
+function setMediaFeedState(state, title, body) {
+  mediaFeedState.dataset.state = state;
+  mediaFeedState.hidden = false;
+  mediaFeedState.querySelector("strong").textContent = title;
+  mediaFeedState.querySelector("span:last-child").textContent = body;
+}
+
 async function refreshHistory() {
   try {
-    const oneWeekAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+    const recentStartTime = Date.now() - RECENT_HISTORY_LOOKBACK_MS;
     const [items, pinnedItems] = await Promise.all([
       chrome.history.search({
         text: "",
-        startTime: oneWeekAgo,
+        startTime: recentStartTime,
         maxResults: 80
       }),
       loadPinnedHistory()
     ]);
     const pinnedKeys = new Set(pinnedItems.map((item) => normalizeHistoryKey(item.url)));
-    const recentItems = dedupeHistory(items)
+    const recentItems = (await repeatDomainHistoryItems(items, recentStartTime))
       .filter((item) => !pinnedKeys.has(normalizeHistoryKey(item.url)));
     renderPinnedHistory(pinnedItems);
     renderHistory(groupHistoryBySite(recentItems));
@@ -2671,6 +4288,39 @@ function dedupeHistory(items) {
   }
 
   return filtered;
+}
+
+async function repeatDomainHistoryItems(items, startTime) {
+  const displayableItems = dedupeHistory(items);
+  const domainVisitCounts = new Map();
+
+  await Promise.all(displayableItems.map(async (item) => {
+    const siteKey = siteGroupKey(safeUrl(item.url));
+    if (!siteKey) {
+      return;
+    }
+    const visits = await historyVisitsSince(item.url, startTime);
+    domainVisitCounts.set(siteKey, (domainVisitCounts.get(siteKey) || 0) + visits);
+  }));
+
+  return displayableItems.filter((item) => {
+    const siteKey = siteGroupKey(safeUrl(item.url));
+    return siteKey && (domainVisitCounts.get(siteKey) || 0) >= MIN_RECENT_DOMAIN_VISITS;
+  });
+}
+
+async function historyVisitsSince(url, startTime) {
+  if (!chrome.history?.getVisits) {
+    return 1;
+  }
+
+  try {
+    const visits = await chrome.history.getVisits({ url });
+    const recentVisits = visits.filter((visit) => Number(visit.visitTime || 0) >= startTime);
+    return recentVisits.length || 1;
+  } catch {
+    return 1;
+  }
 }
 
 function renderPinnedHistory(items) {
@@ -3232,6 +4882,21 @@ function folderPlusIcon() {
   `);
 }
 
+function arrowLeftIcon() {
+  return inlineIcon(`
+    <path d="m12 19-7-7 7-7"></path>
+    <path d="M19 12H5"></path>
+  `);
+}
+
+function newspaperIcon() {
+  return inlineIcon(`
+    <path d="M4 6.5h16"></path>
+    <path d="M4 12h11"></path>
+    <path d="M4 17.5h8"></path>
+  `);
+}
+
 function settingsIcon() {
   return inlineIcon(`
     <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path>
@@ -3269,8 +4934,27 @@ function chevronDownIcon() {
   `);
 }
 
+function chevronUpIcon() {
+  return inlineIcon(`
+    <path d="m7 14.5 5-5 5 5"></path>
+  `);
+}
+
+function moreHorizontalIcon() {
+  return inlineIcon(`
+    <circle cx="12" cy="12" r="1"></circle>
+    <circle cx="19" cy="12" r="1"></circle>
+    <circle cx="5" cy="12" r="1"></circle>
+  `);
+}
+
 function faviconUrl(url, size) {
-  const favicon = new URL(chrome.runtime.getURL("/_favicon/"));
+  let favicon;
+  try {
+    favicon = new URL(chrome.runtime.getURL("/_favicon/"));
+  } catch {
+    favicon = new URL("https://www.google.com/s2/favicons");
+  }
   favicon.searchParams.set("pageUrl", url || "https://www.google.com");
   favicon.searchParams.set("size", String(size));
   return favicon.toString();

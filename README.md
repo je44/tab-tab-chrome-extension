@@ -1,6 +1,6 @@
 # tab-tab Chrome 扩展
 
-`tab-tab` 是一个本地 Chrome 新标签页扩展，把常用入口、指定书签文件夹、最近浏览和快速搜索整理到一屏。每次打开新标签页，都能直接回到当前要处理的事，而不是重新翻找入口。
+`tab-tab` 是一个本地 Chrome 新标签页扩展，把常用入口、指定书签文件夹、信息流、最近浏览和快速搜索整理到一屏。每次打开新标签页，都能直接回到当前要处理的事，而不是重新翻找入口。
 
 ## 预览
 
@@ -14,6 +14,7 @@
 
 - **常用入口**：把每天会点开的工具、资料和站点固定在顶部区域。
 - **书签工作区**：选择一个 Chrome 书签文件夹，让同一主题的链接自然聚在一起。
+- **信息流**：集中查看科技、产品和 AI 相关更新，也可以添加自己的 RSS 源。
 - **最近浏览**：按网站整理近期页面，把短期反复使用的页面置顶。
 - **快速搜索**：从新标签页直接输入关键词，减少来回切换。
 - **设置中心**：统一切换明暗模式，选择喜欢的双色外观，也可以自己调颜色。
@@ -22,21 +23,21 @@
 ### 下载
 
 - 最新版本：[GitHub Releases](https://github.com/je44/tab-tab-chrome-extension/releases/latest)
-- 当前安装包：[tab-tab-v1.1.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.1/tab-tab-v1.1.0.zip)
+- 当前安装包：[tab-tab-v1.2.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.2/tab-tab-v1.2.0.zip)
 
-### v1.1 更新
+### v1.2 更新
 
-这一版把原来的单个明暗切换按钮换成了「设置中心」，主题选择更清楚，也更容易按自己的喜好调整。
+这一版把首页分区重新整理，常用入口、书签、信息和历史更好找。
 
-- 新增：可选择跟随系统、日间或夜间模式。
-- 新增：可在三组默认双色之间切换，也可以自定义日间和夜间的主色。
-- 新增：最近浏览的展开列表会显示访问时间，回到刚看过的页面更快。
-- 改进：最近浏览的删除更准确，只处理可删除的网页记录。
-- 删除：顶部单独的明暗切换按钮，相关功能已合并到设置中心。
+- 新增：信息流，可查看精选科技内容，也能添加自己的 RSS。
+- 新增：书签可直接放进首页，并支持网格或列表显示。
+- 改进：常用入口可折叠，分类更清楚。
+- 改进：最近浏览只保留真正反复用到的页面。
+- 改进：更多网站图标改为本地显示，打开时更稳定。
 
 ### 安装
 
-1. 下载并解压 `tab-tab-v1.1.0.zip`。
+1. 下载并解压 `tab-tab-v1.2.0.zip`。
 2. 打开 Chrome 的 `chrome://extensions/`。
 3. 开启「开发者模式」。
 4. 点击「加载已解压的扩展程序」，选择解压后的文件夹。
@@ -48,6 +49,7 @@
 - `history`：读取最近浏览记录。
 - `favicon`：显示网站图标。
 - `storage`：保存自定义入口、书签选择、置顶历史、主题和布局偏好。
+- `http://*/*`、`https://*/*`：读取信息流和自定义 RSS 源。
 
 ## 项目说明
 
@@ -70,10 +72,10 @@
 
 ```sh
 mkdir -p dist
-zip -r -X dist/tab-tab-v1.1.0.zip manifest.json newtab.html newtab.css newtab.js icons
+zip -r -X dist/tab-tab-v1.2.0.zip manifest.json newtab.html newtab.css newtab.js icons
 jq empty manifest.json
 node --check newtab.js
-unzip -t dist/tab-tab-v1.1.0.zip
+unzip -t dist/tab-tab-v1.2.0.zip
 ```
 
 发布包要求 `manifest.json` 位于 zip 根目录，并与 GitHub Release 版本保持一致。

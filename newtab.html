@@ -42,7 +42,7 @@
 
     <nav class="mobile-section-switcher" aria-label="切换信息分区">
       <button class="mobile-section-tab active" type="button" data-panel-target="portalPanel" aria-controls="portalPanel" aria-selected="true">入口</button>
-      <button class="mobile-section-tab" type="button" data-panel-target="bookmarkPanel" aria-controls="bookmarkPanel" aria-selected="false">书签</button>
+      <button class="mobile-section-tab" type="button" data-panel-target="mediaPanel" aria-controls="mediaPanel" aria-selected="false">信息</button>
       <button class="mobile-section-tab" type="button" data-panel-target="historyPanel" aria-controls="historyPanel" aria-selected="false">历史</button>
     </nav>
 
@@ -50,70 +50,134 @@
       <section class="panel portal-panel mobile-active" id="portalPanel" aria-labelledby="portal-title">
         <header class="panel-header">
           <div>
-            <h1 id="portal-title">热门推荐</h1>
+            <h1 id="portal-title">导航中枢</h1>
           </div>
           <button class="icon-button subtle-action" id="togglePortalFormButton" type="button" title="添加入口" aria-label="添加入口">
             <span class="button-icon" aria-hidden="true"></span>
           </button>
         </header>
 
-        <div class="portal-source-strip" id="portalSourceStrip" aria-live="polite">
-          <span class="source-dot" aria-hidden="true"></span>
-          <span id="portalSourceText">来自书签 · 按访问与收藏整理</span>
+        <div class="portal-mode-tabs" role="tablist" aria-label="导航中枢" data-active-view="smart">
+          <button class="portal-mode-tab active" id="smartPortalTab" type="button" role="tab" aria-selected="true" aria-controls="smartPortalView" data-portal-view="smart">智能常用</button>
+          <button class="portal-mode-tab" id="bookmarkPortalTab" type="button" role="tab" aria-selected="false" aria-controls="bookmarkPortalView" data-portal-view="bookmarks">自选书签</button>
         </div>
 
-        <form class="portal-form" id="portalForm" hidden>
-          <label>
-            <span>名称</span>
-            <input id="portalTitleInput" name="title" autocomplete="off" placeholder="例如：Notion">
-          </label>
-          <label>
-            <span>网址</span>
-            <input id="portalUrlInput" name="url" autocomplete="off" inputmode="url" placeholder="https://www.notion.so">
-          </label>
-          <label>
-            <span>归类</span>
-            <select id="portalCategorySelect" name="category"></select>
-          </label>
-          <div class="form-actions">
-            <button class="text-button" type="button" id="cancelPortalButton">取消</button>
-            <button class="text-button primary" type="submit">添加</button>
-          </div>
-          <p class="form-error" id="portalFormError" role="alert"></p>
-        </form>
+        <div class="portal-view active" id="smartPortalView" role="tabpanel" aria-labelledby="smartPortalTab">
+          <form class="portal-form" id="portalForm" hidden>
+            <label>
+              <span>名称</span>
+              <input id="portalTitleInput" name="title" autocomplete="off" placeholder="例如：Notion">
+            </label>
+            <label>
+              <span>网址</span>
+              <input id="portalUrlInput" name="url" autocomplete="off" inputmode="url" placeholder="https://www.notion.so">
+            </label>
+            <label>
+              <span>归类</span>
+              <select id="portalCategorySelect" name="category"></select>
+            </label>
+            <div class="form-actions">
+              <button class="text-button" type="button" id="cancelPortalButton">取消</button>
+              <button class="text-button primary" type="submit">添加</button>
+            </div>
+            <p class="form-error" id="portalFormError" role="alert"></p>
+          </form>
 
-        <div class="portal-grid" id="portalGrid"></div>
+          <div class="portal-grid" id="portalGrid"></div>
+        </div>
+
+        <div class="portal-view" id="bookmarkPortalView" role="tabpanel" aria-labelledby="bookmarkPortalTab" hidden>
+          <div class="bookmark-toolbar">
+            <div class="bookmark-folder-meta" id="bookmarkFolderMeta"></div>
+            <div class="header-actions">
+              <button class="icon-button subtle-action" id="refreshBookmarkFolderButton" type="button" title="刷新当前书签文件夹" aria-label="刷新当前书签文件夹">
+                <span class="button-icon" aria-hidden="true"></span>
+              </button>
+              <button class="icon-button subtle-action" id="toggleBookmarkLayoutButton" type="button" title="切换为列表显示" aria-label="切换为列表显示" aria-pressed="false">
+                <span class="button-icon" aria-hidden="true"></span>
+              </button>
+              <button class="icon-button subtle-action" id="chooseBookmarkFolderButton" type="button" title="选择书签文件夹" aria-label="选择书签文件夹">
+                <span class="button-icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+          <div class="bookmark-toolbar bookmark-picker-toolbar" id="bookmarkPickerToolbar" hidden>
+            <div class="header-actions">
+              <button class="icon-button subtle-action" id="closeBookmarkPickerButton" type="button" title="返回" aria-label="返回">
+                <span class="button-icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bookmark-view" id="bookmarkMainView">
+            <div class="portal-grid bookmark-grid" id="bookmarkGrid"></div>
+          </div>
+
+          <div class="bookmark-picker" id="bookmarkPicker" hidden>
+            <div class="visually-hidden" id="bookmarkPickerTitle">选择一个书签文件夹</div>
+            <div class="bookmark-folder-list" id="bookmarkFolderList"></div>
+          </div>
+        </div>
       </section>
 
-      <section class="panel bookmark-panel" id="bookmarkPanel" aria-labelledby="bookmark-title">
-        <header class="panel-header bookmark-header">
+      <section class="panel media-panel" id="mediaPanel" aria-labelledby="media-title">
+        <header class="panel-header media-header">
           <div>
-            <h2 id="bookmark-title">书签</h2>
+            <h2 id="media-title">信息流</h2>
           </div>
           <div class="header-actions">
-            <button class="icon-button subtle-action" id="refreshBookmarkFolderButton" type="button" title="刷新当前书签文件夹" aria-label="刷新当前书签文件夹">
+            <button class="icon-button" id="toggleMediaFeedFormButton" type="button" title="添加信息源" aria-label="添加信息源" aria-expanded="false" aria-controls="mediaFeedForm">
               <span class="button-icon" aria-hidden="true"></span>
             </button>
-            <button class="icon-button subtle-action" id="toggleBookmarkLayoutButton" type="button" title="切换为列表显示" aria-label="切换为列表显示" aria-pressed="false">
-              <span class="button-icon" aria-hidden="true"></span>
-            </button>
-            <button class="icon-button subtle-action" id="chooseBookmarkFolderButton" type="button" title="选择书签文件夹" aria-label="选择书签文件夹">
+            <button class="icon-button" id="refreshMediaFeedButton" type="button" title="刷新信息流" aria-label="刷新信息流">
               <span class="button-icon" aria-hidden="true"></span>
             </button>
           </div>
         </header>
-
-        <div class="bookmark-view" id="bookmarkMainView">
-          <div class="bookmark-folder-meta" id="bookmarkFolderMeta"></div>
-          <div class="portal-grid bookmark-grid" id="bookmarkGrid"></div>
-        </div>
-
-        <div class="bookmark-picker" id="bookmarkPicker" hidden>
-          <div class="bookmark-picker-toolbar">
-            <button class="text-button" id="closeBookmarkPickerButton" type="button">返回</button>
-            <span>选择一个书签文件夹</span>
+        <form class="media-feed-form" id="mediaFeedForm" hidden>
+          <label>
+            <span>RSS 地址</span>
+            <input id="mediaFeedUrlInput" name="url" autocomplete="off" inputmode="url" placeholder="https://example.com/feed.xml">
+          </label>
+          <label>
+            <span>语言</span>
+            <select id="mediaFeedLanguageSelect" name="language">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <div class="media-feed-defaults" id="mediaFeedDefaultList" aria-label="默认信息源"></div>
+          <div class="form-actions">
+            <button class="text-button" type="button" id="cancelMediaFeedButton">取消</button>
+            <button class="text-button primary" type="submit">添加</button>
           </div>
-          <div class="bookmark-folder-list" id="bookmarkFolderList"></div>
+          <p class="form-error" id="mediaFeedFormError" role="alert"></p>
+        </form>
+        <div class="media-feed-shell" aria-live="polite">
+          <div class="media-feed-meta">
+            <span id="mediaFeedUpdated">正在读取</span>
+            <div class="media-feed-type-tabs" id="mediaFeedTypeTabs" role="tablist" aria-label="资讯流类型">
+              <button class="media-feed-type-tab active" type="button" data-media-feed-type="all" aria-selected="true">全部</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="ai" aria-selected="false">AI</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="engineering" aria-selected="false">工程</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="business" aria-selected="false">商业</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="product" aria-selected="false">产品</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="science" aria-selected="false">深科技</button>
+              <button class="media-feed-type-tab" type="button" data-media-feed-type="consumer" aria-selected="false">消费科技</button>
+            </div>
+          </div>
+          <div class="media-feed-list" id="mediaFeedList" role="feed"></div>
+          <div class="media-placeholder" id="mediaFeedState" hidden>
+            <span class="empty-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M4 6.5h16"></path>
+                <path d="M4 12h11"></path>
+                <path d="M4 17.5h8"></path>
+              </svg>
+            </span>
+            <strong>正在读取信息流</strong>
+            <span>稍后会显示最新资讯。</span>
+          </div>
         </div>
       </section>
 
@@ -154,7 +218,7 @@
           <div class="settings-group-heading">
             <h3 id="appearanceModeTitle">外观模式</h3>
           </div>
-          <div class="segmented-control" role="group" aria-label="外观模式">
+          <div class="segmented-control theme-mode-control" role="group" aria-label="外观模式" data-active-index="0">
             <button class="segmented-option" type="button" data-theme-mode="system">跟随</button>
             <button class="segmented-option" type="button" data-theme-mode="light">日间</button>
             <button class="segmented-option" type="button" data-theme-mode="dark">夜间</button>
