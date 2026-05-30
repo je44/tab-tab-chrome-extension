@@ -31,6 +31,7 @@ const CUSTOM_PORTALS_STORAGE_KEY = "customPortals";
 const FAVORITE_SITES_STORAGE_KEY = "favoriteSites";
 const SITE_ICON_CACHE_STORAGE_KEY = "siteIconCache";
 const PINNED_HISTORY_STORAGE_KEY = "pinnedHistory";
+const OPEN_TAB_ACTIVITY_STORAGE_KEY = "openTabActivity";
 const BOOKMARK_FOLDER_STORAGE_KEY = "bookmarkFolderId";
 const BOOKMARK_LAYOUT_STORAGE_KEY = "bookmarkLayout";
 const PORTAL_CATEGORY_STATE_STORAGE_KEY = "portalCategoryState";
@@ -46,6 +47,7 @@ const MAX_RECENT_FOLDER_ITEMS = 4;
 const MAX_PINNED_HISTORY_ITEMS = 6;
 const RECENT_HISTORY_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 const MIN_RECENT_DOMAIN_VISITS = 2;
+const RECENT_OPEN_TAB_MIN_OPEN_MS = 2 * 60 * 60 * 1000;
 const MAX_CUSTOM_PORTALS = 48;
 const MAX_FAVORITE_SITES = 5;
 const MAX_PORTAL_TITLE_LENGTH = 32;
@@ -711,6 +713,13 @@ const SITE_ICON_TILE_COLOR_BY_SITE_KEY = Object.freeze({
   "youtube.com": "#ff0000",
   "zhihu.com": "#0084ff"
 });
+const LIGHT_ICON_TILE_BY_SITE_KEY = Object.freeze({
+  "apple.com": "#f3f5f2",
+  "github.com": "#f3f5f2",
+  "notion.so": "#f3f5f2",
+  "vercel.com": "#f3f5f2",
+  "x.com": "#f3f5f2"
+});
 const PORTAL_CATEGORY_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.category];
@@ -1328,6 +1337,7 @@ let searchSuggestionsShowFrame = 0;
 let activeSurfacePanelId = "";
 let bookmarkLayout = "grid";
 let activeSearchEngine = DEFAULT_SEARCH_ENGINE;
+let selectedLocalSearchEngine = AGGREGATE_SEARCH_ENGINE_IDS[0];
 let aiModeExitTimer = 0;
 let portalCategoryState = {};
 let activePortalView = "smart";
@@ -2420,7 +2430,7 @@ function submitLocalQuickSearch(query) {
 }
 
 function submitAggregateQuickSearch(query) {
-  submitEngineQuickSearch(searchEngineById(AGGREGATE_SEARCH_ENGINE_IDS[0], { strict: true }), query);
+  submitEngineQuickSearch(selectedLocalSearchEngineConfig(), query);
 }
 
 function submitEngineQuickSearch(engine, query) {
@@ -2558,12 +2568,14 @@ function createSearchEngineSuggestion(query) {
   const engines = AGGREGATE_SEARCH_ENGINE_IDS
     .map((engineId) => searchEngineById(engineId, { strict: true }))
     .filter(Boolean);
+  const selectedEngine = selectedLocalSearchEngineConfig();
   return {
     type: "engine-search",
-    title: t("quickSearch"),
+    title: selectedEngine ? t("quickSearchWith", { engine: selectedEngine.label }) : t("quickSearch"),
     meta: query,
     engines,
-    query
+    query,
+    selectedEngineId: selectedEngine?.id || AGGREGATE_SEARCH_ENGINE_IDS[0]
   };
 }
 
@@ -2841,12 +2853,12 @@ function createSearchSuggestionItem(item) {
     link.tabIndex = 0;
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      submitAggregateQuickSearch(item.query);
+      submitSelectedSuggestionSearch(item);
     });
     link.addEventListener("keydown", (event) => {
       if ((event.key === "Enter" || event.key === " ") && !event.isComposing) {
         event.preventDefault();
-        submitAggregateQuickSearch(item.query);
+        submitSelectedSuggestionSearch(item);
       }
     });
   } else {
@@ -2879,12 +2891,14 @@ function createSearchSuggestionItem(item) {
 function createSearchEngineChoices(item) {
   const choices = document.createElement("span");
   choices.className = "search-engine-choices";
+  const selectedEngineId = item.selectedEngineId || selectedLocalSearchEngine;
   item.engines.forEach((engine) => {
     const button = document.createElement("button");
     button.className = "search-engine-choice";
     button.type = "button";
     button.title = t("quickSearchWith", { engine: engine.label });
     button.setAttribute("aria-label", t("quickSearchWith", { engine: engine.label }));
+    button.setAttribute("aria-pressed", String(engine.id === selectedEngineId));
     if (engine.icon) {
       const icon = document.createElement("img");
       icon.alt = "";
@@ -2896,11 +2910,24 @@ function createSearchEngineChoices(item) {
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      submitEngineQuickSearch(engine, item.query);
+      selectedLocalSearchEngine = engine.id;
+      renderLocalSearchSuggestions(normalizeText(quickSearchInput.value));
+      quickSearchInput.focus();
     });
     choices.append(button);
   });
   return choices;
+}
+
+function submitSelectedSuggestionSearch(item) {
+  const selectedEngine = searchEngineById(item.selectedEngineId || selectedLocalSearchEngine, { strict: true })
+    || selectedLocalSearchEngineConfig();
+  submitEngineQuickSearch(selectedEngine, item.query);
+}
+
+function selectedLocalSearchEngineConfig() {
+  return searchEngineById(selectedLocalSearchEngine, { strict: true })
+    || searchEngineById(AGGREGATE_SEARCH_ENGINE_IDS[0], { strict: true });
 }
 
 function createSearchEmptyState() {
@@ -3939,19 +3966,26 @@ function applySiteIconTile(icon, site, iconPath = "") {
   const parsedUrl = safeUrl(site.url);
   const siteKey = siteGroupKey(parsedUrl);
   const tileColor = siteKey ? SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "" : "";
-  icon.dataset.iconTile = tileColor ? "brand" : "plain";
-  icon.style.setProperty("--site-icon-tile", tileColor || "#ffffff");
+  const tileMode = siteKey && LIGHT_ICON_TILE_BY_SITE_KEY[siteKey] ? "light" : (tileColor ? "brand" : "plain");
+  icon.dataset.iconTile = tileMode;
+  icon.style.setProperty("--site-icon-tile", iconTileColorForSiteKey(siteKey, tileColor));
   icon.classList.toggle("site-icon-local", Boolean(iconPath));
-  applyIconTileToShell(icon, tileColor);
+  applyIconTileToShell(icon, siteKey, tileMode, tileColor);
 }
 
-function applyIconTileToShell(icon, tileColor) {
+function iconTileColorForSiteKey(siteKey, tileColor) {
+  return siteKey && LIGHT_ICON_TILE_BY_SITE_KEY[siteKey]
+    ? LIGHT_ICON_TILE_BY_SITE_KEY[siteKey]
+    : (tileColor || "#ffffff");
+}
+
+function applyIconTileToShell(icon, siteKey, tileMode, tileColor) {
   const shell = icon.closest(".favorite-icon-shell");
   if (!shell) {
     return;
   }
-  shell.dataset.iconTile = tileColor ? "brand" : "plain";
-  shell.style.setProperty("--site-icon-tile", tileColor || "#ffffff");
+  shell.dataset.iconTile = tileMode;
+  shell.style.setProperty("--site-icon-tile", iconTileColorForSiteKey(siteKey, tileColor));
 }
 
 function displayIconSource(icon, source) {
@@ -4199,14 +4233,7 @@ function groupBookmarkSitesByInitial(sites) {
 }
 
 function bookmarkInitialForSite(site) {
-  const titleInitial = firstAsciiLetter(site.title);
-  if (titleInitial) {
-    return titleInitial;
-  }
-
-  const url = safeUrl(site.url);
-  const hostInitial = firstAsciiLetter(readableHostName(url?.hostname || ""));
-  return hostInitial || "#";
+  return firstAsciiLetter(site.title) || "#";
 }
 
 function firstAsciiLetter(value) {
@@ -5737,16 +5764,20 @@ function setMediaFeedState(state, title, body) {
 async function refreshHistory() {
   try {
     const recentStartTime = Date.now() - RECENT_HISTORY_LOOKBACK_MS;
-    const [items, pinnedItems] = await Promise.all([
+    const [items, pinnedItems, openTabItems] = await Promise.all([
       chrome.history.search({
         text: "",
         startTime: recentStartTime,
         maxResults: 80
       }),
-      loadPinnedHistory()
+      loadPinnedHistory(),
+      openTabHistoryItems()
     ]);
     const pinnedKeys = new Set(pinnedItems.map((item) => normalizeHistoryKey(item.url)));
-    const recentItems = (await repeatDomainHistoryItems(items, recentStartTime))
+    const recentItems = mergeHistoryItems(
+      await repeatDomainHistoryItems(items, recentStartTime),
+      openTabItems
+    )
       .filter((item) => !pinnedKeys.has(normalizeHistoryKey(item.url)));
     renderPinnedHistory(pinnedItems);
     const recentGroups = groupHistoryBySite(recentItems, {
@@ -5809,6 +5840,121 @@ async function historyVisitsSince(url, startTime) {
   } catch {
     return 1;
   }
+}
+
+async function openTabHistoryItems() {
+  if (!chrome.tabs?.query) {
+    return [];
+  }
+
+  try {
+    const tabs = await chrome.tabs.query({});
+    return updateOpenTabActivity(tabs);
+  } catch (error) {
+    console.warn("Failed to read open tabs", error);
+    return [];
+  }
+}
+
+async function updateOpenTabActivity(tabs) {
+  const now = Date.now();
+  const result = await getStoredValues({ [OPEN_TAB_ACTIVITY_STORAGE_KEY]: {} });
+  const previous = normalizeOpenTabActivity(result[OPEN_TAB_ACTIVITY_STORAGE_KEY], now);
+  const next = {};
+
+  for (const tab of tabs || []) {
+    const url = safeUrl(tab?.url);
+    const key = normalizeHistoryKey(tab?.url);
+    if (!key || !isDisplayableHistoryUrl(url)) {
+      continue;
+    }
+    if (next[key]) {
+      next[key] = {
+        ...next[key],
+        title: normalizeText(tab.title) || next[key].title,
+        lastAccessed: Math.max(Number(tab.lastAccessed || 0), Number(next[key].lastAccessed || 0), now),
+        tabCount: next[key].tabCount + 1
+      };
+      continue;
+    }
+    const seen = previous[key] || {};
+    const firstSeenAt = Number.isFinite(Number(seen.firstSeenAt)) ? Number(seen.firstSeenAt) : now;
+    const lastAccessed = Math.max(Number(tab.lastAccessed || 0), Number(seen.lastAccessed || 0), now);
+    next[key] = {
+      url: url.href,
+      title: normalizeText(tab.title) || normalizeText(seen.title),
+      firstSeenAt,
+      lastAccessed,
+      tabCount: 1
+    };
+  }
+
+  await setStoredValues({ [OPEN_TAB_ACTIVITY_STORAGE_KEY]: next });
+  return Object.values(next)
+    .filter((entry) => now - Number(entry.firstSeenAt || 0) >= RECENT_OPEN_TAB_MIN_OPEN_MS)
+    .map((entry) => ({
+      title: normalizeText(entry.title) || historyFallbackTitle(safeUrl(entry.url)),
+      url: entry.url,
+      lastVisitTime: Math.max(Number(entry.lastAccessed || 0), Number(entry.firstSeenAt || 0)),
+      visitCount: Math.max(MIN_RECENT_DOMAIN_VISITS, Number(entry.tabCount || 0)),
+      typedCount: 0,
+      fromOpenTab: true
+    }));
+}
+
+function normalizeOpenTabActivity(value, now = Date.now()) {
+  const entries = value && typeof value === "object" && !Array.isArray(value)
+    ? Object.entries(value)
+    : [];
+  const normalized = {};
+
+  for (const [key, entry] of entries) {
+    const url = safeUrl(entry?.url || key);
+    const normalizedKey = normalizeHistoryKey(url?.href || key);
+    const firstSeenAt = Number(entry?.firstSeenAt || 0);
+    if (!normalizedKey || !Number.isFinite(firstSeenAt) || firstSeenAt <= 0) {
+      continue;
+    }
+    normalized[normalizedKey] = {
+      url: url?.href || normalizedKey,
+      title: normalizeText(entry?.title),
+      firstSeenAt,
+      lastAccessed: Number(entry?.lastAccessed || firstSeenAt),
+      tabCount: Math.max(1, Number(entry?.tabCount || 1))
+    };
+  }
+
+  return normalized;
+}
+
+function mergeHistoryItems(...itemGroups) {
+  const merged = new Map();
+
+  for (const items of itemGroups) {
+    for (const item of items || []) {
+      const key = normalizeHistoryKey(item?.url);
+      if (!key) {
+        continue;
+      }
+      const existing = merged.get(key);
+      if (!existing) {
+        merged.set(key, item);
+        continue;
+      }
+      merged.set(key, {
+        ...existing,
+        ...item,
+        title: normalizeText(item.title) || normalizeText(existing.title),
+        lastVisitTime: Math.max(Number(existing.lastVisitTime || 0), Number(item.lastVisitTime || 0)),
+        visitCount: Math.max(Number(existing.visitCount || 0), Number(item.visitCount || 0)),
+        typedCount: Math.max(Number(existing.typedCount || 0), Number(item.typedCount || 0)),
+        fromOpenTab: Boolean(existing.fromOpenTab || item.fromOpenTab)
+      });
+    }
+  }
+
+  return [...merged.values()]
+    .sort((a, b) => Number(b.lastVisitTime || 0) - Number(a.lastVisitTime || 0));
 }
 
 function renderPinnedHistory(items) {
