@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "tab-tab",
   "description": "tab-tab 用门户快捷入口、书签文件夹和最近历史记录替代 Chrome 新标签页。",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
@@ -10,11 +10,27 @@
     "bookmarks",
     "favicon",
     "history",
-    "storage"
+    "scripting",
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "http://*/*",
     "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://grok.com/*"
+      ],
+      "js": [
+        "ai-submit.js"
+      ],
+      "run_at": "document_idle"
+    }
   ],
   "icons": {
     "16": "icons/tab-tab-flat-16.png",

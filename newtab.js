@@ -11,9 +11,9 @@ const PORTALS = [
   { title: "MDN", url: "https://developer.mozilla.org", icon: "icons/portals/mdn.svg", category: "developer" },
   { title: "YouTube", url: "https://www.youtube.com", icon: "icons/portals/youtube.svg", category: "media" },
   { title: "Google", url: "https://www.google.com", icon: "icons/portals/google.svg", category: "search" },
-  { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/portals/chatgpt.svg", category: "ai" },
-  { title: "Claude", url: "https://claude.ai", icon: "icons/portals/claude.svg", category: "ai" },
-  { title: "Gemini", url: "https://gemini.google.com", icon: "icons/portals/gemini.svg", category: "ai" },
+  { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/ai/chatgpt.png", category: "ai" },
+  { title: "Claude", url: "https://claude.ai", icon: "icons/ai/claude.png", category: "ai" },
+  { title: "Gemini", url: "https://gemini.google.com", icon: "icons/ai/gemini.png", category: "ai" },
   { title: "Perplexity", url: "https://www.perplexity.ai", icon: "icons/portals/perplexity.svg", category: "ai" },
   { title: "Notion", url: "https://www.notion.so", icon: "icons/portals/notion.svg", category: "productivity" },
   { title: "Figma", url: "https://www.figma.com", icon: "icons/portals/figma.svg", category: "design" },
@@ -28,29 +28,41 @@ const PORTALS = [
   { title: "飞书", url: "https://www.feishu.cn", icon: "icons/portals/feishu.png", category: "productivity" }
 ];
 const CUSTOM_PORTALS_STORAGE_KEY = "customPortals";
+const FAVORITE_SITES_STORAGE_KEY = "favoriteSites";
+const SITE_ICON_CACHE_STORAGE_KEY = "siteIconCache";
 const PINNED_HISTORY_STORAGE_KEY = "pinnedHistory";
 const BOOKMARK_FOLDER_STORAGE_KEY = "bookmarkFolderId";
 const BOOKMARK_LAYOUT_STORAGE_KEY = "bookmarkLayout";
-const PORTAL_SECTION_ORDER_STORAGE_KEY = "portalSectionOrder";
-const PORTAL_CATEGORIES_EXPANDED_STORAGE_KEY = "portalCategoriesExpanded";
-const FEATURED_PORTALS_EXPANDED_STORAGE_KEY = "featuredPortalsExpanded";
+const PORTAL_CATEGORY_STATE_STORAGE_KEY = "portalCategoryState";
 const THEME_STORAGE_KEY = "themeMode";
 const THEME_PALETTE_STORAGE_KEY = "themePalette";
-const SEARCH_ENGINE_STORAGE_KEY = "quickSearchEngine";
+const AI_DIRECT_PROMPT_STORAGE_KEY = "aiDirectPrompts";
+const AI_DIRECT_PROMPT_TOKEN_PARAM = "_tabtab_prompt";
+const AI_DIRECT_PROMPT_TTL_MS = 2 * 60 * 1000;
 const MAX_HISTORY_SITE_GROUPS = 9;
 const MAX_HISTORY_PAGES_PER_SITE = 4;
+const MAX_RECENT_FOLDER_ITEMS = 4;
 const MAX_PINNED_HISTORY_ITEMS = 6;
 const RECENT_HISTORY_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 const MIN_RECENT_DOMAIN_VISITS = 2;
 const MAX_CUSTOM_PORTALS = 48;
+const MAX_FAVORITE_SITES = 5;
 const MAX_PORTAL_TITLE_LENGTH = 32;
 const MAX_PORTAL_URL_LENGTH = 512;
+const MAX_LOCAL_SEARCH_RESULTS = 8;
+const MAX_CACHED_SITE_ICONS = 80;
+const MAX_CACHED_SITE_ICON_BYTES = 96 * 1024;
+const SITE_ICON_DISCOVERY_TIMEOUT_MS = 3500;
+const SITE_ICON_FETCH_TIMEOUT_MS = 4500;
+const SITE_ICON_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const FAVORITE_REORDER_MS = 260;
+const FAVORITE_DELETE_EXIT_MS = 360;
+const FAVORITE_DELETE_CANCEL_MS = 280;
+const SEARCH_SUGGESTIONS_EXIT_MS = 220;
 const MAX_BOOKMARK_FOLDER_OPTIONS = 160;
 const MAX_PORTAL_FEATURED_ITEMS = 6;
-const COLLAPSED_FEATURED_PORTAL_ITEMS = 2;
 const MAX_BOOKMARK_PORTAL_ITEMS = 120;
 const MAX_BOOKMARK_HISTORY_ITEMS = 180;
-const MAX_RECENT_BOOKMARK_ITEMS = 2;
 const BOOKMARK_HISTORY_LOOKBACK_DAYS = 45;
 const MEDIA_FEED_SOURCES = [
   { id: "infoq-cn", title: "InfoQ 中文", language: "zh", url: "https://www.infoq.cn/feed" },
@@ -144,7 +156,9 @@ const MEDIA_FEED_SOURCE_ITEM_LIMIT = 8;
 const MEDIA_FEED_DISCOVERY_ITEM_LIMIT = 8;
 const MEDIA_FEED_INITIAL_ITEMS = 12;
 const MEDIA_FEED_PAGE_SIZE = 8;
-const MEDIA_FEED_TIMEOUT_MS = 8500;
+const MEDIA_FEED_TIMEOUT_MS = 5500;
+const MEDIA_FEED_TOTAL_TIMEOUT_MS = 9000;
+const MEDIA_FEED_CONCURRENCY = 3;
 const MAX_CUSTOM_MEDIA_FEEDS = 12;
 const MAX_MEDIA_FEED_FEEDBACK_KEYS = 120;
 const MEDIA_FEED_LARGE_CARD_INTERVAL = 5;
@@ -153,127 +167,130 @@ const LOW_VALUE_MEDIA_FEED_PATTERNS = [
   /newsletter|roundup|daily brief|weekly recap|sponsored|webinar|event|hiring|coupon|deal/i
 ];
 const DEFAULT_PORTAL_CATEGORY = "developer";
-const DEFAULT_SEARCH_ENGINE = "google";
-const DEFAULT_PORTAL_SECTION_ORDER = ["featured", "active"];
-const COLLAPSED_PORTAL_CATEGORY_COUNT = 2;
+const DEFAULT_SEARCH_ENGINE = "local";
 const DEFAULT_THEME_MODE = "system";
-const DEFAULT_THEME_PALETTE = "forest";
+const DEFAULT_THEME_PALETTE = "sage";
 const CUSTOM_THEME_PALETTE_ID = "custom";
-const DEFAULT_CUSTOM_THEME_COLORS = Object.freeze({ light: "#0d6d59", dark: "#82c8ae" });
+const DEFAULT_CUSTOM_THEME_COLORS = Object.freeze({ light: "#3f7f68", dark: "#86b9a4" });
 const THEME_PALETTES = [
   {
-    id: "forest",
-    label: "松石",
-    light: "#0d6d59",
-    dark: "#82c8ae",
+    id: "sage",
+    label: "鼠尾草",
+    light: "#3f7f68",
+    dark: "#86b9a4",
     modes: {
       light: {
-        accent: "#0d6d59",
-        accentStrong: "#074b3e",
-        focus: "#2f82c4",
-        paper: "#f7f8f3",
+        accent: "#3f7f68",
+        accentStrong: "#2b5f4d",
+        focus: "#527fa8",
+        paper: "#f8f8f3",
         panel: "#fffefa",
-        panelSoft: "#f0f4ef",
+        panelSoft: "#f1f4ef",
         inputBg: "#fffefa",
-        hoverBg: "#e8f2ee",
-        ink: "#131915",
-        muted: "#59655f",
-        faint: "#6d7872"
+        hoverBg: "#edf2ec",
+        ink: "#171b18",
+        muted: "#5c665f",
+        faint: "#7a827c"
       },
       dark: {
-        accent: "#82c8ae",
-        accentStrong: "#a8dcc8",
-        focus: "#8abfe8",
-        paper: "#101512",
-        panel: "#171d1a",
-        panelSoft: "#202922",
-        inputBg: "#121815",
-        hoverBg: "#25332d",
-        ink: "#eff6f3",
-        muted: "#b6c2bd",
-        faint: "#83918b",
+        accent: "#86b9a4",
+        accentStrong: "#b3d7c8",
+        focus: "#9bbfdf",
+        paper: "#121512",
+        panel: "#191d19",
+        panelSoft: "#222821",
+        inputBg: "#191d19",
+        hoverBg: "#273027",
+        ink: "#f0f3ef",
+        muted: "#bac4bc",
+        faint: "#89938b",
         onAccent: "#102019"
       }
     }
   },
   {
-    id: "cobalt",
-    label: "钴蓝",
-    light: "#2f6fd6",
-    dark: "#91c2ff",
+    id: "sky",
+    label: "雾蓝",
+    light: "#4f7ea8",
+    dark: "#92b7dc",
     modes: {
       light: {
-        accent: "#2f6fd6",
-        accentStrong: "#1d4f9d",
-        focus: "#0f8e8e",
-        paper: "#f6f8fb",
+        accent: "#4f7ea8",
+        accentStrong: "#365f82",
+        focus: "#5b8b78",
+        paper: "#f7f8f6",
         panel: "#ffffff",
-        panelSoft: "#edf3fb",
+        panelSoft: "#eef3f6",
         inputBg: "#ffffff",
-        hoverBg: "#e5eefb",
-        ink: "#111827",
-        muted: "#586575",
-        faint: "#728093"
+        hoverBg: "#e9f0f4",
+        ink: "#161a1d",
+        muted: "#5b656d",
+        faint: "#79838b"
       },
       dark: {
-        accent: "#91c2ff",
-        accentStrong: "#b4d6ff",
-        focus: "#77d5c7",
-        paper: "#0f141a",
-        panel: "#161d25",
-        panelSoft: "#202a36",
-        inputBg: "#111820",
-        hoverBg: "#273545",
-        ink: "#eef5fb",
-        muted: "#b5c1ce",
-        faint: "#8291a1",
+        accent: "#92b7dc",
+        accentStrong: "#bed7ee",
+        focus: "#9ed0bd",
+        paper: "#121519",
+        panel: "#1a1e23",
+        panelSoft: "#232a30",
+        inputBg: "#1a1e23",
+        hoverBg: "#2a333a",
+        ink: "#f0f3f5",
+        muted: "#bcc6cf",
+        faint: "#89939d",
         onAccent: "#0d1b2a"
       }
     }
   },
   {
-    id: "rose",
-    label: "玫瑰",
-    light: "#aa4d65",
-    dark: "#eda2b4",
+    id: "peach",
+    label: "杏桃",
+    light: "#b06f55",
+    dark: "#d8a28b",
     modes: {
       light: {
-        accent: "#aa4d65",
-        accentStrong: "#7c3046",
-        focus: "#7367c7",
-        paper: "#faf7f5",
-        panel: "#fffdfb",
-        panelSoft: "#f5eeee",
-        inputBg: "#fffdfb",
-        hoverBg: "#f2e6e8",
-        ink: "#1c1618",
-        muted: "#675b5f",
-        faint: "#827376"
+        accent: "#b06f55",
+        accentStrong: "#854e39",
+        focus: "#6d84a3",
+        paper: "#faf8f4",
+        panel: "#fffefa",
+        panelSoft: "#f5f0e9",
+        inputBg: "#fffefa",
+        hoverBg: "#f2ebe3",
+        ink: "#1d1916",
+        muted: "#695f58",
+        faint: "#847970"
       },
       dark: {
-        accent: "#eda2b4",
-        accentStrong: "#f3bdca",
-        focus: "#b4abf0",
-        paper: "#151112",
-        panel: "#21171b",
-        panelSoft: "#2b2024",
-        inputBg: "#181316",
-        hoverBg: "#35272d",
-        ink: "#f8eff1",
-        muted: "#c9b7bd",
-        faint: "#97858b",
-        onAccent: "#271116"
+        accent: "#d8a28b",
+        accentStrong: "#ecc4b4",
+        focus: "#9fb7d5",
+        paper: "#151311",
+        panel: "#201b17",
+        panelSoft: "#2a241f",
+        inputBg: "#201b17",
+        hoverBg: "#322a24",
+        ink: "#f5f1ed",
+        muted: "#c8bcb4",
+        faint: "#978b83",
+        onAccent: "#2a160f"
       }
     }
   }
 ];
 const SEARCH_ENGINES = [
-  { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q" },
+  { id: "local", label: "聚合搜索", local: true },
+  { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
   { id: "baidu", label: "百度", icon: "icons/portals/baidu.svg", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
-  { id: "bing", label: "Bing", icon: "icons/portals/bing.svg", searchUrl: "https://www.bing.com/search", queryParam: "q" },
-  { id: "duckduckgo", label: "DuckDuckGo", icon: "icons/portals/duckduckgo.svg", searchUrl: "https://duckduckgo.com/", queryParam: "q" },
-  { id: "kagi", label: "Kagi", icon: "icons/portals/kagi.svg", searchUrl: "https://kagi.com/search", queryParam: "q" }
+  { id: "bing", label: "Bing", icon: "icons/portals/bing.svg", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
+  { id: "chatgpt", command: "/gpt", label: "ChatGPT", icon: "icons/ai/chatgpt.png", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
+  { id: "claude", command: "/claude", label: "Claude", icon: "icons/ai/claude.png", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
+  { id: "gemini", command: "/gemini", label: "Gemini", icon: "icons/ai/gemini.png", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
+  { id: "grok", command: "/grok", label: "Grok", icon: "icons/ai/grok.png", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
 ];
+const AGGREGATE_SEARCH_ENGINE_IDS = ["google", "bing"];
+const AI_COMMAND_ENGINES = SEARCH_ENGINES.filter((engine) => engine.aiDirect && engine.command);
 const PORTAL_CATEGORY_ORDER = [
   "custom",
   "developer",
@@ -352,9 +369,19 @@ const SITE_GROUP_OVERRIDES = {
   "console.firebase.google.com": "firebase.google.com",
   "firebase.google.com": "firebase.google.com",
   "mail.google.com": "gmail.com",
+  "www.office.com": "office.com",
   "music.163.com": "music.163.com",
   "developer.mozilla.org": "developer.mozilla.org",
   "gemini.google.com": "gemini.google.com",
+  "aws.amazon.com": "aws.amazon.com",
+  "azure.microsoft.com": "azure.microsoft.com",
+  "code.visualstudio.com": "code.visualstudio.com",
+  "chrome.google.com": "chrome.google.com",
+  "analytics.google.com": "analytics.google.com",
+  "googleads.google.com": "googleads.google.com",
+  "drive.google.com": "drive.google.com",
+  "maps.google.com": "maps.google.com",
+  "meet.google.com": "meet.google.com",
   "web.wechat.com": "wechat.com",
   "weixin.qq.com": "wechat.com"
 };
@@ -372,6 +399,8 @@ const SITE_GROUP_SUFFIXES = [
   "cloudflare.com",
   "github.com",
   "google.com",
+  "amazon.com",
+  "microsoft.com",
   "linkedin.com",
   "npmjs.com",
   "notion.so",
@@ -384,6 +413,7 @@ const SITE_GROUP_SUFFIXES = [
   "youtube.com",
   "zhihu.com"
 ];
+const GOOGLE_REGIONAL_HOST_PATTERN = /^google\.(com?\.)?[a-z]{2}$/;
 const MULTIPART_PUBLIC_SUFFIXES = new Set([
   "com.cn",
   "net.cn",
@@ -453,10 +483,12 @@ const AUTH_HISTORY_QUERY_PARAMS = new Set([
   "scope",
   "state"
 ]);
-const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
-  const url = new URL(portal.url);
-  return [canonicalSiteHost(url.hostname), portal.icon];
-})));
+const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS
+  .filter((portal) => portal.icon)
+  .map((portal) => {
+    const url = new URL(portal.url);
+    return [canonicalSiteHost(url.hostname), portal.icon];
+  })));
 const DEFAULT_SITE_ICON_BY_SITE_KEY = Object.freeze({
   "airbnb.com": "icons/sites/airbnb.svg",
   "airtable.com": "icons/sites/airtable.svg",
@@ -554,9 +586,115 @@ const DEFAULT_SITE_ICON_BY_SITE_KEY = Object.freeze({
   "yelp.com": "icons/sites/yelp.svg",
   "zoom.us": "icons/sites/zoom.svg"
 });
+const EXTENDED_SITE_ICON_BY_SITE_KEY = Object.freeze({
+  "adobe.com": "icons/sites/adobe.svg",
+  "amazon.com": "icons/sites/amazon.svg",
+  "apache.org": "icons/sites/apache.svg",
+  "audible.com": "icons/sites/audible.svg",
+  "aws.amazon.com": "icons/sites/aws.svg",
+  "azure.microsoft.com": "icons/sites/azure.svg",
+  "baidu.com": "icons/sites/baidu.svg",
+  "bbc.com": "icons/sites/bbc.svg",
+  "bing.com": "icons/sites/bing.svg",
+  "canva.com": "icons/sites/canva.svg",
+  "chatgpt.com": "icons/sites/chatgpt.svg",
+  "chrome.google.com": "icons/sites/chrome.svg",
+  "codepen.io": "icons/sites/codepen.svg",
+  "dailymotion.com": "icons/sites/dailymotion.svg",
+  "datadoghq.com": "icons/sites/datadog.svg",
+  "discord.com": "icons/sites/discord.svg",
+  "duckduckgo.com": "icons/sites/duckduckgo.svg",
+  "figma.com": "icons/sites/figma.svg",
+  "freecodecamp.org": "icons/sites/freecodecamp.svg",
+  "github.com": "icons/sites/github.svg",
+  "gmail.com": "icons/sites/gmail.svg",
+  "googleads.google.com": "icons/sites/googleads.svg",
+  "analytics.google.com": "icons/sites/googleanalytics.svg",
+  "drive.google.com": "icons/sites/googledrive.svg",
+  "maps.google.com": "icons/sites/googlemaps.svg",
+  "meet.google.com": "icons/sites/googlemeet.svg",
+  "heroku.com": "icons/sites/heroku.svg",
+  "imdb.com": "icons/sites/imdb.svg",
+  "atlassian.net": "icons/sites/jira.svg",
+  "kaggle.com": "icons/sites/kaggle.svg",
+  "lastpass.com": "icons/sites/lastpass.svg",
+  "linkedin.com": "icons/sites/linkedin.svg",
+  "mailchimp.com": "icons/sites/mailchimp.svg",
+  "matrix.org": "icons/sites/matrix.svg",
+  "microsoft.com": "icons/sites/microsoft.svg",
+  "office.com": "icons/sites/microsoftoffice.svg",
+  "miro.com": "icons/sites/miro.svg",
+  "mongodb.com": "icons/sites/mongodb.svg",
+  "mysql.com": "icons/sites/mysql.svg",
+  "nextjs.org": "icons/sites/nextdotjs.svg",
+  "notion.so": "icons/sites/notion.svg",
+  "openai.com": "icons/sites/openai.svg",
+  "oracle.com": "icons/sites/oracle.svg",
+  "playstation.com": "icons/sites/playstation.svg",
+  "postgresql.org": "icons/sites/postgresql.svg",
+  "slack.com": "icons/sites/slack.svg",
+  "snapchat.com": "icons/sites/snapchat.svg",
+  "sony.com": "icons/sites/sony.svg",
+  "tailwindcss.com": "icons/sites/tailwindcss.svg",
+  "twitter.com": "icons/sites/twitter.svg",
+  "ubuntu.com": "icons/sites/ubuntu.svg",
+  "unity.com": "icons/sites/unity.svg",
+  "unsplash.com": "icons/sites/unsplash.svg",
+  "code.visualstudio.com": "icons/sites/visualstudiocode.svg",
+  "w3schools.com": "icons/sites/w3schools.svg",
+  "webflow.com": "icons/sites/webflow.svg",
+  "xbox.com": "icons/sites/xbox.svg",
+  "yahoo.com": "icons/sites/yahoo.svg",
+  "ycombinator.com": "icons/sites/ycombinator.svg",
+  "zendesk.com": "icons/sites/zendesk.svg",
+  "zotero.org": "icons/sites/zotero.svg"
+});
 const SITE_ICON_BY_SITE_KEY = Object.freeze({
   ...DEFAULT_SITE_ICON_BY_SITE_KEY,
+  ...EXTENDED_SITE_ICON_BY_SITE_KEY,
   ...PORTAL_ICON_BY_SITE_KEY
+});
+const SITE_ICON_TILE_COLOR_BY_SITE_KEY = Object.freeze({
+  "adobe.com": "#ff0000",
+  "airbnb.com": "#ff5a5f",
+  "alibabacloud.com": "#ff6a00",
+  "aliexpress.com": "#e62e04",
+  "alipay.com": "#1677ff",
+  "amazon.com": "#ff9900",
+  "anthropic.com": "#191919",
+  "apple.com": "#000000",
+  "atlassian.com": "#0052cc",
+  "baidu.com": "#2932e1",
+  "bilibili.com": "#00a1d6",
+  "bing.com": "#258ffa",
+  "canva.com": "#00c4cc",
+  "chatgpt.com": "#10a37f",
+  "claude.ai": "#d97757",
+  "cloudflare.com": "#f38020",
+  "discord.com": "#5865f2",
+  "docs.b.ai": "#111827",
+  "duckduckgo.com": "#de5833",
+  "figma.com": "#f24e1e",
+  "gemini.google.com": "#4285f4",
+  "github.com": "#181717",
+  "gmail.com": "#ea4335",
+  "drive.google.com": "#4285f4",
+  "linkedin.com": "#0a66c2",
+  "microsoft.com": "#5e5e5e",
+  "notion.so": "#000000",
+  "openai.com": "#412991",
+  "perplexity.ai": "#1fb8cd",
+  "reddit.com": "#ff4500",
+  "slack.com": "#4a154b",
+  "spotify.com": "#1ed760",
+  "stackoverflow.com": "#f58025",
+  "taobao.com": "#e94f20",
+  "vercel.com": "#000000",
+  "weibo.com": "#e6162d",
+  "x.com": "#000000",
+  "xiaohongshu.com": "#ff2442",
+  "youtube.com": "#ff0000",
+  "zhihu.com": "#0084ff"
 });
 const PORTAL_CATEGORY_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
   const url = new URL(portal.url);
@@ -575,7 +713,6 @@ const MESSAGES = {
     smartPortalTab: "智能常用",
     bookmarkPortalTab: "自选书签",
     portalCategoryFeatured: "常用入口",
-    portalCategoryRecentBookmarks: "最近加入书签",
     portalCategoryCustom: "自定义",
     portalCategoryShopping: "购物",
     portalCategoryAi: "AI",
@@ -589,8 +726,6 @@ const MESSAGES = {
     portalCategories: "智能分类",
     portalCategoriesExpand: "展开",
     portalCategoriesCollapse: "收起",
-    featuredPortalsExpand: "展开",
-    featuredPortalsCollapse: "收起",
     addPortal: "添加入口",
     portalName: "名称",
     portalUrl: "网址",
@@ -649,13 +784,28 @@ const MESSAGES = {
     back: "返回",
     chooseBookmarkFolderPrompt: "选择一个书签文件夹",
     historyTitle: "最近浏览",
+    openPortalSurface: "打开导航中枢",
+    openHistorySurface: "打开最近浏览",
+    historyPreviousPage: "上一条最近浏览",
+    historyNextPage: "下一条最近浏览",
     refreshHistory: "刷新历史记录",
     pinnedTitle: "置顶",
     recentTitle: "最近 · 时间流",
     quickSearchPlaceholder: "搜索或输入网址",
     quickSearch: "搜索",
-    quickSearchEngine: "搜索引擎",
+    quickSearchLocal: "打开",
+    quickSearchAggregate: "聚合搜索",
+    quickSearchAiCommandHint: "输入 /gpt /claude /gemini /grok 切换 AI",
+    quickSearchAiSelected: "当前选择",
+    quickSearchEngine: "搜索模式",
     quickSearchWith: "使用 {engine} 搜索",
+    quickSearchWithAi: "发送到 {engine}",
+    localSearchHistory: "历史",
+    localSearchBookmark: "书签",
+    localSearchNoResults: "没有匹配的历史或书签。",
+    addFavoriteSite: "添加常用网站",
+    deleteFavoriteSite: "删除常用网站",
+    favoriteSiteLimit: "常用网站最多 {count} 个。",
     portalCategoryItems: "{count} 个入口",
     deleteCustomPortal: "删除自定义入口",
     openSettings: "设置中心",
@@ -719,16 +869,18 @@ const MESSAGES = {
     mobileHistoryTab: "歷史",
     quickSearchPlaceholder: "搜尋或輸入網址",
     quickSearch: "搜尋",
-    quickSearchEngine: "搜尋引擎",
+    quickSearchLocal: "打開",
+    quickSearchAggregate: "聚合搜尋",
+    quickSearchAiCommandHint: "輸入 /gpt /claude /gemini /grok 切換 AI",
+    quickSearchAiSelected: "目前選擇",
+    quickSearchEngine: "搜尋模式",
     quickSearchWith: "使用 {engine} 搜尋",
+    quickSearchWithAi: "送到 {engine}",
     portalCategoryItems: "{count} 個入口",
     portalCategories: "智能分類",
     portalCategoriesExpand: "展開",
     portalCategoriesCollapse: "收起",
-    featuredPortalsExpand: "展开",
-    featuredPortalsCollapse: "收起",
     portalCategoryFeatured: "常用入口",
-    portalCategoryRecentBookmarks: "最近加入書籤",
     historyJustNow: "剛剛",
     historyMinutesAgo: "{count} 分鐘前",
     historyHoursAgo: "{count} 小時前",
@@ -783,12 +935,21 @@ const MESSAGES = {
     back: "返回",
     chooseBookmarkFolderPrompt: "選擇一個書籤資料夾",
     historyTitle: "最近瀏覽",
+    openPortalSurface: "打開導航中樞",
+    openHistorySurface: "打開最近瀏覽",
     pinnedTitle: "釘選",
     recentTitle: "最近",
     unnamedFolder: "未命名資料夾",
     bookmarkRoot: "書籤",
     bookmarkMeta: "{folder} · {count} 個網站",
     bookmarkCount: "{count} 個網站",
+    quickSearchLocal: "打開",
+    localSearchHistory: "歷史",
+    localSearchBookmark: "書籤",
+    localSearchNoResults: "沒有匹配的歷史或書籤。",
+    addFavoriteSite: "新增常用網站",
+    deleteFavoriteSite: "刪除常用網站",
+    favoriteSiteLimit: "常用網站最多 {count} 個。",
     deleteBookmarkAction: "刪除",
     historyExpandPages: "展開 {count} 個相關頁面",
     historyCollapsePages: "收起相關頁面",
@@ -807,7 +968,6 @@ const MESSAGES = {
     smartPortalTab: "Smart",
     bookmarkPortalTab: "Bookmarks",
     portalCategoryFeatured: "Frequent shortcuts",
-    portalCategoryRecentBookmarks: "Recently bookmarked",
     portalCategoryCustom: "Custom",
     portalCategoryShopping: "Shopping",
     portalCategoryAi: "AI",
@@ -821,8 +981,6 @@ const MESSAGES = {
     portalCategories: "Smart categories",
     portalCategoriesExpand: "Expand",
     portalCategoriesCollapse: "Collapse",
-    featuredPortalsExpand: "Expand",
-    featuredPortalsCollapse: "Collapse",
     addPortal: "Add portal",
     portalName: "Name",
     portalUrl: "URL",
@@ -879,13 +1037,28 @@ const MESSAGES = {
     back: "Back",
     chooseBookmarkFolderPrompt: "Choose a bookmark folder",
     historyTitle: "Recent browsing",
+    openPortalSurface: "Open navigation hub",
+    openHistorySurface: "Open recent browsing",
+    historyPreviousPage: "Previous recent page",
+    historyNextPage: "Next recent page",
     refreshHistory: "Refresh history",
     pinnedTitle: "Pinned",
     recentTitle: "Recent timeline",
     quickSearchPlaceholder: "Search or enter URL",
     quickSearch: "Search",
-    quickSearchEngine: "Search engine",
+    quickSearchLocal: "Open",
+    quickSearchAggregate: "Aggregate search",
+    quickSearchAiCommandHint: "Type /gpt /claude /gemini /grok to switch AI",
+    quickSearchAiSelected: "Selected",
+    quickSearchEngine: "Search mode",
     quickSearchWith: "Search with {engine}",
+    quickSearchWithAi: "Send to {engine}",
+    localSearchHistory: "History",
+    localSearchBookmark: "Bookmark",
+    localSearchNoResults: "No matching history or bookmarks.",
+    addFavoriteSite: "Add favorite site",
+    deleteFavoriteSite: "Remove favorite site",
+    favoriteSiteLimit: "Up to {count} favorite sites.",
     portalCategoryItems: "{count} shortcuts",
     deleteCustomPortal: "Remove custom portal",
     openSettings: "Settings",
@@ -1047,6 +1220,9 @@ const MESSAGES = {
 const LOCALE = resolveLocale();
 const MEDIA_FEED_LOCALE_LANGUAGE = mediaFeedLanguageForLocale(LOCALE);
 
+const secondaryShell = document.querySelector("#secondaryShell");
+const portalSurfaceButton = document.querySelector("#portalSurfaceButton");
+const surfaceBackButtons = [...document.querySelectorAll(".surface-back-button")];
 const portalGrid = document.querySelector("#portalGrid");
 const portalModeTabs = [...document.querySelectorAll("[data-portal-view]")];
 const portalViews = [...document.querySelectorAll(".portal-view")];
@@ -1063,6 +1239,7 @@ const closeBookmarkPickerButton = document.querySelector("#closeBookmarkPickerBu
 const bookmarkPickerTitle = document.querySelector("#bookmarkPickerTitle");
 const pinnedGrid = document.querySelector("#pinnedGrid");
 const historyGrid = document.querySelector("#historyGrid");
+const recentHistoryFolders = document.querySelector("#recentHistoryFolders");
 const refreshHistoryButton = document.querySelector("#refreshHistoryButton");
 const mediaFeedList = document.querySelector("#mediaFeedList");
 const mediaFeedState = document.querySelector("#mediaFeedState");
@@ -1088,11 +1265,16 @@ const lightAccentValue = document.querySelector("#lightAccentValue");
 const darkAccentValue = document.querySelector("#darkAccentValue");
 const quickSearchForm = document.querySelector("#quickSearchForm");
 const quickSearchInput = document.querySelector("#quickSearchInput");
-const quickSearchButton = document.querySelector("#quickSearchButton");
-const quickSearchEngineButton = document.querySelector("#quickSearchEngineButton");
-const quickSearchEngineMenu = document.querySelector("#quickSearchEngineMenu");
-const quickSearchEngineLogo = document.querySelector("#quickSearchEngineLogo");
-const quickSearchEngineName = document.querySelector("#quickSearchEngineName");
+const aiEnginePill = document.querySelector("#aiEnginePill");
+const searchSuggestions = document.querySelector("#searchSuggestions");
+const searchWorkbench = document.querySelector(".search-workbench");
+const favoriteStrip = document.querySelector("#favoriteStrip");
+const favoriteSiteTemplate = document.querySelector("#favoriteSiteTemplate");
+const favoriteAddButton = document.querySelector("#favoriteAddButton");
+const favoriteForm = document.querySelector("#favoriteForm");
+const favoriteUrlInput = document.querySelector("#favoriteUrlInput");
+const favoriteFormError = document.querySelector("#favoriteFormError");
+const cancelFavoriteButton = document.querySelector("#cancelFavoriteButton");
 const togglePortalFormButton = document.querySelector("#togglePortalFormButton");
 const portalForm = document.querySelector("#portalForm");
 const portalTitleInput = document.querySelector("#portalTitleInput");
@@ -1103,18 +1285,23 @@ const cancelPortalButton = document.querySelector("#cancelPortalButton");
 const mobileSectionTabs = [...document.querySelectorAll(".mobile-section-tab")];
 let bookmarkRefreshTimer = 0;
 let activeBookmarkDeleteCard = null;
+let activeFavoriteDeleteCard = null;
+let localSearchRequestId = 0;
+let localSearchResults = [];
+let searchSuggestionsHideTimer = 0;
+let searchSuggestionsShowFrame = 0;
+let activeSurfacePanelId = "";
 let bookmarkLayout = "grid";
-let activePortalCategory = DEFAULT_PORTAL_CATEGORY;
 let activeSearchEngine = DEFAULT_SEARCH_ENGINE;
-let draggedPortalSectionRole = "";
-let portalCategoriesExpanded = false;
-let featuredPortalsExpanded = true;
+let aiModeExitTimer = 0;
+let portalCategoryState = {};
 let activePortalView = "smart";
 let activeThemeMode = DEFAULT_THEME_MODE;
 let activeThemePalette = DEFAULT_THEME_PALETTE;
 let activeCustomThemeColors = { ...DEFAULT_CUSTOM_THEME_COLORS };
 let systemThemeQuery = null;
 let settingsPanelCloseTimer = 0;
+let activeMediaFeedRequestId = 0;
 let activeMediaFeedType = "all";
 let latestMediaFeedItems = [];
 let visibleMediaFeedItems = [];
@@ -1123,6 +1310,7 @@ let mediaFeedObserver = null;
 let mediaFeedRefreshSeed = 0;
 let activeMediaFeedFeedback = normalizeMediaFeedFeedback();
 let activeMediaFeedActionMenu = null;
+const whiteSvgIconDataUrlCache = new Map();
 const mediaFeedLoadMoreSentinel = document.createElement("div");
 mediaFeedLoadMoreSentinel.className = "media-feed-load-more";
 mediaFeedLoadMoreSentinel.setAttribute("role", "status");
@@ -1230,33 +1418,31 @@ function applyLocale() {
   document.documentElement.lang = LOCALE;
   document.querySelector(".topbar")?.setAttribute("aria-label", t("topbarLabel"));
   document.querySelector(".shell")?.setAttribute("aria-label", t("shellLabel"));
+  setButtonLabel(portalSurfaceButton, t("openPortalSurface"));
+  surfaceBackButtons.forEach((button) => setButtonLabel(button, t("back")));
+  document.querySelector("#recent-folders-title").textContent = t("historyTitle");
   document.querySelector("#portal-title").textContent = t("portalTitle");
   document.querySelector("#smartPortalTab").textContent = t("smartPortalTab");
   document.querySelector("#bookmarkPortalTab").textContent = t("bookmarkPortalTab");
-  document.querySelector("#media-title").textContent = t("mediaTitle");
   applyMediaFeedTypeLocale();
   document.querySelector("#history-title").textContent = t("historyTitle");
   document.querySelector("#pinned-title").textContent = t("pinnedTitle");
   document.querySelector("#recent-title").textContent = t("recentTitle");
   setMobileTabLabel("portalPanel", t("mobilePortalTab"));
-  setMobileTabLabel("mediaPanel", t("mobileMediaTab"));
-  setMobileTabLabel("historyPanel", t("mobileHistoryTab"));
 
   setButtonLabel(togglePortalFormButton, t("addPortal"));
   setButtonLabel(refreshBookmarkFolderButton, t("refreshBookmarkFolder"));
   updateBookmarkLayoutButton();
   setButtonLabel(chooseBookmarkFolderButton, t("chooseBookmarkFolder"));
   setButtonLabel(refreshHistoryButton, t("refreshHistory"));
-  setButtonLabel(refreshMediaFeedButton, t("mediaFeedRefresh"));
-  setButtonLabel(toggleMediaFeedFormButton, t("mediaFeedAdd"));
   setButtonLabel(settingsButton, t("openSettings"));
   setButtonLabel(closeSettingsButton, t("closeSettings"));
+  setButtonLabel(favoriteAddButton, t("addFavoriteSite"));
   setStaticButtonIcons();
   applySettingsLocale();
-  updateQuickSearchButtonLabel();
+  updateQuickSearchModeUi();
   quickSearchInput.placeholder = t("quickSearchPlaceholder");
   quickSearchInput.setAttribute("aria-label", t("quickSearchPlaceholder"));
-  quickSearchEngineButton?.setAttribute("title", t("quickSearchEngine"));
 
   const portalTitleLabel = portalTitleInput.closest("label")?.querySelector("span");
   const portalUrlLabel = portalUrlInput.closest("label")?.querySelector("span");
@@ -1275,6 +1461,10 @@ function applyLocale() {
   portalUrlInput.placeholder = t("portalUrlPlaceholder");
   cancelPortalButton.textContent = t("cancel");
   portalForm.querySelector('button[type="submit"]').textContent = t("add");
+  favoriteUrlInput.closest("label").querySelector("span").textContent = t("portalUrl");
+  favoriteUrlInput.placeholder = t("portalUrlPlaceholder");
+  cancelFavoriteButton.textContent = t("cancel");
+  favoriteForm.querySelector('button[type="submit"]').textContent = t("add");
   applyMediaFeedFormLocale();
   setButtonLabel(closeBookmarkPickerButton, t("back"));
   bookmarkPickerTitle.textContent = t("chooseBookmarkFolderPrompt");
@@ -1296,19 +1486,25 @@ function setButtonLabel(button, label) {
 }
 
 function setStaticButtonIcons() {
+  portalSurfaceButton.querySelector(".button-icon").innerHTML = gridIcon();
+  surfaceBackButtons.forEach((button) => {
+    button.querySelector(".button-icon").innerHTML = arrowLeftIcon();
+  });
   togglePortalFormButton.querySelector(".button-icon").innerHTML = plusIcon();
   refreshBookmarkFolderButton.querySelector(".button-icon").innerHTML = refreshIcon();
   chooseBookmarkFolderButton.querySelector(".button-icon").innerHTML = folderPlusIcon();
   closeBookmarkPickerButton.querySelector(".button-icon").innerHTML = arrowLeftIcon();
   refreshHistoryButton.querySelector(".button-icon").innerHTML = refreshIcon();
-  refreshMediaFeedButton.querySelector(".button-icon").innerHTML = refreshIcon();
-  toggleMediaFeedFormButton.querySelector(".button-icon").innerHTML = plusIcon();
   settingsButton.querySelector(".theme-toggle-icon").innerHTML = settingsIcon();
   closeSettingsButton.querySelector(".button-icon").innerHTML = closeIcon();
-  document.querySelector(".media-placeholder .empty-mark").innerHTML = newspaperIcon();
+  favoriteAddButton.querySelector(".button-icon").innerHTML = plusIcon();
+  document.querySelector(".media-placeholder .empty-mark")?.replaceChildren();
 }
 
 function applyMediaFeedFormLocale() {
+  if (!mediaFeedForm) {
+    return;
+  }
   mediaFeedUrlInput.closest("label").querySelector("span").textContent = t("mediaFeedUrl");
   mediaFeedLanguageSelect.closest("label").querySelector("span").textContent = t("mediaFeedLanguage");
   mediaFeedUrlInput.placeholder = t("mediaFeedUrlPlaceholder");
@@ -1348,10 +1544,10 @@ function init() {
   applyLocale();
   initThemeMode();
   initQuickSearchEngine();
+  renderFavoriteSites();
   renderPortals();
   initBookmarkLayout();
   renderSelectedBookmarkFolder();
-  initMediaFeedFeedback().finally(refreshMediaFeed);
   refreshHistory();
 
   chooseBookmarkFolderButton.addEventListener("click", openBookmarkPicker);
@@ -1359,25 +1555,24 @@ function init() {
   toggleBookmarkLayoutButton.addEventListener("click", toggleBookmarkLayout);
   closeBookmarkPickerButton.addEventListener("click", closeBookmarkPicker);
   refreshHistoryButton.addEventListener("click", refreshHistory);
-  refreshMediaFeedButton.addEventListener("click", refreshMediaFeed);
-  toggleMediaFeedFormButton.addEventListener("click", toggleMediaFeedForm);
-  cancelMediaFeedButton.addEventListener("click", hideMediaFeedForm);
-  mediaFeedForm.addEventListener("submit", handleMediaFeedSubmit);
-  mediaFeedList.addEventListener("scroll", loadMoreMediaFeedIfNeeded, { passive: true });
-  document.addEventListener("click", handleDocumentClickForMediaFeedMenu);
-  mediaFeedTypeButtons.forEach((button) => {
-    button.addEventListener("click", () => activateMediaFeedType(button.dataset.mediaFeedType));
+  portalSurfaceButton.addEventListener("click", () => toggleSurfacePanel("portalPanel"));
+  surfaceBackButtons.forEach((button) => {
+    button.addEventListener("click", () => setActiveSurfacePanel(""));
   });
   quickSearchForm.addEventListener("submit", handleQuickSearchSubmit);
   quickSearchInput.addEventListener("keydown", handleQuickSearchInputKeydown);
-  quickSearchEngineButton.addEventListener("click", toggleSearchEngineMenu);
-  quickSearchEngineButton.addEventListener("keydown", handleSearchEngineButtonKeydown);
+  quickSearchInput.addEventListener("input", handleQuickSearchInput);
+  quickSearchInput.addEventListener("focus", handleQuickSearchFocus);
+  quickSearchInput.addEventListener("blur", handleQuickSearchBlur);
   portalModeTabs.forEach((tab) => {
     tab.addEventListener("click", () => activatePortalView(tab.dataset.portalView));
   });
   togglePortalFormButton.addEventListener("click", showPortalForm);
   cancelPortalButton.addEventListener("click", hidePortalForm);
   portalForm.addEventListener("submit", handlePortalSubmit);
+  favoriteAddButton.addEventListener("click", toggleFavoriteForm);
+  cancelFavoriteButton.addEventListener("click", hideFavoriteForm);
+  favoriteForm.addEventListener("submit", handleFavoriteSubmit);
   settingsButton.addEventListener("click", toggleSettingsPanel);
   closeSettingsButton.addEventListener("click", () => closeSettingsPanel({ restoreFocus: true }));
   document.querySelectorAll("[data-theme-mode]").forEach((button) => {
@@ -1389,7 +1584,9 @@ function init() {
     tab.addEventListener("click", () => activateMobilePanel(tab.dataset.panelTarget));
   });
   document.addEventListener("pointerdown", handleBookmarkDeleteDismiss, true);
-  document.addEventListener("pointerdown", handleSearchEngineMenuDismiss, true);
+  document.addEventListener("pointerdown", handleFavoriteDeleteDismiss, true);
+  document.addEventListener("pointerdown", handleSurfacePanelDismiss, true);
+  document.addEventListener("pointerdown", handleSearchSuggestionDismiss, true);
   document.addEventListener("pointerdown", handleSettingsPanelDismiss, true);
   document.addEventListener("keydown", handleBookmarkDeleteEscape);
   document.addEventListener("keydown", handleGlobalEscape);
@@ -1427,9 +1624,57 @@ function activateMobilePanel(panelId) {
     tab.classList.toggle("active", isActive);
     tab.setAttribute("aria-selected", String(isActive));
   });
+  setActiveSurfacePanel(panelId);
+}
+
+function toggleSurfacePanel(panelId) {
+  setActiveSurfacePanel(activeSurfacePanelId === panelId ? "" : panelId);
+}
+
+function setActiveSurfacePanel(panelId) {
+  const previousPanelId = activeSurfacePanelId;
+  activeSurfacePanelId = panelId === "portalPanel" || panelId === "historyPanel" ? panelId : "";
+  secondaryShell.dataset.activeSurface = activeSurfacePanelId;
+  secondaryShell.dataset.previousSurface = previousPanelId || "";
+  secondaryShell.classList.toggle("surface-open", Boolean(activeSurfacePanelId));
+  secondaryShell.classList.toggle("surface-closing", Boolean(!activeSurfacePanelId && previousPanelId));
+  document.body.classList.toggle("surface-open", Boolean(activeSurfacePanelId));
   document.querySelectorAll(".panel").forEach((panel) => {
-    panel.classList.toggle("mobile-active", panel.id === panelId);
+    const isActive = panel.id === activeSurfacePanelId;
+    const isClosing = !activeSurfacePanelId && panel.id === previousPanelId;
+    panel.classList.toggle("surface-active", isActive);
+    panel.classList.toggle("surface-closing", isClosing);
   });
+  portalSurfaceButton.setAttribute("aria-expanded", String(activeSurfacePanelId === "portalPanel"));
+  portalSurfaceButton.classList.toggle("active", activeSurfacePanelId === "portalPanel");
+  if (activeSurfacePanelId === "historyPanel") {
+    refreshHistory();
+  }
+  if (activeSurfacePanelId === "portalPanel" && activePortalView === "bookmarks" && bookmarkPicker.hidden) {
+    renderSelectedBookmarkFolder();
+  }
+  if (!activeSurfacePanelId && previousPanelId) {
+    window.setTimeout(() => {
+      if (!activeSurfacePanelId) {
+        secondaryShell.classList.remove("surface-closing");
+        secondaryShell.dataset.previousSurface = "";
+        document.querySelectorAll(".panel.surface-closing").forEach((panel) => {
+          panel.classList.remove("surface-closing");
+        });
+      }
+    }, 340);
+  }
+}
+
+function handleSurfacePanelDismiss(event) {
+  if (!activeSurfacePanelId) {
+    return;
+  }
+  const target = event.target;
+  if (target instanceof Element && (secondaryShell.contains(target) || portalSurfaceButton.contains(target))) {
+    return;
+  }
+  setActiveSurfacePanel("");
 }
 
 async function initThemeMode() {
@@ -1455,145 +1700,94 @@ async function initThemeMode() {
 }
 
 async function initQuickSearchEngine() {
-  populateQuickSearchEngineOptions();
-  try {
-    const result = await chrome.storage.local.get({ [SEARCH_ENGINE_STORAGE_KEY]: DEFAULT_SEARCH_ENGINE });
-    setQuickSearchEngine(result[SEARCH_ENGINE_STORAGE_KEY], { persist: false });
-  } catch (error) {
-    console.warn("Failed to load search engine", error);
-    setQuickSearchEngine(DEFAULT_SEARCH_ENGINE, { persist: false });
-  }
+  await setQuickSearchEngine(DEFAULT_SEARCH_ENGINE);
 }
 
-function populateQuickSearchEngineOptions() {
-  quickSearchEngineMenu.replaceChildren(...SEARCH_ENGINES.map((engine) => {
-    const option = document.createElement("button");
-    const icon = document.createElement("img");
-    const label = document.createElement("span");
-    option.className = "search-engine-option";
-    option.type = "button";
-    option.setAttribute("role", "option");
-    option.dataset.engine = engine.id;
-    option.setAttribute("aria-selected", "false");
-    icon.src = engine.icon;
-    icon.alt = "";
-    label.textContent = engine.label;
-    option.append(icon, label);
-    option.addEventListener("click", () => selectSearchEngineFromMenu(engine.id));
-    option.addEventListener("keydown", handleSearchEngineOptionKeydown);
-    return option;
-  }));
-}
-
-async function selectSearchEngineFromMenu(engineId) {
-  await setQuickSearchEngine(engineId, { persist: true });
-  closeSearchEngineMenu({ restoreFocus: true });
-}
-
-function toggleSearchEngineMenu() {
-  if (quickSearchEngineMenu.hidden) {
-    openSearchEngineMenu();
+function renderSearchEngineIcon(target, engine) {
+  target.replaceChildren();
+  if (engine.local) {
+    target.innerHTML = searchEngineSearchIcon();
     return;
   }
-  closeSearchEngineMenu({ restoreFocus: true });
-}
-
-function openSearchEngineMenu() {
-  quickSearchEngineMenu.hidden = false;
-  quickSearchEngineButton.setAttribute("aria-expanded", "true");
-  quickSearchEngineMenu.querySelector(`[data-engine="${CSS.escape(activeSearchEngine)}"]`)?.focus();
-}
-
-function closeSearchEngineMenu(options = {}) {
-  if (quickSearchEngineMenu.hidden) {
-    return;
-  }
-  quickSearchEngineMenu.hidden = true;
-  quickSearchEngineButton.setAttribute("aria-expanded", "false");
-  if (options.restoreFocus) {
-    quickSearchEngineButton.focus({ preventScroll: true });
-  }
-}
-
-function handleSearchEngineButtonKeydown(event) {
-  if (event.key !== "ArrowDown" && event.key !== "Enter" && event.key !== " ") {
-    return;
-  }
-  event.preventDefault();
-  openSearchEngineMenu();
-}
-
-function handleSearchEngineOptionKeydown(event) {
-  const options = [...quickSearchEngineMenu.querySelectorAll(".search-engine-option")];
-  const currentIndex = options.indexOf(event.currentTarget);
-  if (event.key === "Escape") {
-    event.preventDefault();
-    closeSearchEngineMenu({ restoreFocus: true });
-    return;
-  }
-  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
-    return;
-  }
-  event.preventDefault();
-  const offset = event.key === "ArrowDown" ? 1 : -1;
-  const nextIndex = (currentIndex + offset + options.length) % options.length;
-  options[nextIndex]?.focus();
-}
-
-function handleSearchEngineMenuDismiss(event) {
-  if (quickSearchEngineMenu.hidden) {
-    return;
-  }
-  const target = event.target;
-  if (target instanceof Element && (quickSearchEngineMenu.contains(target) || quickSearchEngineButton.contains(target))) {
-    return;
-  }
-  closeSearchEngineMenu();
+  const icon = document.createElement("img");
+  icon.alt = "";
+  icon.decoding = "async";
+  icon.dataset.engineIcon = engine.id;
+  const iconSite = { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon || "" };
+  applySiteIcon(icon, iconSite);
+  target.appendChild(icon);
 }
 
 function handleGlobalEscape(event) {
   if (event.key !== "Escape") {
     return;
   }
-  closeSearchEngineMenu();
+  exitAiQuickSearchMode();
+  hideSearchSuggestions();
+  clearFavoriteDeleteMode();
+  hideFavoriteForm();
+  setActiveSurfacePanel("");
   closeSettingsPanel();
 }
 
 async function setQuickSearchEngine(engineId, options = {}) {
   const nextEngine = searchEngineById(engineId);
   activeSearchEngine = nextEngine.id;
-  updateQuickSearchButtonLabel();
-  if (!options.persist) {
+  updateQuickSearchModeUi();
+  handleQuickSearchInput();
+}
+
+function updateQuickSearchModeUi() {
+  const engine = searchEngineById(activeSearchEngine);
+  quickSearchForm.style.setProperty("--ai-theme-color", engine.themeColor || "var(--accent)");
+  renderAiEnginePill(engine);
+}
+
+function renderAiEnginePill(engine) {
+  if (!aiEnginePill) {
     return;
   }
-  try {
-    await chrome.storage.local.set({ [SEARCH_ENGINE_STORAGE_KEY]: nextEngine.id });
-  } catch (error) {
-    console.warn("Failed to save search engine", error);
+  if (engine.local) {
+    if (!aiEnginePill.hidden) {
+      searchWorkbench?.setAttribute("data-ai-exiting", "");
+      searchWorkbench?.removeAttribute("data-ai-active");
+      aiEnginePill.dataset.exiting = "true";
+      window.clearTimeout(aiModeExitTimer);
+      aiModeExitTimer = window.setTimeout(() => {
+        if (searchEngineById(activeSearchEngine).local) {
+          searchWorkbench?.removeAttribute("data-ai-exiting");
+          aiEnginePill.hidden = true;
+          aiEnginePill.replaceChildren();
+          delete aiEnginePill.dataset.exiting;
+        }
+      }, 300);
+    } else {
+      searchWorkbench?.removeAttribute("data-ai-active");
+      searchWorkbench?.removeAttribute("data-ai-exiting");
+    }
+    return;
   }
+  window.clearTimeout(aiModeExitTimer);
+  searchWorkbench?.removeAttribute("data-ai-exiting");
+  delete aiEnginePill.dataset.exiting;
+  const icon = document.createElement("img");
+  const label = document.createElement("strong");
+  icon.alt = "";
+  icon.decoding = "async";
+  icon.dataset.engineIcon = engine.id;
+  applySiteIcon(icon, { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon || "" });
+  label.textContent = engine.label;
+  aiEnginePill.replaceChildren(icon, label);
+  aiEnginePill.hidden = false;
+  searchWorkbench?.setAttribute("data-ai-active", engine.id);
 }
 
-function updateQuickSearchButtonLabel() {
-  const engine = searchEngineById(activeSearchEngine);
-  setButtonLabel(quickSearchButton, t("quickSearchWith", { engine: engine.label }));
-  quickSearchButton.textContent = t("quickSearch");
-  if (quickSearchEngineLogo) {
-    quickSearchEngineLogo.src = engine.icon;
-    quickSearchEngineLogo.alt = "";
+function searchEngineById(engineId, options = {}) {
+  const engine = SEARCH_ENGINES.find((item) => item.id === engineId);
+  if (options.strict) {
+    return engine || null;
   }
-  if (quickSearchEngineName) {
-    quickSearchEngineName.textContent = engine.label;
-  }
-  quickSearchEngineButton.title = `${t("quickSearchEngine")}: ${engine.label}`;
-  quickSearchEngineMenu?.querySelectorAll(".search-engine-option").forEach((option) => {
-    const isSelected = option.dataset.engine === engine.id;
-    option.classList.toggle("active", isSelected);
-    option.setAttribute("aria-selected", String(isSelected));
-  });
-}
-
-function searchEngineById(engineId) {
-  return SEARCH_ENGINES.find((engine) => engine.id === engineId) || SEARCH_ENGINES[0];
+  return engine || SEARCH_ENGINES[0];
 }
 
 async function initBookmarkLayout() {
@@ -1790,13 +1984,9 @@ function setModeThemeVariables(rootStyle, mode, colors) {
   rootStyle.setProperty(`${prefix}-ink`, colors.ink);
   rootStyle.setProperty(`${prefix}-muted`, colors.muted);
   rootStyle.setProperty(`${prefix}-faint`, colors.faint);
-  rootStyle.setProperty(`${prefix}-glass-panel`, mode === "dark"
-    ? `rgba(${hexToRgb(colors.panel).join(", ")}, 0.86)`
-    : "rgba(255, 255, 255, 0.86)");
-  rootStyle.setProperty(`${prefix}-glass-panel-soft`, mode === "dark"
-    ? `rgba(${hexToRgb(colors.panelSoft).join(", ")}, 0.78)`
-    : "rgba(255, 255, 255, 0.7)");
-  rootStyle.setProperty(`${prefix}-icon-tile`, mode === "dark" ? "rgba(255, 255, 255, 0.9)" : "#ffffff");
+  rootStyle.setProperty(`${prefix}-glass-panel`, colors.panel);
+  rootStyle.setProperty(`${prefix}-glass-panel-soft`, colors.panelSoft);
+  rootStyle.setProperty(`${prefix}-icon-tile`, mode === "dark" ? colors.panelSoft : "#ffffff");
   rootStyle.setProperty(`${prefix}-icon-line`, mode === "dark" ? "rgba(244, 250, 247, 0.1)" : "rgba(20, 27, 24, 0.08)");
   rootStyle.setProperty(`${prefix}-line`, mode === "dark" ? "rgba(239, 246, 243, 0.12)" : "rgba(19, 25, 21, 0.12)");
   rootStyle.setProperty(`${prefix}-line-strong`, mode === "dark" ? "rgba(239, 246, 243, 0.24)" : "rgba(19, 25, 21, 0.23)");
@@ -1904,7 +2094,6 @@ function toggleSettingsPanel() {
 }
 
 function openSettingsPanel() {
-  closeSearchEngineMenu();
   window.clearTimeout(settingsPanelCloseTimer);
   settingsPanel.hidden = false;
   settingsPanel.dataset.open = "true";
@@ -1946,11 +2135,90 @@ function handleQuickSearchSubmit(event) {
 }
 
 function handleQuickSearchInputKeydown(event) {
+  if (event.key === "Escape" && !event.isComposing && !searchEngineById(activeSearchEngine).local) {
+    event.preventDefault();
+    event.stopPropagation();
+    exitAiQuickSearchMode();
+    return;
+  }
+  if (event.key === "Backspace" && !event.isComposing && !searchEngineById(activeSearchEngine).local && quickSearchInput.value.length === 0) {
+    event.preventDefault();
+    event.stopPropagation();
+    exitAiQuickSearchMode();
+    return;
+  }
   if (event.key !== "Enter" || event.isComposing) {
     return;
   }
   event.preventDefault();
   submitQuickSearch();
+}
+
+function exitAiQuickSearchMode() {
+  if (searchEngineById(activeSearchEngine).local) {
+    return;
+  }
+  activeSearchEngine = DEFAULT_SEARCH_ENGINE;
+  updateQuickSearchModeUi();
+  renderLocalSearchSuggestions(normalizeText(quickSearchInput.value));
+}
+
+function handleQuickSearchInput() {
+  const commandMatch = searchAiCommand(quickSearchInput.value);
+  if (commandMatch) {
+    quickSearchInput.value = commandMatch.remainder;
+    setQuickSearchEngine(commandMatch.engine.id);
+    return;
+  }
+  if (!searchEngineById(activeSearchEngine).local) {
+    hideSearchSuggestions();
+    return;
+  }
+  renderLocalSearchSuggestions(normalizeText(quickSearchInput.value));
+}
+
+function handleQuickSearchFocus() {
+  setQuickSearchActive(true);
+  handleQuickSearchInput();
+}
+
+function searchAiCommand(value) {
+  const match = String(value || "").match(/^\/([a-z]+)(?:\s+|$)(.*)$/i);
+  if (!match) {
+    return null;
+  }
+  const command = `/${match[1].toLowerCase()}`;
+  const engine = AI_COMMAND_ENGINES.find((item) => item.command === command);
+  if (!engine) {
+    return null;
+  }
+  return {
+    engine,
+    remainder: match[2] || ""
+  };
+}
+
+function handleQuickSearchBlur() {
+  window.setTimeout(() => {
+    const activeElement = document.activeElement;
+    const keepActive = activeElement instanceof Element
+      && (quickSearchForm.contains(activeElement) || searchSuggestions.contains(activeElement));
+    if (!keepActive) {
+      setQuickSearchActive(false);
+    }
+  }, 0);
+}
+
+function setQuickSearchActive(isActive) {
+  searchWorkbench?.classList.toggle("search-active", isActive);
+  favoriteStrip?.setAttribute("aria-disabled", String(isActive));
+  favoriteStrip?.querySelectorAll(".favorite-link, .favorite-remove").forEach((control) => {
+    if (isActive) {
+      control.tabIndex = -1;
+    } else {
+      control.removeAttribute("tabindex");
+    }
+  });
 }
 
 function submitQuickSearch() {
@@ -1959,7 +2227,62 @@ function submitQuickSearch() {
     quickSearchInput.focus();
     return;
   }
+  const engine = searchEngineById(activeSearchEngine);
+  if (engine.local) {
+    submitLocalQuickSearch(query);
+    return;
+  }
+  if (engine.autoSubmit && !looksLikeUrl(query) && !localhostUrl(query)) {
+    submitAiDirectSearch(engine, query);
+    return;
+  }
   window.location.assign(quickSearchDestination(query));
+}
+
+function submitLocalQuickSearch(query) {
+  const localUrl = localhostUrl(query);
+  if (localUrl) {
+    window.location.assign(localUrl);
+    return;
+  }
+  const directUrl = looksLikeUrl(query) ? normalizePortalUrl(query) : "";
+  if (directUrl) {
+    window.location.assign(directUrl);
+    return;
+  }
+  submitAggregateQuickSearch(query);
+}
+
+function submitAggregateQuickSearch(query) {
+  submitEngineQuickSearch(searchEngineById(AGGREGATE_SEARCH_ENGINE_IDS[0], { strict: true }), query);
+}
+
+function submitEngineQuickSearch(engine, query) {
+  const localUrl = localhostUrl(query);
+  if (localUrl) {
+    window.location.assign(localUrl);
+    return;
+  }
+  const directUrl = looksLikeUrl(query) ? normalizePortalUrl(query) : "";
+  if (directUrl) {
+    window.location.assign(directUrl);
+    return;
+  }
+  const fallbackEngine = searchEngineById("google", { strict: true });
+  const targetEngine = engine?.searchUrl ? engine : fallbackEngine;
+  window.location.assign(targetEngine ? engineSearchDestination(targetEngine, query) : aggregateSearchDestination(query));
+}
+
+function aggregateSearchDestination(query) {
+  const engines = AGGREGATE_SEARCH_ENGINE_IDS
+    .map((engineId) => searchEngineById(engineId, { strict: true }))
+    .filter(Boolean);
+  const searchUrls = engines.map((engine) => engineSearchDestination(engine, query));
+  if (searchUrls.length > 1 && chrome.tabs?.create) {
+    searchUrls.slice(1).forEach((url) => chrome.tabs.create({ url, active: false }));
+  }
+  const fallbackEngine = searchEngineById("google", { strict: true });
+  return searchUrls[0] || (fallbackEngine ? engineSearchDestination(fallbackEngine, query) : `https://www.google.com/search?q=${encodeURIComponent(query)}`);
 }
 
 function quickSearchDestination(query) {
@@ -1973,9 +2296,478 @@ function quickSearchDestination(query) {
   }
 
   const engine = searchEngineById(activeSearchEngine);
+  return engineSearchDestination(engine, query);
+}
+
+function engineSearchDestination(engine, query) {
   const searchUrl = new URL(engine.searchUrl);
   searchUrl.searchParams.set(engine.queryParam, query);
   return searchUrl.href;
+}
+
+async function submitAiDirectSearch(engine, query) {
+  const targetUrl = engine.directUrl || engine.searchUrl;
+  const token = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await saveAiDirectPrompt(token, {
+    prompt: query,
+    engineId: engine.id,
+    createdAt: Date.now()
+  });
+  window.location.assign(aiDirectTargetUrl(targetUrl, token));
+}
+
+async function saveAiDirectPrompt(token, payload) {
+  const prompts = await loadAiDirectPrompts();
+  prompts[token] = payload;
+  await chrome.storage.local.set({ [AI_DIRECT_PROMPT_STORAGE_KEY]: pruneAiDirectPrompts(prompts) });
+}
+
+async function loadAiDirectPrompts() {
+  try {
+    const result = await chrome.storage.local.get({ [AI_DIRECT_PROMPT_STORAGE_KEY]: {} });
+    const prompts = result[AI_DIRECT_PROMPT_STORAGE_KEY];
+    return prompts && typeof prompts === "object" && !Array.isArray(prompts) ? prompts : {};
+  } catch {
+    return {};
+  }
+}
+
+function pruneAiDirectPrompts(prompts) {
+  const now = Date.now();
+  return Object.fromEntries(Object.entries(prompts)
+    .filter(([, item]) => now - Number(item?.createdAt || 0) < AI_DIRECT_PROMPT_TTL_MS));
+}
+
+function aiDirectTargetUrl(targetUrl, token) {
+  try {
+    const url = new URL(targetUrl);
+    url.searchParams.set(AI_DIRECT_PROMPT_TOKEN_PARAM, token);
+    return url.href;
+  } catch {
+    return targetUrl;
+  }
+}
+
+async function renderLocalSearchSuggestions(query, options = {}) {
+  const requestId = ++localSearchRequestId;
+  if (!query) {
+    hideSearchSuggestions();
+    return;
+  }
+  const results = await localSearchItems(query);
+  if (requestId !== localSearchRequestId) {
+    return;
+  }
+  localSearchResults = results;
+  const fragment = document.createDocumentFragment();
+  const engineSuggestion = createSearchEngineSuggestion(query);
+  fragment.appendChild(createSearchSuggestionItem(engineSuggestion));
+  results.forEach((item) => {
+    fragment.appendChild(createSearchSuggestionItem(item));
+  });
+  if (!results.length && options.forceEmpty) {
+    fragment.appendChild(createSearchEmptyState());
+  }
+  searchSuggestions.replaceChildren(fragment);
+  showSearchSuggestions();
+}
+
+function showSearchSuggestions() {
+  window.clearTimeout(searchSuggestionsHideTimer);
+  cancelAnimationFrame(searchSuggestionsShowFrame);
+  searchWorkbench?.classList.remove("suggestions-closing");
+  searchSuggestions.hidden = false;
+  searchSuggestionsShowFrame = requestAnimationFrame(() => {
+    searchWorkbench?.classList.add("suggestions-open");
+  });
+}
+
+function finishHideSearchSuggestions() {
+  searchWorkbench?.classList.remove("suggestions-closing");
+  searchSuggestions.hidden = true;
+  searchSuggestions.replaceChildren();
+}
+
+function createSearchEngineSuggestion(query) {
+  const engines = AGGREGATE_SEARCH_ENGINE_IDS
+    .map((engineId) => searchEngineById(engineId, { strict: true }))
+    .filter(Boolean);
+  return {
+    type: "engine-search",
+    title: t("quickSearch"),
+    meta: query,
+    engines,
+    query
+  };
+}
+
+async function localSearchItems(query) {
+  const [historyItems, bookmarkItems] = await Promise.all([
+    searchHistoryItems(query),
+    searchBookmarkItems(query)
+  ]);
+  const merged = [...historyItems, ...bookmarkItems];
+  const byKey = new Map();
+  const normalizedQuery = normalizeText(query).toLowerCase();
+  merged.forEach((item) => {
+    const key = localSearchDedupKey(item.url);
+    if (!key) {
+      return;
+    }
+    const scoredItem = {
+      ...item,
+      score: localSearchScore(item, normalizedQuery)
+    };
+    if (scoredItem.score <= 0) {
+      return;
+    }
+    const existing = byKey.get(key);
+    if (!existing || compareLocalSearchItems(scoredItem, existing) < 0) {
+      byKey.set(key, scoredItem);
+    }
+  });
+  return [...byKey.values()]
+    .sort(compareLocalSearchItems)
+    .slice(0, MAX_LOCAL_SEARCH_RESULTS);
+}
+
+async function searchHistoryItems(query) {
+  if (!chrome.history?.search) {
+    return [];
+  }
+  try {
+    const items = await chrome.history.search({
+      text: query,
+      maxResults: 24,
+      startTime: Date.now() - (BOOKMARK_HISTORY_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+    });
+    const normalizedQuery = normalizeText(query).toLowerCase();
+    return items
+      .filter((item) => item.url && isWebUrl(item.url) && fuzzyMatchesHistoryItem(item, normalizedQuery))
+      .map((item) => ({
+        type: "history",
+        title: normalizeText(item.title) || historyFallbackTitle(safeUrl(item.url)),
+        url: item.url,
+        lastVisitTime: item.lastVisitTime || 0,
+        visitCount: Number(item.visitCount || 0),
+        typedCount: Number(item.typedCount || 0)
+      }));
+  } catch {
+    return [];
+  }
+}
+
+async function searchBookmarkItems(query) {
+  if (!chrome.bookmarks?.getTree) {
+    return [];
+  }
+  try {
+    const tree = await chrome.bookmarks.getTree();
+    const normalizedQuery = normalizeText(query).toLowerCase();
+    return flattenBookmarkSites(tree)
+      .filter((entry) => entry.url && isWebUrl(entry.url) && fuzzyMatchesBookmarkEntry(entry, normalizedQuery))
+      .slice(0, 24)
+      .map((entry) => ({
+        type: "bookmark",
+        title: normalizeText(entry.title) || historyFallbackTitle(safeUrl(entry.url)),
+        url: entry.url,
+        lastVisitTime: Number(entry.dateLastUsed || entry.dateAdded || 0),
+        dateAdded: Number(entry.dateAdded || 0),
+        path: entry.path || ""
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function compareLocalSearchItems(a, b) {
+  const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
+  if (scoreDiff !== 0) {
+    return scoreDiff;
+  }
+  const sourceDiff = localSearchSourceRank(b) - localSearchSourceRank(a);
+  if (sourceDiff !== 0) {
+    return sourceDiff;
+  }
+  const visitDiff = Number(b.visitCount || 0) - Number(a.visitCount || 0);
+  if (visitDiff !== 0) {
+    return visitDiff;
+  }
+  return Number(b.lastVisitTime || 0) - Number(a.lastVisitTime || 0);
+}
+
+function localSearchSourceRank(item) {
+  if (item?.type === "bookmark") {
+    return 3;
+  }
+  if (item?.type === "history") {
+    return 2;
+  }
+  return 1;
+}
+
+function localSearchDedupKey(url) {
+  try {
+    const parsed = new URL(url);
+    parsed.protocol = parsed.protocol.toLowerCase();
+    parsed.hostname = canonicalSiteHost(parsed.hostname);
+    parsed.hash = "";
+    parsed.pathname = parsed.pathname === "/" ? "/" : parsed.pathname.replace(/\/+$/, "");
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "ref", "source", "from"].forEach((key) => {
+      parsed.searchParams.delete(key);
+    });
+    return parsed.href.toLowerCase();
+  } catch {
+    return normalizeText(url).toLowerCase();
+  }
+}
+
+function localSearchScore(item, query) {
+  if (!item?.url || !query) {
+    return 0;
+  }
+  const url = safeUrl(item.url);
+  const title = normalizeText(item.title).toLowerCase();
+  const host = url ? canonicalSiteHost(url.hostname) : "";
+  const hostLabels = host.split(".").filter(Boolean);
+  const pathText = url ? decodeURIComponentSafe(url.pathname || "").toLowerCase() : "";
+  const pathTokens = pathText.split(/[^a-z0-9\u4e00-\u9fff]+/i).filter(Boolean);
+  const queryTerms = query.split(/[^a-z0-9\u4e00-\u9fff]+/i).filter(Boolean);
+  let score = 0;
+
+  if (title === query) {
+    score += 120;
+  } else if (title.startsWith(query)) {
+    score += 72;
+  } else if (title.includes(query)) {
+    score += shouldAllowLooseLocalSearch(query) ? 30 : 14;
+  }
+
+  if (host === query || hostLabels.includes(query)) {
+    score += 92;
+  } else if (host.startsWith(query) || hostLabels.some((label) => label.startsWith(query))) {
+    score += 58;
+  } else if (shouldAllowLooseLocalSearch(query) && host.includes(query)) {
+    score += 22;
+  }
+
+  queryTerms.forEach((term) => {
+    if (!term) {
+      return;
+    }
+    if (title.includes(term)) {
+      score += 12;
+    }
+    if (hostLabels.includes(term)) {
+      score += 20;
+    } else if (hostLabels.some((label) => label.startsWith(term))) {
+      score += 12;
+    }
+    if (pathTokens.includes(term)) {
+      score += 16;
+    } else if (pathTokens.some((token) => token.startsWith(term))) {
+      score += 8;
+    }
+  });
+
+  score += localSearchPageShapeScore(item, url, query);
+  score += localSearchBehaviorScore(item);
+  score += item.type === "bookmark" ? 18 : 8;
+
+  return score;
+}
+
+function localSearchPageShapeScore(item, url, query) {
+  if (!url) {
+    return 0;
+  }
+  const path = url.pathname || "/";
+  const depth = path.split("/").filter(Boolean).length;
+  const title = normalizeText(item.title).toLowerCase();
+  const wantsUtility = matchesAny(query, ["setting", "settings", "account", "profile", "dashboard", "设置", "账户", "账号"]);
+  let score = 0;
+
+  if (depth === 0 || path === "/") {
+    score += 28;
+  } else if (depth === 1) {
+    score += 12;
+  } else if (depth >= 3) {
+    score -= Math.min(24, (depth - 2) * 8);
+  }
+
+  if (matchesAny(title, ["home", "homepage", "首页", "主页", "dashboard", "控制台"])) {
+    score += 14;
+  }
+
+  if (!wantsUtility && matchesAny(path.toLowerCase(), ["/settings", "/setting", "/account", "/profile", "/login", "/admin"])) {
+    score -= 48;
+  }
+
+  return score;
+}
+
+function localSearchBehaviorScore(item) {
+  let score = 0;
+  const visitCount = Number(item.visitCount || 0);
+  const typedCount = Number(item.typedCount || 0);
+  const lastVisitTime = Number(item.lastVisitTime || 0);
+
+  if (visitCount > 0) {
+    score += Math.min(20, Math.log2(visitCount + 1) * 5);
+  }
+  if (typedCount > 0) {
+    score += Math.min(14, typedCount * 2);
+  }
+  if (lastVisitTime > 0) {
+    const hoursSinceVisit = (Date.now() - lastVisitTime) / (1000 * 60 * 60);
+    if (hoursSinceVisit < 2) {
+      score += 18;
+    } else if (hoursSinceVisit < 24) {
+      score += 12;
+    } else if (hoursSinceVisit < 72) {
+      score += 7;
+    }
+  }
+  return score;
+}
+
+function shouldAllowLooseLocalSearch(query) {
+  return /[\u4e00-\u9fff]/.test(query) || query.length > 2;
+}
+
+function fuzzyMatchesHistoryItem(item, query) {
+  return fuzzyIncludes(`${item.title || ""} ${item.url || ""}`, query);
+}
+
+function fuzzyMatchesBookmarkEntry(entry, query) {
+  return fuzzyIncludes(`${entry.title || ""} ${entry.url || ""} ${entry.path || ""}`, query);
+}
+
+function fuzzyIncludes(value, query) {
+  const text = normalizeText(value).toLowerCase();
+  if (!query) {
+    return false;
+  }
+  if (text.includes(query)) {
+    return true;
+  }
+  let cursor = 0;
+  for (const char of query) {
+    cursor = text.indexOf(char, cursor);
+    if (cursor === -1) {
+      return false;
+    }
+    cursor += 1;
+  }
+  return true;
+}
+
+function createSearchSuggestionItem(item) {
+  const link = item.type === "engine-search" ? document.createElement("div") : document.createElement("a");
+  const icon = item.type === "engine-search" ? document.createElement("span") : document.createElement("img");
+  const copy = document.createElement("span");
+  const title = document.createElement("strong");
+  const meta = document.createElement("span");
+  const trailing = item.type === "engine-search" ? createSearchEngineChoices(item) : document.createElement("span");
+  link.className = "search-suggestion-item";
+  if (item.type === "engine-search") {
+    link.classList.add("search-suggestion-item-primary");
+    link.tabIndex = 0;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      submitAggregateQuickSearch(item.query);
+    });
+    link.addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && !event.isComposing) {
+        event.preventDefault();
+        submitAggregateQuickSearch(item.query);
+      }
+    });
+  } else {
+    link.href = item.url;
+  }
+  link.setAttribute("role", "option");
+  icon.className = "search-suggestion-icon";
+  if (item.type === "engine-search") {
+    icon.classList.add("search-suggestion-icon-symbol");
+    icon.setAttribute("aria-hidden", "true");
+    icon.innerHTML = searchEngineSearchIcon();
+  } else {
+    applyHistoryIcon(icon, item);
+    icon.alt = "";
+  }
+  copy.className = "search-suggestion-copy";
+  title.textContent = item.title;
+  meta.textContent = item.meta || (item.type === "history"
+    ? `${formatHistoryTimestamp(item.lastVisitTime)} · ${compactSiteDomain(item.url)}`
+    : compactSiteDomain(item.url));
+  if (item.type !== "engine-search") {
+    trailing.className = "search-suggestion-badge";
+    trailing.textContent = item.type === "history" ? t("localSearchHistory") : t("localSearchBookmark");
+  }
+  copy.append(title, meta);
+  link.append(icon, copy, trailing);
+  return link;
+}
+
+function createSearchEngineChoices(item) {
+  const choices = document.createElement("span");
+  choices.className = "search-engine-choices";
+  item.engines.forEach((engine) => {
+    const button = document.createElement("button");
+    button.className = "search-engine-choice";
+    button.type = "button";
+    button.title = t("quickSearchWith", { engine: engine.label });
+    button.setAttribute("aria-label", t("quickSearchWith", { engine: engine.label }));
+    if (engine.icon) {
+      const icon = document.createElement("img");
+      icon.alt = "";
+      applySiteIcon(icon, { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon });
+      button.append(icon);
+    } else {
+      button.textContent = engine.label.slice(0, 1);
+    }
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      submitEngineQuickSearch(engine, item.query);
+    });
+    choices.append(button);
+  });
+  return choices;
+}
+
+function createSearchEmptyState() {
+  const node = document.createElement("div");
+  node.className = "search-suggestion-empty";
+  node.textContent = t("localSearchNoResults");
+  return node;
+}
+
+function hideSearchSuggestions() {
+  localSearchRequestId += 1;
+  localSearchResults = [];
+  window.clearTimeout(searchSuggestionsHideTimer);
+  cancelAnimationFrame(searchSuggestionsShowFrame);
+  if (searchSuggestions.hidden && !searchWorkbench?.classList.contains("suggestions-open")) {
+    searchWorkbench?.classList.remove("suggestions-closing");
+    searchSuggestions.replaceChildren();
+    return;
+  }
+  searchWorkbench?.classList.remove("suggestions-open");
+  searchWorkbench?.classList.add("suggestions-closing");
+  searchSuggestionsHideTimer = window.setTimeout(finishHideSearchSuggestions, SEARCH_SUGGESTIONS_EXIT_MS);
+}
+
+function handleSearchSuggestionDismiss(event) {
+  if (searchSuggestions.hidden) {
+    return;
+  }
+  const target = event.target;
+  if (target instanceof Element && (searchSuggestions.contains(target) || quickSearchForm.contains(target))) {
+    return;
+  }
+  hideSearchSuggestions();
 }
 
 function looksLikeUrl(value) {
@@ -1996,157 +2788,76 @@ async function renderPortals() {
   const portalData = await loadBookmarkDrivenPortals(customPortals);
   const featuredPortals = featuredPortalItems(portalData.items);
   const groups = groupPortalsByCategory(portalData.items);
-  const sectionOrder = await loadPortalSectionOrder();
-  portalCategoriesExpanded = await loadPortalCategoriesExpanded();
-  featuredPortalsExpanded = await loadFeaturedPortalsExpanded();
-  activePortalCategory = resolvedActivePortalCategory(groups);
-  if (groups.length) {
-    fragment.appendChild(createPortalCategoryTabs(groups, portalCategoriesExpanded));
-  }
-  const sectionByRole = new Map();
+  portalCategoryState = await loadPortalCategoryState(groups);
   if (featuredPortals.length) {
-    sectionByRole.set("featured", createPortalCategorySection({
+    fragment.appendChild(createPortalCategorySection({
       category: "featured",
       items: featuredPortals,
-      featured: true,
-      expanded: featuredPortalsExpanded,
-      reorderRole: "featured"
+      featured: true
     }));
   }
-  const activeGroup = groups.find((group) => group.category === activePortalCategory);
-  if (activeGroup) {
-    sectionByRole.set("active", createPortalCategorySection({
-      ...activeGroup,
-      active: true,
-      reorderRole: "active"
-    }));
-  }
-  sectionOrder.forEach((role) => {
-    const section = sectionByRole.get(role);
-    if (section) {
-      fragment.appendChild(section);
-    }
-  });
-  sectionByRole.forEach((section, role) => {
-    if (!sectionOrder.includes(role)) {
-      fragment.appendChild(section);
-    }
-  });
-  if (portalData.recentItems.length) {
-    fragment.appendChild(createPortalCategorySection({
-      category: "recentBookmarks",
-      items: portalData.recentItems,
-      recent: true
-    }));
+  if (groups.length) {
+    fragment.appendChild(createPortalClassificationModule(groups));
   }
   portalGrid.replaceChildren(fragment);
 }
 
-async function loadPortalSectionOrder() {
+async function loadPortalCategoryState(groups) {
   try {
-    const result = await chrome.storage.local.get({ [PORTAL_SECTION_ORDER_STORAGE_KEY]: DEFAULT_PORTAL_SECTION_ORDER });
-    const parsed = result[PORTAL_SECTION_ORDER_STORAGE_KEY];
-    if (!Array.isArray(parsed)) {
-      return DEFAULT_PORTAL_SECTION_ORDER.slice();
+    const result = await chrome.storage.local.get({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: {} });
+    const saved = result[PORTAL_CATEGORY_STATE_STORAGE_KEY];
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+      return defaultPortalCategoryState(groups);
     }
-    const order = parsed.filter((role) => DEFAULT_PORTAL_SECTION_ORDER.includes(role));
-    return order.length ? order : DEFAULT_PORTAL_SECTION_ORDER.slice();
+    return Object.fromEntries(groups.map((group) => [
+      group.category,
+      { expanded: saved[group.category]?.expanded !== false }
+    ]));
   } catch {
-    return DEFAULT_PORTAL_SECTION_ORDER.slice();
+    return defaultPortalCategoryState(groups);
   }
 }
 
-async function savePortalSectionOrder(order) {
-  await chrome.storage.local.set({ [PORTAL_SECTION_ORDER_STORAGE_KEY]: order });
+function defaultPortalCategoryState(groups) {
+  return Object.fromEntries(groups.map((group) => [group.category, { expanded: true }]));
 }
 
-async function loadPortalCategoriesExpanded() {
-  try {
-    const result = await chrome.storage.local.get({ [PORTAL_CATEGORIES_EXPANDED_STORAGE_KEY]: false });
-    return Boolean(result[PORTAL_CATEGORIES_EXPANDED_STORAGE_KEY]);
-  } catch {
-    return false;
-  }
+async function savePortalCategoryState() {
+  await chrome.storage.local.set({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: portalCategoryState });
 }
 
-async function savePortalCategoriesExpanded(expanded) {
-  await chrome.storage.local.set({ [PORTAL_CATEGORIES_EXPANDED_STORAGE_KEY]: Boolean(expanded) });
+async function togglePortalCategoryExpanded(category) {
+  const current = portalCategoryState[category]?.expanded !== false;
+  portalCategoryState = {
+    ...portalCategoryState,
+    [category]: { expanded: !current }
+  };
+  applyPortalCategoryExpansionState(category, !current);
+  await savePortalCategoryState();
 }
 
-async function loadFeaturedPortalsExpanded() {
-  try {
-    const result = await chrome.storage.local.get({ [FEATURED_PORTALS_EXPANDED_STORAGE_KEY]: true });
-    return Boolean(result[FEATURED_PORTALS_EXPANDED_STORAGE_KEY]);
-  } catch {
-    return true;
-  }
-}
-
-async function saveFeaturedPortalsExpanded(expanded) {
-  await chrome.storage.local.set({ [FEATURED_PORTALS_EXPANDED_STORAGE_KEY]: Boolean(expanded) });
-}
-
-async function togglePortalCategoriesExpanded() {
-  portalCategoriesExpanded = !portalCategoriesExpanded;
-  applyPortalCategoryExpansionState(portalCategoriesExpanded);
-  await savePortalCategoriesExpanded(portalCategoriesExpanded);
-}
-
-function applyPortalCategoryExpansionState(expanded) {
-  const switcher = portalGrid.querySelector(".portal-category-switcher");
-  const toggleButton = switcher?.querySelector(".portal-switcher-toggle");
-  if (!switcher || !toggleButton) {
+function applyPortalCategoryExpansionState(category, expanded) {
+  const section = portalGrid.querySelector(`.portal-category[data-category="${CSS.escape(category)}"]`);
+  const toggleButton = section?.querySelector(".portal-category-toggle");
+  if (!section || !toggleButton) {
     return;
   }
-  const hiddenCount = Number(switcher.dataset.hiddenCount || 0);
+  const grid = section.querySelector(".portal-category-grid");
+  const hiddenCount = Number(section.dataset.hiddenCount || 0);
   const isCollapsible = hiddenCount > 0;
-  switcher.classList.toggle("expanded", expanded || !isCollapsible);
-  switcher.classList.toggle("collapsed", !expanded && isCollapsible);
-  toggleButton.setAttribute("aria-expanded", String(expanded));
+  const resolvedExpanded = expanded || !isCollapsible;
+  section.classList.toggle("expanded", resolvedExpanded);
+  section.classList.toggle("collapsed", !resolvedExpanded);
+  toggleButton.setAttribute("aria-expanded", String(resolvedExpanded));
+  if (grid?.id) {
+    toggleButton.setAttribute("aria-controls", grid.id);
+  }
   toggleButton.querySelector(".portal-switcher-toggle-label").textContent = expanded
     ? t("portalCategoriesCollapse")
     : t("portalCategoriesExpand");
-}
-
-async function toggleFeaturedPortalsExpanded(section) {
-  featuredPortalsExpanded = !featuredPortalsExpanded;
-  applyFeaturedPortalsExpansionState(section, featuredPortalsExpanded);
-  await saveFeaturedPortalsExpanded(featuredPortalsExpanded);
-}
-
-function applyFeaturedPortalsExpansionState(section, expanded) {
-  if (!section) {
-    return;
-  }
-  const toggleButton = section.querySelector(".portal-category-toggle");
-  const hiddenCount = Number(section.dataset.hiddenCount || 0);
-  const isCollapsible = hiddenCount > 0;
-  section.classList.toggle("expanded", expanded || !isCollapsible);
-  section.classList.toggle("collapsed", !expanded && isCollapsible);
-  if (!toggleButton) {
-    return;
-  }
-  toggleButton.setAttribute("aria-expanded", String(expanded || !isCollapsible));
-  toggleButton.querySelector(".portal-category-toggle-label").textContent = expanded || !isCollapsible
-    ? t("featuredPortalsCollapse")
-    : t("featuredPortalsExpand");
-  toggleButton.querySelector(".portal-category-toggle-icon").innerHTML = expanded || !isCollapsible
+  toggleButton.querySelector(".portal-category-toggle-icon").innerHTML = expanded
     ? chevronUpIcon()
     : chevronDownIcon();
-}
-
-async function swapPortalSectionOrder(sourceRole, targetRole) {
-  if (!sourceRole || !targetRole || sourceRole === targetRole) {
-    return;
-  }
-  const order = await loadPortalSectionOrder();
-  const sourceIndex = order.indexOf(sourceRole);
-  const targetIndex = order.indexOf(targetRole);
-  if (sourceIndex === -1 || targetIndex === -1) {
-    return;
-  }
-  [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
-  await savePortalSectionOrder(order);
 }
 
 async function loadBookmarkDrivenPortals(customPortals) {
@@ -2158,7 +2869,6 @@ async function loadBookmarkDrivenPortals(customPortals) {
 
   return {
     items,
-    recentItems: bookmarkData.recentItems,
     usingBookmarks: bookmarkItems.length > 0
   };
 }
@@ -2166,8 +2876,7 @@ async function loadBookmarkDrivenPortals(customPortals) {
 async function loadBookmarkPortalItems() {
   if (!chrome.bookmarks?.getTree) {
     return {
-      items: [],
-      recentItems: []
+      items: []
     };
   }
 
@@ -2179,14 +2888,12 @@ async function loadBookmarkPortalItems() {
     const entries = flattenBookmarkSites(tree);
     const historyStats = bookmarkHistoryStats(historyItems);
     return {
-      items: bookmarkEntriesToPortalItems(entries, historyStats),
-      recentItems: recentBookmarkPortalItems(entries)
+      items: bookmarkEntriesToPortalItems(entries, historyStats)
     };
   } catch (error) {
     console.warn("Failed to load bookmark shortcuts", error);
     return {
-      items: [],
-      recentItems: []
+      items: []
     };
   }
 }
@@ -2259,32 +2966,6 @@ function bookmarkEntriesToPortalItems(entries, historyStats) {
   return [...bySite.values()]
     .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, LOCALE))
     .slice(0, MAX_BOOKMARK_PORTAL_ITEMS);
-}
-
-function recentBookmarkPortalItems(entries) {
-  const recent = [];
-  const seen = new Set();
-
-  for (const entry of [...entries].sort((a, b) => b.dateAdded - a.dateAdded)) {
-    const url = safeUrl(entry.url);
-    const key = siteGroupKey(url);
-    if (!key || seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    recent.push({
-      bookmarkId: entry.bookmarkId,
-      title: siteDisplayName(url, entry.title),
-      url: entry.url,
-      category: "recentBookmarks",
-      dateAdded: entry.dateAdded
-    });
-    if (recent.length >= MAX_RECENT_BOOKMARK_ITEMS) {
-      break;
-    }
-  }
-
-  return recent;
 }
 
 function bookmarkHistoryStats(historyItems) {
@@ -2393,89 +3074,20 @@ function mergePortalItems(priorityItems, secondaryItems) {
   return merged;
 }
 
-function resolvedActivePortalCategory(groups) {
-  if (groups.some((group) => group.category === activePortalCategory)) {
-    return activePortalCategory;
-  }
-  if (groups.some((group) => group.category === DEFAULT_PORTAL_CATEGORY)) {
-    return DEFAULT_PORTAL_CATEGORY;
-  }
-  return groups[0]?.category || DEFAULT_PORTAL_CATEGORY;
-}
-
-function createPortalCategoryTabs(groups, expanded) {
-  const section = document.createElement("section");
-  const header = document.createElement("header");
-  const title = document.createElement("h3");
-  const toggleButton = document.createElement("button");
-  const toggleLabel = document.createElement("span");
-  const toggleIcon = document.createElement("span");
-  const nav = document.createElement("nav");
-  const hiddenCount = Math.max(0, groups.length - COLLAPSED_PORTAL_CATEGORY_COUNT);
-  const visibleRowCount = Math.ceil(Math.min(groups.length, COLLAPSED_PORTAL_CATEGORY_COUNT) / 2);
-  const expandedRowCount = Math.ceil(groups.length / 2);
-  const collapsedHeight = Math.max(42, visibleRowCount * 42 + Math.max(0, visibleRowCount - 1) * 8);
-  const expandedHeight = Math.max(collapsedHeight, expandedRowCount * 42 + Math.max(0, expandedRowCount - 1) * 8);
-  section.className = "portal-category-switcher";
-  section.classList.toggle("expanded", expanded || hiddenCount === 0);
-  section.classList.toggle("collapsed", !expanded && hiddenCount > 0);
-  section.dataset.hiddenCount = String(hiddenCount);
-  section.style.setProperty("--portal-tabs-collapsed-height", `${collapsedHeight}px`);
-  section.style.setProperty("--portal-tabs-expanded-height", `${expandedHeight}px`);
-  header.className = "portal-switcher-header";
-  title.className = "portal-switcher-title";
-  title.textContent = t("portalCategories");
-  toggleButton.className = "portal-switcher-toggle";
-  toggleButton.type = "button";
-  toggleButton.hidden = hiddenCount === 0;
-  toggleButton.setAttribute("aria-expanded", String(expanded));
-  toggleLabel.className = "portal-switcher-toggle-label";
-  toggleLabel.textContent = expanded ? t("portalCategoriesCollapse") : t("portalCategoriesExpand");
-  toggleIcon.className = "portal-switcher-toggle-icon";
-  toggleIcon.setAttribute("aria-hidden", "true");
-  toggleIcon.innerHTML = chevronDownIcon();
-  toggleButton.append(toggleLabel, toggleIcon);
-  toggleButton.addEventListener("click", togglePortalCategoriesExpanded);
-  nav.className = "portal-category-tabs";
-  nav.setAttribute("aria-label", t("portalCategories"));
-  header.append(title, toggleButton);
-
-  groups.forEach((group, index) => {
-    const button = document.createElement("button");
-    const marker = document.createElement("span");
-    const copy = document.createElement("span");
-    const label = document.createElement("span");
-    const meta = document.createElement("span");
-    const count = document.createElement("span");
-    const isActive = group.category === activePortalCategory;
-
-    button.className = "portal-category-tab";
-    button.dataset.category = group.category;
-    if (index >= COLLAPSED_PORTAL_CATEGORY_COUNT) {
-      button.dataset.overflow = "true";
-    }
-    button.classList.toggle("active", isActive);
-    button.type = "button";
-    button.setAttribute("aria-pressed", String(isActive));
-    marker.className = "portal-category-marker";
-    copy.className = "portal-category-copy";
-    label.className = "portal-category-name";
-    label.textContent = portalCategoryLabel(group.category);
-    meta.className = "portal-category-meta";
-    meta.textContent = t("portalCategoryItems", { count: group.items.length });
-    count.className = "portal-category-tab-count";
-    count.textContent = String(group.items.length);
-    copy.append(label, meta);
-    button.append(marker, copy, count);
-    button.addEventListener("click", () => {
-      activePortalCategory = group.category;
-      renderPortals();
+function createPortalClassificationModule(groups) {
+  const module = document.createElement("section");
+  module.className = "portal-classification-module";
+  groups.forEach((group) => {
+    const isExpanded = portalCategoryState[group.category]?.expanded !== false;
+    const section = createPortalCategorySection({
+      ...group,
+      collapsible: group.items.length > 0,
+      classification: true,
+      expanded: isExpanded
     });
-    nav.appendChild(button);
+    module.appendChild(section);
   });
-
-  section.append(header, nav);
-  return section;
+  return module;
 }
 
 function featuredPortalItems(portals) {
@@ -2506,128 +3118,67 @@ function createPortalCategorySection(group) {
   const section = document.createElement("section");
   const header = document.createElement("header");
   const title = document.createElement("h3");
+  const divider = document.createElement("span");
   const headingActions = document.createElement("span");
   const grid = document.createElement("div");
   const visibleItems = group.featured
     ? group.items.slice(0, MAX_PORTAL_FEATURED_ITEMS)
     : group.items;
-  const hiddenCount = group.featured
-    ? Math.max(0, visibleItems.length - COLLAPSED_FEATURED_PORTAL_ITEMS)
-    : 0;
+  const hiddenCount = group.classification ? visibleItems.length : 0;
   const isExpanded = group.expanded !== false || hiddenCount === 0;
 
   section.className = "portal-category";
   section.classList.toggle("featured-category", Boolean(group.featured));
   section.classList.toggle("expanded", isExpanded);
-  section.classList.toggle("collapsed", Boolean(group.featured) && !isExpanded);
-  section.classList.toggle("active-category", Boolean(group.active));
-  section.classList.toggle("recent-bookmark-category", Boolean(group.recent));
+  section.classList.toggle("collapsed", !isExpanded);
+  section.classList.toggle("classification-category", Boolean(group.classification));
   section.dataset.hiddenCount = String(hiddenCount);
+  section.dataset.category = group.category;
   header.className = "portal-category-header";
-  if (group.reorderRole) {
-    section.dataset.portalSectionRole = group.reorderRole;
-    header.draggable = true;
-    bindPortalSectionDrag(section, header, group.reorderRole);
-  }
   title.className = "portal-category-title";
   title.textContent = portalCategoryLabel(group.category);
+  divider.className = "portal-category-line";
+  divider.setAttribute("aria-hidden", "true");
   grid.className = "portal-category-grid";
   if (group.featured) {
     grid.id = "featuredPortalGrid";
+  } else {
+    grid.id = `portalCategoryGrid-${group.category}`;
   }
   visibleItems.forEach((portal, index) => {
     const card = createSiteCard(portal);
-    if (group.featured && index >= COLLAPSED_FEATURED_PORTAL_ITEMS) {
-      card.dataset.overflow = "true";
-    }
     grid.appendChild(card);
   });
   headingActions.className = "portal-category-actions";
-  if (group.featured && hiddenCount > 0) {
+  if (group.classification) {
     const toggleButton = document.createElement("button");
     const toggleLabel = document.createElement("span");
     const toggleIcon = document.createElement("span");
+    const isClassificationExpanded = isExpanded;
     toggleButton.className = "portal-category-toggle";
     toggleButton.type = "button";
+    toggleButton.hidden = !group.collapsible;
     toggleButton.setAttribute("aria-controls", grid.id);
-    toggleButton.setAttribute("aria-expanded", String(isExpanded));
-    toggleLabel.className = "portal-category-toggle-label";
-    toggleLabel.textContent = isExpanded
-      ? t("featuredPortalsCollapse")
-      : t("featuredPortalsExpand");
+    toggleButton.setAttribute("aria-expanded", String(isClassificationExpanded));
+    toggleLabel.className = "portal-switcher-toggle-label";
+    toggleLabel.textContent = isClassificationExpanded
+      ? t("portalCategoriesCollapse")
+      : t("portalCategoriesExpand");
     toggleIcon.className = "portal-category-toggle-icon";
     toggleIcon.setAttribute("aria-hidden", "true");
-    toggleIcon.innerHTML = isExpanded ? chevronUpIcon() : chevronDownIcon();
+    toggleIcon.innerHTML = isClassificationExpanded ? chevronUpIcon() : chevronDownIcon();
     toggleButton.append(toggleLabel, toggleIcon);
-    toggleButton.addEventListener("click", () => toggleFeaturedPortalsExpanded(section));
+    toggleButton.addEventListener("click", () => togglePortalCategoryExpanded(group.category));
     headingActions.appendChild(toggleButton);
   }
-  header.append(title, headingActions);
+  header.append(title, divider, headingActions);
   section.append(header, grid);
   return section;
-}
-
-function bindPortalSectionDrag(section, handle, role) {
-  let lastDropPosition = "";
-  handle.addEventListener("dragstart", (event) => {
-    draggedPortalSectionRole = role;
-    section.classList.add("dragging");
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", role);
-  });
-  handle.addEventListener("dragend", () => {
-    draggedPortalSectionRole = "";
-    clearPortalDropIndicators();
-  });
-  section.addEventListener("dragover", (event) => {
-    if (!draggedPortalSectionRole || draggedPortalSectionRole === role) {
-      return;
-    }
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-    const rect = section.getBoundingClientRect();
-    const before = event.clientY < rect.top + rect.height / 2;
-    const nextPosition = before ? "before" : "after";
-    if (section.classList.contains("drag-over") && lastDropPosition === nextPosition) {
-      return;
-    }
-    lastDropPosition = nextPosition;
-    clearPortalDropIndicators(section);
-    section.classList.add("drag-over");
-    section.classList.toggle("drop-before", before);
-    section.classList.toggle("drop-after", !before);
-  });
-  section.addEventListener("dragleave", () => {
-    lastDropPosition = "";
-    section.classList.remove("drag-over", "drop-before", "drop-after");
-  });
-  section.addEventListener("drop", async (event) => {
-    event.preventDefault();
-    const sourceRole = event.dataTransfer.getData("text/plain") || draggedPortalSectionRole;
-    lastDropPosition = "";
-    section.classList.remove("drag-over", "drop-before", "drop-after");
-    await swapPortalSectionOrder(sourceRole, role);
-    renderPortals();
-  });
-}
-
-function clearPortalDropIndicators(keepNode = null) {
-  document.querySelectorAll(".portal-category.dragging, .portal-category.drag-over, .portal-category.drop-before, .portal-category.drop-after").forEach((node) => {
-    if (node !== keepNode) {
-      node.classList.remove("drag-over", "drop-before", "drop-after");
-      if (!keepNode) {
-        node.classList.remove("dragging");
-      }
-    }
-  });
 }
 
 function portalCategoryLabel(category) {
   if (category === "featured") {
     return t("portalCategoryFeatured");
-  }
-  if (category === "recentBookmarks") {
-    return t("portalCategoryRecentBookmarks");
   }
   const messageKey = `portalCategory${category.charAt(0).toUpperCase()}${category.slice(1)}`;
   return t(messageKey);
@@ -2665,6 +3216,470 @@ function createSiteCard(site) {
   return node;
 }
 
+async function renderFavoriteSites() {
+  clearFavoriteDeleteMode();
+  const favorites = await loadFavoriteSites();
+  const previousRects = measureFavoriteRects();
+  const fragment = document.createDocumentFragment();
+  favorites.forEach((site, index) => {
+    fragment.appendChild(createFavoriteSite(site, index));
+  });
+  favoriteStrip.replaceChildren(fragment);
+  updateFavoriteAddButtonState(favorites.length);
+  animateFavoriteReorder(previousRects);
+}
+
+function updateFavoriteAddButtonState(favoriteCount) {
+  const isFull = favoriteCount >= MAX_FAVORITE_SITES;
+  favoriteAddButton.disabled = isFull;
+  favoriteAddButton.setAttribute("aria-hidden", String(isFull));
+  favoriteAddButton.tabIndex = isFull ? -1 : 0;
+  favoriteAddButton.dataset.state = isFull ? "hidden" : "visible";
+  favoriteAddButton.hidden = isFull;
+  if (isFull && !favoriteForm.hidden) {
+    hideFavoriteForm();
+  }
+}
+
+function createFavoriteSite(site, index) {
+  const node = favoriteSiteTemplate.content.firstElementChild.cloneNode(true);
+  const link = node.querySelector(".favorite-link");
+  const icon = node.querySelector(".favorite-icon");
+  const removeButton = node.querySelector(".favorite-remove");
+  node.dataset.favoriteId = site.id;
+  link.href = site.url;
+  link.title = site.title || compactSiteDomain(site.url);
+  link.setAttribute("aria-label", site.title || compactSiteDomain(site.url));
+  applySiteIcon(icon, site);
+  icon.alt = "";
+  setButtonLabel(removeButton, t("deleteFavoriteSite"));
+  removeButton.innerHTML = closeIcon();
+  removeButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    removeFavoriteSite(site.id, node);
+  });
+  installFavoriteLongPress(node);
+  icon.addEventListener("load", () => {
+    if (icon.src.startsWith("data:image/svg+xml")) {
+      node.classList.add("generated-fallback");
+    }
+  });
+  node.style.setProperty("--favorite-index", String(index));
+  return node;
+}
+
+function measureFavoriteRects() {
+  return new Map([...favoriteStrip.querySelectorAll(".favorite-site")].map((node) => [
+    node.dataset.favoriteId,
+    node.getBoundingClientRect()
+  ]));
+}
+
+function animateFavoriteReorder(previousRects) {
+  if (!previousRects.size) {
+    return;
+  }
+  favoriteStrip.querySelectorAll(".favorite-site").forEach((node) => {
+    const previous = previousRects.get(node.dataset.favoriteId);
+    if (!previous) {
+      return;
+    }
+    const next = node.getBoundingClientRect();
+    const deltaX = previous.left - next.left;
+    const deltaY = previous.top - next.top;
+    if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+      return;
+    }
+    node.animate([
+      { transform: `translate(${deltaX}px, ${deltaY}px)` },
+      { transform: "translate(0, 0)" }
+    ], {
+      duration: FAVORITE_REORDER_MS,
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+    });
+  });
+}
+
+function installFavoriteLongPress(node) {
+  let holdTimer = 0;
+  let suppressNextClick = false;
+  const clearHold = () => {
+    window.clearTimeout(holdTimer);
+    holdTimer = 0;
+    node.classList.remove("pressing");
+  };
+  node.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || event.target.closest(".favorite-remove")) {
+      return;
+    }
+    clearFavoriteDeleteMode();
+    node.classList.add("pressing");
+    holdTimer = window.setTimeout(() => {
+      node.classList.remove("pressing");
+      node.classList.add("delete-ready");
+      suppressNextClick = true;
+      activeFavoriteDeleteCard = node;
+    }, 650);
+  });
+  node.addEventListener("pointerup", clearHold);
+  node.addEventListener("pointercancel", clearHold);
+  node.addEventListener("pointerleave", clearHold);
+  node.querySelector(".favorite-link")?.addEventListener("click", (event) => {
+    if (!node.classList.contains("delete-ready") && !suppressNextClick) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    suppressNextClick = false;
+  });
+}
+
+function handleFavoriteDeleteDismiss(event) {
+  if (!activeFavoriteDeleteCard) {
+    return;
+  }
+  const target = event.target;
+  if (target instanceof Element && activeFavoriteDeleteCard.contains(target)) {
+    return;
+  }
+  clearFavoriteDeleteMode();
+}
+
+function clearFavoriteDeleteMode() {
+  if (!activeFavoriteDeleteCard) {
+    return;
+  }
+  const node = activeFavoriteDeleteCard;
+  activeFavoriteDeleteCard = null;
+  node.classList.remove("pressing");
+  if (node.classList.contains("delete-ready") && !node.classList.contains("removing")) {
+    node.classList.add("clearing");
+    window.setTimeout(() => node.classList.remove("clearing"), FAVORITE_DELETE_CANCEL_MS);
+  }
+  node.classList.remove("delete-ready");
+}
+
+function toggleFavoriteForm() {
+  if (favoriteForm.hidden) {
+    showFavoriteForm();
+  } else {
+    hideFavoriteForm();
+  }
+}
+
+function showFavoriteForm() {
+  if (favoriteAddButton.disabled) {
+    return;
+  }
+  favoriteForm.hidden = false;
+  favoriteAddButton.setAttribute("aria-expanded", "true");
+  favoriteFormError.textContent = "";
+  favoriteUrlInput.focus();
+}
+
+function hideFavoriteForm() {
+  favoriteForm.hidden = true;
+  favoriteAddButton.setAttribute("aria-expanded", "false");
+  favoriteForm.reset();
+  favoriteFormError.textContent = "";
+}
+
+async function handleFavoriteSubmit(event) {
+  event.preventDefault();
+  favoriteFormError.textContent = "";
+  const url = normalizePortalUrl(favoriteUrlInput.value);
+  if (!url) {
+    favoriteFormError.textContent = t("portalUrlRequired");
+    favoriteUrlInput.focus();
+    return;
+  }
+  const favorites = await loadFavoriteSites();
+  if (favorites.length >= MAX_FAVORITE_SITES) {
+    favoriteFormError.textContent = t("favoriteSiteLimit", { count: MAX_FAVORITE_SITES });
+    return;
+  }
+  favorites.push({
+    id: String(Date.now()),
+    title: favoriteSiteTitleFromUrl(url),
+    url,
+    icon: await discoverFavoriteSiteIcon(url)
+  });
+  await saveFavoriteSites(favorites);
+  hideFavoriteForm();
+  renderFavoriteSites();
+}
+
+async function loadFavoriteSites() {
+  try {
+    const result = await chrome.storage.local.get({ [FAVORITE_SITES_STORAGE_KEY]: [] });
+    const parsed = result[FAVORITE_SITES_STORAGE_KEY];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((site) => site?.url && isWebUrl(site.url))
+      .slice(0, MAX_FAVORITE_SITES)
+      .map((site) => ({
+        id: String(site.id || site.url),
+        title: normalizeText(site.title) || compactSiteDomain(site.url),
+        url: site.url,
+        icon: normalizeStoredSiteIcon(site.icon)
+      }));
+  } catch {
+    return [];
+  }
+}
+
+async function saveFavoriteSites(sites) {
+  await chrome.storage.local.set({ [FAVORITE_SITES_STORAGE_KEY]: sites.slice(0, MAX_FAVORITE_SITES) });
+}
+
+async function discoverFavoriteSiteIcon(url) {
+  const siteKey = siteGroupKey(safeUrl(url));
+  const localIcon = localIconForUrl(url);
+  if (!siteKey || localIcon) {
+    return "";
+  }
+
+  const cachedIcon = await loadCachedSiteIcon(siteKey);
+  if (cachedIcon) {
+    return cachedIcon;
+  }
+
+  const discoveredIcon = await fetchAppleTouchIcon(url);
+  if (!discoveredIcon) {
+    return "";
+  }
+
+  await cacheSiteIcon(siteKey, discoveredIcon);
+  return discoveredIcon;
+}
+
+async function loadCachedSiteIcon(siteKey) {
+  try {
+    const cache = await loadSiteIconCache();
+    const entry = cache[siteKey];
+    if (!entry || Date.now() - Number(entry.updatedAt || 0) > SITE_ICON_CACHE_TTL_MS) {
+      return "";
+    }
+    return normalizeStoredSiteIcon(entry.icon);
+  } catch {
+    return "";
+  }
+}
+
+async function cacheSiteIcon(siteKey, icon) {
+  const normalizedIcon = normalizeStoredSiteIcon(icon);
+  if (!siteKey || !normalizedIcon) {
+    return;
+  }
+  const cache = await loadSiteIconCache();
+  cache[siteKey] = {
+    icon: normalizedIcon,
+    updatedAt: Date.now()
+  };
+  const entries = Object.entries(cache)
+    .filter(([, entry]) => normalizeStoredSiteIcon(entry?.icon))
+    .sort(([, a], [, b]) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
+    .slice(0, MAX_CACHED_SITE_ICONS);
+  await chrome.storage.local.set({ [SITE_ICON_CACHE_STORAGE_KEY]: Object.fromEntries(entries) });
+}
+
+async function loadSiteIconCache() {
+  const result = await chrome.storage.local.get({ [SITE_ICON_CACHE_STORAGE_KEY]: {} });
+  const cache = result[SITE_ICON_CACHE_STORAGE_KEY];
+  return cache && typeof cache === "object" && !Array.isArray(cache) ? cache : {};
+}
+
+async function fetchAppleTouchIcon(url) {
+  const parsedUrl = safeUrl(url);
+  if (!parsedUrl) {
+    return "";
+  }
+  try {
+    const html = await fetchTextWithTimeout(parsedUrl.origin, SITE_ICON_DISCOVERY_TIMEOUT_MS);
+    const iconUrl = bestAppleTouchIconUrl(html, parsedUrl.origin);
+    if (!iconUrl) {
+      return "";
+    }
+    return await fetchImageDataUrl(iconUrl);
+  } catch (error) {
+    console.info("Site icon discovery skipped", parsedUrl.hostname, error);
+    return "";
+  }
+}
+
+function bestAppleTouchIconUrl(html, baseUrl) {
+  const candidates = [];
+  const linkPattern = /<link\b[^>]*>/gi;
+  const attrPattern = /([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
+  for (const [linkTag] of html.matchAll(linkPattern)) {
+    const attrs = {};
+    for (const match of linkTag.matchAll(attrPattern)) {
+      attrs[match[1].toLowerCase()] = match[2] || match[3] || match[4] || "";
+    }
+    const rel = normalizeText(attrs.rel).toLowerCase();
+    const href = normalizeText(attrs.href);
+    if (!href || !/(^|\s)(apple-touch-icon|icon)(\s|$)/.test(rel)) {
+      continue;
+    }
+    const sizes = parseIconSize(attrs.sizes);
+    candidates.push({
+      href,
+      score: (rel.includes("apple-touch-icon") ? 1000 : 0) + Math.min(sizes, 512)
+    });
+  }
+  return candidates
+    .sort((a, b) => b.score - a.score)
+    .map((candidate) => absoluteIconUrl(candidate.href, baseUrl))
+    .find(Boolean) || "";
+}
+
+function parseIconSize(value) {
+  const sizes = String(value || "").match(/\d+x\d+/gi) || [];
+  return sizes.reduce((max, size) => {
+    const [width, height] = size.toLowerCase().split("x").map(Number);
+    return Math.max(max, Math.min(width || 0, height || 0));
+  }, 0);
+}
+
+function absoluteIconUrl(value, baseUrl) {
+  try {
+    const iconUrl = new URL(value, baseUrl);
+    return /^https?:$/.test(iconUrl.protocol) ? iconUrl.href : "";
+  } catch {
+    return "";
+  }
+}
+
+async function fetchTextWithTimeout(url, timeoutMs) {
+  const response = await withTimeout(fetch(url, {
+    cache: "force-cache",
+    credentials: "omit",
+    redirect: "follow"
+  }), timeoutMs, "Site icon discovery timed out.");
+  if (!response.ok) {
+    throw new Error(`Site icon page request failed: ${response.status}`);
+  }
+  return await response.text();
+}
+
+async function fetchImageDataUrl(url) {
+  const response = await withTimeout(fetch(url, {
+    cache: "force-cache",
+    credentials: "omit",
+    redirect: "follow"
+  }), SITE_ICON_FETCH_TIMEOUT_MS, "Site icon image request timed out.");
+  if (!response.ok) {
+    throw new Error(`Site icon image request failed: ${response.status}`);
+  }
+  const contentType = response.headers.get("content-type") || "";
+  if (!/^image\/(png|jpeg|jpg|webp|svg\+xml|x-icon|vnd\.microsoft\.icon)\b/i.test(contentType)) {
+    return "";
+  }
+  const blob = await response.blob();
+  if (!blob.size || blob.size > MAX_CACHED_SITE_ICON_BYTES) {
+    return "";
+  }
+  return await blobToDataUrl(blob);
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(normalizeStoredSiteIcon(reader.result)));
+    reader.addEventListener("error", () => resolve(""));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function normalizeStoredSiteIcon(icon) {
+  const value = normalizeText(icon);
+  if (!value || value.length > MAX_CACHED_SITE_ICON_BYTES * 2) {
+    return "";
+  }
+  return /^data:image\/(?:png|jpe?g|webp|svg\+xml|x-icon|vnd\.microsoft\.icon);base64,/i.test(value)
+    ? value
+    : "";
+}
+
+function favoriteSiteTitleFromUrl(url) {
+  const parsedUrl = safeUrl(url);
+  return siteDisplayName(parsedUrl, "").slice(0, MAX_PORTAL_TITLE_LENGTH) || compactSiteDomain(url);
+}
+
+async function removeFavoriteSite(id, node) {
+  if (node?.classList.contains("removing")) {
+    return;
+  }
+  const previousRects = measureFavoriteRects();
+  if (node) {
+    if (activeFavoriteDeleteCard === node) {
+      activeFavoriteDeleteCard = null;
+    }
+    node.classList.remove("pressing", "clearing");
+    node.classList.add("removing");
+    await animateFavoriteTearAway(node);
+  }
+  const nextSites = (await loadFavoriteSites()).filter((site) => site.id !== id);
+  await saveFavoriteSites(nextSites);
+  await renderFavoriteSites();
+}
+
+function wait(duration) {
+  return new Promise((resolve) => window.setTimeout(resolve, duration));
+}
+
+async function animateFavoriteTearAway(node) {
+  const shell = node.querySelector(".favorite-icon-shell");
+  if (!shell) {
+    await wait(FAVORITE_DELETE_EXIT_MS);
+    return;
+  }
+  const rect = shell.getBoundingClientRect();
+  const layer = document.createElement("div");
+  const topPiece = createFavoriteTearPiece(shell, rect, "top");
+  const bottomPiece = createFavoriteTearPiece(shell, rect, "bottom");
+  layer.className = "favorite-tear-layer";
+  layer.append(topPiece, bottomPiece);
+  document.body.appendChild(layer);
+  shell.style.visibility = "hidden";
+  const timing = {
+    duration: FAVORITE_DELETE_EXIT_MS,
+    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+    fill: "forwards"
+  };
+  const topAnimation = topPiece.animate([
+    { opacity: 1, transform: "translate3d(0, 0, 0) rotate(0deg) scale(0.82)" },
+    { opacity: 1, transform: "translate3d(-3px, -7px, 0) rotate(-4deg) scale(0.78)", offset: 0.42 },
+    { opacity: 0, transform: "translate3d(-18px, -34px, 0) rotate(-18deg) scale(0.46)" }
+  ], timing);
+  const bottomAnimation = bottomPiece.animate([
+    { opacity: 1, transform: "translate3d(0, 0, 0) rotate(0deg) scale(0.82)" },
+    { opacity: 1, transform: "translate3d(4px, 8px, 0) rotate(5deg) scale(0.78)", offset: 0.42 },
+    { opacity: 0, transform: "translate3d(22px, 36px, 0) rotate(20deg) scale(0.44)" }
+  ], timing);
+  await Promise.allSettled([topAnimation.finished, bottomAnimation.finished]);
+  layer.remove();
+}
+
+function createFavoriteTearPiece(shell, rect, part) {
+  const piece = document.createElement("div");
+  const clone = shell.cloneNode(true);
+  const topOffset = part === "top" ? 0 : rect.height / 2;
+  piece.className = `favorite-tear-piece ${part}`;
+  piece.style.left = `${rect.left}px`;
+  piece.style.top = `${rect.top + topOffset}px`;
+  piece.style.width = `${rect.width}px`;
+  piece.style.height = `${rect.height / 2}px`;
+  clone.style.top = `${-topOffset}px`;
+  clone.style.width = `${rect.width}px`;
+  clone.style.height = `${rect.height}px`;
+  piece.appendChild(clone);
+  return piece;
+}
+
 function compactSiteDomain(url) {
   const parsedUrl = safeUrl(url);
   if (!parsedUrl) {
@@ -2675,8 +3690,10 @@ function compactSiteDomain(url) {
 
 function applySiteIcon(icon, site) {
   const localIcon = site.icon || localIconForUrl(site.url);
+  storeIconSiteContext(icon, site);
+  applySiteIconTile(icon, site, localIcon);
   if (localIcon) {
-    icon.src = localIcon;
+    icon.src = displayIconSource(icon, localIcon);
     icon.removeAttribute("srcset");
     bindFaviconFallback(icon, site, 128);
   } else {
@@ -2692,13 +3709,115 @@ function localIconForUrl(url) {
 
 function applyHistoryIcon(icon, site) {
   const localIcon = localIconForUrl(site.url);
+  storeIconSiteContext(icon, site);
+  applySiteIconTile(icon, site, localIcon);
   if (localIcon) {
-    icon.src = localIcon;
+    icon.src = displayIconSource(icon, localIcon);
     icon.removeAttribute("srcset");
     bindFaviconFallback(icon, site, 64);
   } else {
     applyFaviconIcon(icon, site, 64);
   }
+}
+
+function applyGeneratedSiteIcon(icon, site) {
+  const parsedUrl = safeUrl(site.url);
+  const label = siteDisplayName(parsedUrl, site.title).slice(0, 2).toUpperCase() || "?";
+  icon.removeAttribute("srcset");
+  icon.dataset.iconMissing = "false";
+  icon.dataset.iconTile = "generated";
+  icon.style.setProperty("--site-icon-tile", "#ffffff");
+  icon.src = generatedSiteIconDataUrl(label, parsedUrl?.hostname || site.url);
+}
+
+function generatedSiteIconDataUrl(label, seed) {
+  const hue = Math.abs(hashText(seed || label)) % 360;
+  const background = `hsl(${hue} 42% 92%)`;
+  const foreground = `hsl(${hue} 44% 32%)`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="24" fill="${background}"/><text x="64" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="${foreground}">${escapeSvgText(label)}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+function hashText(value) {
+  let hash = 0;
+  for (const character of String(value || "")) {
+    hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0;
+  }
+  return hash;
+}
+
+function escapeSvgText(value) {
+  return String(value || "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&apos;"
+  }[character]));
+}
+
+function storeIconSiteContext(icon, site) {
+  icon.dataset.siteUrl = site.url || "";
+  icon.dataset.siteTitle = site.title || icon.alt || "";
+}
+
+function applySiteIconTile(icon, site, iconPath = "") {
+  const parsedUrl = safeUrl(site.url);
+  const siteKey = siteGroupKey(parsedUrl);
+  const tileColor = siteKey ? SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "" : "";
+  icon.dataset.iconTile = tileColor ? "brand" : "plain";
+  icon.style.setProperty("--site-icon-tile", tileColor || "#ffffff");
+  icon.classList.toggle("site-icon-local", Boolean(iconPath));
+  applyIconTileToShell(icon, tileColor);
+}
+
+function applyIconTileToShell(icon, tileColor) {
+  const shell = icon.closest(".favorite-icon-shell");
+  if (!shell) {
+    return;
+  }
+  shell.dataset.iconTile = tileColor ? "brand" : "plain";
+  shell.style.setProperty("--site-icon-tile", tileColor || "#ffffff");
+}
+
+function displayIconSource(icon, source) {
+  if (icon.dataset.iconTile !== "brand" || !source.endsWith(".svg")) {
+    return source;
+  }
+  whiteSvgIconSource(source).then((displaySource) => {
+    if (icon.dataset.iconCandidate === source || icon.src.endsWith(source) || icon.getAttribute("src") === source) {
+      icon.src = displaySource;
+    }
+  });
+  return source;
+}
+
+function whiteSvgIconSource(source) {
+  if (whiteSvgIconDataUrlCache.has(source)) {
+    return whiteSvgIconDataUrlCache.get(source);
+  }
+  const request = fetch(source)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Icon request failed: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then((svg) => `data:image/svg+xml,${encodeURIComponent(normalizeSvgGlyphColor(svg))}`)
+    .catch(() => source);
+  whiteSvgIconDataUrlCache.set(source, request);
+  return request;
+}
+
+function normalizeSvgGlyphColor(svg) {
+  let output = String(svg || "");
+  output = output.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
+    const withoutFill = attrs.replace(/\sfill=(["'])[^"']*\1/gi, "");
+    return `<svg${withoutFill} fill="#ffffff">`;
+  });
+  output = output.replace(/\sfill=(["'])(?!none\1)[^"']*\1/gi, ' fill="#ffffff"');
+  output = output.replace(/\sstroke=(["'])(?!none\1)[^"']*\1/gi, ' stroke="#ffffff"');
+  return output;
 }
 
 function bindFaviconFallback(icon, site, size) {
@@ -2708,10 +3827,40 @@ function bindFaviconFallback(icon, site, size) {
 }
 
 function applyFaviconIcon(icon, site, size) {
-  icon.src = faviconUrl(site.url, size);
-  icon.srcset = `${faviconUrl(site.url, Math.max(16, size / 2))} 1x, ${faviconUrl(site.url, size)} 2x`;
+  icon.removeAttribute("srcset");
+  storeIconSiteContext(icon, site);
+  const candidates = extensionIconFallbackChain(site.url, size);
+  applyIconCandidate(icon, candidates, 0);
+}
+
+function extensionIconFallbackChain(url, size) {
+  const parsedUrl = safeUrl(url);
+  const candidates = [];
+  const localIcon = localIconForUrl(url);
+  if (localIcon) {
+    candidates.push(localIcon);
+  }
+  if (parsedUrl?.href) {
+    candidates.push(faviconUrl(parsedUrl.href, size));
+  }
+  return candidates.filter(Boolean);
+}
+
+function applyIconCandidate(icon, candidates, index) {
+  const nextIcon = candidates[index];
+  if (!nextIcon) {
+    applyGeneratedSiteIcon(icon, {
+      title: icon.dataset.siteTitle || icon.alt || "",
+      url: icon.dataset.siteUrl || ""
+    });
+    return;
+  }
+  icon.dataset.iconMissing = "false";
+  icon.dataset.iconCandidate = nextIcon;
+  icon.classList.toggle("site-icon-local", nextIcon.startsWith("icons/"));
+  icon.src = displayIconSource(icon, nextIcon);
   icon.addEventListener("error", () => {
-    applyGeneratedFallbackIcon(icon, site);
+    applyIconCandidate(icon, candidates, index + 1);
   }, { once: true });
 }
 
@@ -2842,8 +3991,8 @@ async function renderSelectedBookmarkFolder() {
     }
 
     const fragment = document.createDocumentFragment();
-    sites.forEach((site) => {
-      fragment.appendChild(createBookmarkSiteCard(site));
+    groupBookmarkSitesByInitial(sites).forEach((group) => {
+      fragment.appendChild(createBookmarkInitialSection(group));
     });
     bookmarkGrid.replaceChildren(fragment);
   } catch (error) {
@@ -2857,6 +4006,75 @@ function renderBookmarkEmptyState(message) {
   bookmarkGrid.innerHTML = emptyState(message);
 }
 
+function groupBookmarkSitesByInitial(sites) {
+  const groups = new Map();
+  sites.forEach((site) => {
+    const initial = bookmarkInitialForSite(site);
+    if (!groups.has(initial)) {
+      groups.set(initial, []);
+    }
+    groups.get(initial).push(site);
+  });
+
+  return [...groups.entries()]
+    .sort(([initialA], [initialB]) => bookmarkInitialSortValue(initialA) - bookmarkInitialSortValue(initialB))
+    .map(([initial, items]) => ({
+      initial,
+      items: items.sort(compareBookmarkSites)
+    }));
+}
+
+function bookmarkInitialForSite(site) {
+  const titleInitial = firstAsciiLetter(site.title);
+  if (titleInitial) {
+    return titleInitial;
+  }
+
+  const url = safeUrl(site.url);
+  const hostInitial = firstAsciiLetter(readableHostName(url?.hostname || ""));
+  return hostInitial || "#";
+}
+
+function firstAsciiLetter(value) {
+  const match = normalizeText(value).match(/[a-z]/i);
+  return match ? match[0].toUpperCase() : "";
+}
+
+function bookmarkInitialSortValue(initial) {
+  if (/^[A-Z]$/.test(initial)) {
+    return initial.charCodeAt(0) - 65;
+  }
+  return 26;
+}
+
+function compareBookmarkSites(siteA, siteB) {
+  return siteA.title.localeCompare(siteB.title, navigator.language || "en", { sensitivity: "base" })
+    || compactSiteDomain(siteA.url).localeCompare(compactSiteDomain(siteB.url), "en", { sensitivity: "base" });
+}
+
+function createBookmarkInitialSection(group) {
+  const section = document.createElement("section");
+  const header = document.createElement("header");
+  const title = document.createElement("h3");
+  const divider = document.createElement("span");
+  const grid = document.createElement("div");
+
+  section.className = "bookmark-letter-section";
+  section.dataset.initial = group.initial;
+  header.className = "bookmark-letter-header";
+  title.className = "bookmark-letter-title";
+  title.textContent = group.initial;
+  divider.className = "bookmark-letter-line";
+  divider.setAttribute("aria-hidden", "true");
+  grid.className = "bookmark-letter-grid";
+  group.items.forEach((site) => {
+    grid.appendChild(createBookmarkSiteCard(site));
+  });
+  header.append(title, divider);
+  section.append(header, grid);
+  return section;
+}
+
 function createBookmarkSiteCard(site) {
   const node = createSiteCard(site);
   const deleteButton = document.createElement("button");
@@ -2864,7 +4082,7 @@ function createBookmarkSiteCard(site) {
   node.classList.add("bookmark-site-card");
   deleteButton.className = "bookmark-delete-button";
   deleteButton.type = "button";
-  deleteButton.innerHTML = `${trashIcon()}<span>${t("deleteBookmarkAction")}</span>`;
+  deleteButton.innerHTML = trashIcon();
   deleteButton.setAttribute("aria-label", t("deleteBookmark", { title: site.title }));
   deleteButton.addEventListener("click", async (event) => {
     event.preventDefault();
@@ -3126,6 +4344,9 @@ async function saveSelectedBookmarkFolderId(folderId) {
 }
 
 function renderMediaFeedDefaultList() {
+  if (!mediaFeedDefaultList) {
+    return;
+  }
   const fragment = document.createDocumentFragment();
   const heading = document.createElement("span");
   heading.className = "media-feed-default-heading";
@@ -3154,6 +4375,9 @@ function renderMediaFeedDefaultList() {
 }
 
 function activateMediaFeedType(type) {
+  if (!mediaFeedTypeButtons.length) {
+    return;
+  }
   const nextType = MEDIA_FEED_TYPE_FILTERS.has(type) ? type : "all";
   activeMediaFeedType = nextType;
   mediaFeedTypeButtons.forEach((button) => {
@@ -3165,6 +4389,9 @@ function activateMediaFeedType(type) {
 }
 
 function toggleMediaFeedForm() {
+  if (!mediaFeedForm) {
+    return;
+  }
   if (mediaFeedForm.hidden) {
     showMediaFeedForm();
     return;
@@ -3173,6 +4400,9 @@ function toggleMediaFeedForm() {
 }
 
 function showMediaFeedForm() {
+  if (!mediaFeedForm) {
+    return;
+  }
   mediaFeedForm.hidden = false;
   toggleMediaFeedFormButton.setAttribute("aria-expanded", "true");
   mediaFeedFormError.textContent = "";
@@ -3180,6 +4410,9 @@ function showMediaFeedForm() {
 }
 
 function hideMediaFeedForm() {
+  if (!mediaFeedForm) {
+    return;
+  }
   mediaFeedForm.hidden = true;
   toggleMediaFeedFormButton.setAttribute("aria-expanded", "false");
   mediaFeedForm.reset();
@@ -3189,6 +4422,9 @@ function hideMediaFeedForm() {
 
 async function handleMediaFeedSubmit(event) {
   event.preventDefault();
+  if (!mediaFeedForm) {
+    return;
+  }
   const url = normalizeMediaFeedUrl(mediaFeedUrlInput.value);
   if (!url) {
     mediaFeedFormError.textContent = t("mediaFeedInvalidUrl");
@@ -3314,37 +4550,58 @@ function incrementMediaFeedFeedback(bucket, key, amount = 1) {
 }
 
 async function refreshMediaFeed() {
+  if (!mediaFeedList || !refreshMediaFeedButton) {
+    return;
+  }
+  const requestId = activeMediaFeedRequestId + 1;
+  activeMediaFeedRequestId = requestId;
   mediaFeedRefreshSeed += 1;
   mediaFeedList.replaceChildren();
   mediaFeedList.scrollTop = 0;
   setMediaFeedState("loading", t("mediaFeedLoadingTitle"), t("mediaFeedLoadingBody"));
   refreshMediaFeedButton.disabled = true;
   try {
-    latestMediaFeedItems = await fetchMediaFeedItems();
+    const items = await withTimeout(fetchMediaFeedItems(), MEDIA_FEED_TOTAL_TIMEOUT_MS, "Media feed refresh timed out.");
+    if (requestId !== activeMediaFeedRequestId) {
+      return;
+    }
+    latestMediaFeedItems = items;
     renderMediaFeedForActiveType();
-    mediaFeedUpdated.textContent = "";
+    if (mediaFeedUpdated) {
+      mediaFeedUpdated.textContent = "";
+    }
     if (!latestMediaFeedItems.length) {
       setMediaFeedState("empty", t("mediaFeedEmptyTitle"), t("mediaFeedEmptyBody"));
     }
   } catch (error) {
+    if (requestId !== activeMediaFeedRequestId) {
+      return;
+    }
     console.warn("Failed to load media feed", error);
     latestMediaFeedItems = [];
     mediaFeedList.replaceChildren();
-    mediaFeedUpdated.textContent = "";
+    if (mediaFeedUpdated) {
+      mediaFeedUpdated.textContent = "";
+    }
     setMediaFeedState("error", t("mediaFeedFailedTitle"), t("mediaFeedFailedBody"));
   } finally {
-    refreshMediaFeedButton.disabled = false;
+    if (requestId === activeMediaFeedRequestId) {
+      refreshMediaFeedButton.disabled = false;
+    }
   }
 }
 
 async function fetchMediaFeedItems() {
   const sources = await loadMediaFeedSources();
-  const [sourceResults, discoveryResults] = await Promise.all([
-    Promise.allSettled(sources.map(fetchMediaFeedSource)),
-    Promise.allSettled(mediaFeedDiscoverySourcesForLocale().map(fetchMediaFeedDiscoverySource))
+  const [sourceResults, discoveryResults] = await Promise.allSettled([
+    runLimited(sources, fetchMediaFeedSource, MEDIA_FEED_CONCURRENCY),
+    runLimited(mediaFeedDiscoverySourcesForLocale(), fetchMediaFeedDiscoverySource, MEDIA_FEED_CONCURRENCY)
   ]);
+  const allResults = [
+    ...(sourceResults.status === "fulfilled" ? sourceResults.value : []),
+    ...(discoveryResults.status === "fulfilled" ? discoveryResults.value : [])
+  ];
   const seenUrls = new Set();
-  const allResults = [...sourceResults, ...discoveryResults];
   let candidates = allResults
     .flatMap((result) => result.status === "fulfilled" ? result.value : [])
     .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
@@ -3367,6 +4624,40 @@ async function fetchMediaFeedItems() {
     throw new Error("All media feed sources failed or returned no displayable items.");
   }
   return items;
+}
+
+async function runLimited(items, task, limit) {
+  const results = [];
+  let cursor = 0;
+  const workerCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      try {
+        results[index] = { status: "fulfilled", value: await task(items[index]) };
+      } catch (error) {
+        results[index] = { status: "rejected", reason: error };
+      }
+    }
+  }));
+  return results.filter(Boolean);
+}
+
+function withTimeout(promise, duration, message) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => reject(new Error(message)), duration);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      }
+    );
+  });
 }
 
 function isFilePreviewMode() {
@@ -3420,8 +4711,8 @@ function mediaFeedItemsFromReaderMarkdown(markdown, source) {
       language: source.language,
       sourceId: source.id,
       sourceTitle: source.title,
-      sourceIcon: fallbackIconDataUrl(source.title),
-      sourceIconCandidates: [],
+      sourceIcon: extensionIconFallbackChain(source.url, 64)[0] || generatedSiteIconDataUrl(source.title.slice(0, 2).toUpperCase(), source.url),
+      sourceIconCandidates: extensionIconFallbackChain(source.url, 64),
       image: "",
       imageCandidates: [],
       createdAt: dateMatch ? Date.parse(dateMatch[0]) : Date.now() - items.length * 60000,
@@ -3607,8 +4898,8 @@ function createDiscoveryMediaFeedItem(source, data) {
     language: /[\u4e00-\u9fff]/.test(title) ? "zh" : "en",
     sourceId: source.id,
     sourceTitle: source.sourceTitle,
-    sourceIcon: fallbackIconDataUrl(source.sourceTitle),
-    sourceIconCandidates: [],
+    sourceIcon: extensionIconFallbackChain(url, 64)[0] || generatedSiteIconDataUrl(source.sourceTitle.slice(0, 2).toUpperCase(), url),
+    sourceIconCandidates: extensionIconFallbackChain(url, 64),
     image: "",
     imageCandidates: [],
     createdAt: Number.isFinite(data.createdAt) ? data.createdAt : 0,
@@ -3655,22 +4946,25 @@ function mediaFeedSourceMeta(documentNode, source) {
     feedNodeText(root, ["logo"]),
     feedNodeText(root, ["image"]),
     ...mediaFeedImages(root),
-    mediaFeedFaviconUrl(siteUrl, title)
-  ].map(normalizeFeedUrl).filter(Boolean);
+    ...extensionIconFallbackChain(siteUrl, 64)
+  ].map(normalizeIconCandidateUrl).filter(Boolean);
   return {
     title,
     siteUrl,
-    icon: iconCandidates[0] || fallbackIconDataUrl(title),
+    icon: iconCandidates[0] || "",
     iconCandidates
   };
 }
 
-function mediaFeedFaviconUrl(siteUrl, title) {
-  const url = safeUrl(siteUrl);
-  if (!url?.origin) {
-    return fallbackIconDataUrl(title);
+function normalizeIconCandidateUrl(value) {
+  const text = normalizeText(value).replaceAll("&amp;", "&");
+  if (!text) {
+    return "";
   }
-  return faviconUrl(url.origin, 64);
+  if (text.startsWith("data:image/") || text.startsWith("icons/") || text.startsWith("chrome-extension://")) {
+    return text;
+  }
+  return isWebUrl(text) ? text : "";
 }
 
 function normalizeFeedUrl(value) {
@@ -3964,6 +5258,9 @@ function mediaFeedSectionTitle(section, item) {
 }
 
 function renderMediaFeedForActiveType() {
+  if (!mediaFeedList || !mediaFeedState) {
+    return;
+  }
   const items = activeMediaFeedType === "all"
     ? latestMediaFeedItems
     : latestMediaFeedItems.filter((item) => item.agentTopic === activeMediaFeedType);
@@ -3978,6 +5275,9 @@ function renderMediaFeedForActiveType() {
 }
 
 function renderMediaFeed() {
+  if (!mediaFeedList) {
+    return;
+  }
   mediaFeedObserver?.disconnect();
   const items = visibleMediaFeedItems.slice(0, mediaFeedVisibleCount);
   const hasMore = mediaFeedVisibleCount < visibleMediaFeedItems.length;
@@ -4004,7 +5304,7 @@ function renderMediaFeed() {
 }
 
 function observeMediaFeedLoadMore() {
-  if (!("IntersectionObserver" in window)) {
+  if (!mediaFeedList || !("IntersectionObserver" in window)) {
     return;
   }
   mediaFeedObserver = new IntersectionObserver((entries) => {
@@ -4020,6 +5320,9 @@ function observeMediaFeedLoadMore() {
 }
 
 function loadMoreMediaFeedIfNeeded() {
+  if (!mediaFeedList) {
+    return;
+  }
   const distanceToEnd = mediaFeedList.scrollHeight - mediaFeedList.scrollTop - mediaFeedList.clientHeight;
   if (distanceToEnd <= 180) {
     loadMoreMediaFeedPage();
@@ -4064,7 +5367,7 @@ function createMediaFeedItem(item, index = 0) {
   sourceIcon.loading = "lazy";
   sourceIcon.decoding = "async";
   sourceIcon.dataset.candidateIndex = "0";
-  sourceIcon.src = item.sourceIcon || fallbackIconDataUrl(item.sourceTitle);
+  sourceIcon.src = item.sourceIcon || "";
   sourceIcon.addEventListener("error", () => {
     const candidates = Array.isArray(item.sourceIconCandidates) ? item.sourceIconCandidates : [];
     const nextIndex = Number(sourceIcon.dataset.candidateIndex || 0) + 1;
@@ -4073,7 +5376,8 @@ function createMediaFeedItem(item, index = 0) {
       sourceIcon.src = candidates[nextIndex];
       return;
     }
-    sourceIcon.src = fallbackIconDataUrl(item.sourceTitle);
+    sourceIcon.removeAttribute("src");
+    sourceIcon.dataset.iconMissing = "true";
   });
 
   const sourceName = document.createElement("span");
@@ -4227,7 +5531,9 @@ async function markMediaFeedNotInterested(item) {
     .filter((feedItem) => !isMediaFeedItemDismissed(feedItem))
     .sort(compareAgentMediaFeedItems);
   renderMediaFeedForActiveType();
-  mediaFeedUpdated.textContent = t("mediaFeedNotInterestedDone");
+  if (mediaFeedUpdated) {
+    mediaFeedUpdated.textContent = t("mediaFeedNotInterestedDone");
+  }
 }
 
 function mediaFeedRelativeTime(timestamp) {
@@ -4245,6 +5551,9 @@ function mediaFeedRelativeTime(timestamp) {
 }
 
 function setMediaFeedState(state, title, body) {
+  if (!mediaFeedState) {
+    return;
+  }
   mediaFeedState.dataset.state = state;
   mediaFeedState.hidden = false;
   mediaFeedState.querySelector("strong").textContent = title;
@@ -4266,10 +5575,15 @@ async function refreshHistory() {
     const recentItems = (await repeatDomainHistoryItems(items, recentStartTime))
       .filter((item) => !pinnedKeys.has(normalizeHistoryKey(item.url)));
     renderPinnedHistory(pinnedItems);
-    renderHistory(groupHistoryBySite(recentItems));
+    const recentGroups = groupHistoryBySite(recentItems, {
+      maxPagesPerSite: MAX_HISTORY_PAGES_PER_SITE + 1
+    });
+    renderRecentFolders(recentGroups);
+    renderHistory(recentGroups);
   } catch (error) {
     pinnedGrid.innerHTML = "";
     historyGrid.innerHTML = emptyState(t("historyReadFailed"));
+    recentHistoryFolders.innerHTML = emptyState(t("historyReadFailed"));
   }
 }
 
@@ -4353,6 +5667,181 @@ function renderHistory(groups) {
   });
 
   historyGrid.replaceChildren(fragment);
+}
+
+function renderRecentFolders(groups) {
+  if (!groups.length) {
+    recentHistoryFolders.innerHTML = emptyState(t("noHistoryItems"));
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  groups.slice(0, MAX_RECENT_FOLDER_ITEMS).forEach((group) => {
+    fragment.appendChild(createRecentFolderItem(group));
+  });
+  recentHistoryFolders.replaceChildren(fragment);
+}
+
+function createRecentFolderItem(group) {
+  const pages = group.pages.slice(0, MAX_HISTORY_PAGES_PER_SITE);
+  const item = pages[0];
+  const title = normalizeText(group.name) || historyFallbackTitle(safeUrl(item?.url || group.url));
+  const card = document.createElement("article");
+  const inner = document.createElement("div");
+  const face = document.createElement("a");
+  const icon = document.createElement("img");
+  const copy = document.createElement("span");
+  const name = document.createElement("strong");
+  const pageTitle = document.createElement("span");
+  const domain = document.createElement("span");
+  const controls = document.createElement("div");
+  const previousButton = document.createElement("button");
+  const nextButton = document.createElement("button");
+  const bottomBar = document.createElement("span");
+  const hasPageDrawer = pages.length > 1;
+
+  card.className = "recent-folder-item recent-card";
+  card.classList.toggle("has-page-drawer", hasPageDrawer);
+  card.dataset.pageIndex = "0";
+  inner.className = "recent-card-inner";
+  face.className = "recent-folder-face";
+  face.href = item?.url || group.url;
+  face.title = t("openPage", { title });
+  face.setAttribute("aria-label", t("openPage", { title }));
+  icon.className = "recent-folder-logo";
+  applyHistoryIcon(icon, {
+    title,
+    url: group.homeUrl || group.url
+  });
+  icon.alt = "";
+  copy.className = "recent-folder-copy";
+  name.className = "recent-folder-name";
+  name.textContent = title;
+  pageTitle.className = "recent-folder-page-title";
+  domain.className = "recent-folder-domain";
+  domain.textContent = compactHistoryUrl(safeUrl(group.homeUrl || group.url));
+  controls.className = "recent-card-controls";
+  previousButton.className = "recent-card-arrow previous";
+  previousButton.type = "button";
+  previousButton.innerHTML = chevronLeftIcon();
+  previousButton.title = t("historyPreviousPage");
+  previousButton.setAttribute("aria-label", t("historyPreviousPage"));
+  nextButton.className = "recent-card-arrow next";
+  nextButton.type = "button";
+  nextButton.innerHTML = chevronRightIcon();
+  nextButton.title = t("historyNextPage");
+  nextButton.setAttribute("aria-label", t("historyNextPage"));
+  bottomBar.className = "recent-card-bottom-bar";
+  bottomBar.setAttribute("aria-hidden", "true");
+
+  let activePageAnimation = null;
+
+  const animatePageTurn = (direction) => {
+    if (!direction || pages.length < 2) {
+      return;
+    }
+
+    if (activePageAnimation) {
+      activePageAnimation.cancel();
+      activePageAnimation = null;
+    }
+    inner.querySelectorAll(".recent-folder-face-snapshot").forEach((node) => node.remove());
+
+    const snapshot = face.cloneNode(true);
+    snapshot.removeAttribute("href");
+    snapshot.removeAttribute("title");
+    snapshot.removeAttribute("aria-label");
+    snapshot.classList.add("recent-folder-face-snapshot");
+    snapshot.setAttribute("aria-hidden", "true");
+    inner.append(snapshot);
+
+    const vector = direction === "next" ? 1 : -1;
+    const easing = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const duration = 520;
+    const incoming = face.animate(
+      [
+        {
+          opacity: 0.18,
+          transform: `translateX(${vector * 54}px) scale(0.995)`,
+          filter: "blur(0.4px)"
+        },
+        {
+          opacity: 1,
+          transform: "translateX(0) scale(1)",
+          filter: "blur(0)"
+        }
+      ],
+      { duration, easing, fill: "both" }
+    );
+    const outgoing = snapshot.animate(
+      [
+        {
+          opacity: 1,
+          transform: "translateX(0) scale(1)",
+          filter: "blur(0)"
+        },
+        {
+          opacity: 0,
+          transform: `translateX(${-vector * 46}px) scale(0.995)`,
+          filter: "blur(0.4px)"
+        }
+      ],
+      { duration: 440, easing, fill: "both" }
+    );
+
+    const cleanUp = () => {
+      incoming.cancel();
+      outgoing.cancel();
+      snapshot.remove();
+      if (activePageAnimation === incoming) {
+        activePageAnimation = null;
+      }
+    };
+    activePageAnimation = incoming;
+    incoming.addEventListener("finish", cleanUp, { once: true });
+    window.setTimeout(cleanUp, duration + 80);
+  };
+
+  const setActivePage = (nextIndex, direction = "") => {
+    const pageCount = pages.length || 1;
+    const index = ((nextIndex % pageCount) + pageCount) % pageCount;
+    const activePage = pages[index] || item;
+    const activeTitle = normalizeText(activePage?.title) || historyFallbackTitle(safeUrl(activePage?.url || group.url));
+    card.dataset.pageIndex = String(index);
+    face.href = activePage?.url || group.url;
+    face.title = t("openPage", { title: activeTitle });
+    face.setAttribute("aria-label", t("openPage", { title: activeTitle }));
+    pageTitle.textContent = activeTitle;
+    previousButton.disabled = pageCount < 2;
+    nextButton.disabled = pageCount < 2;
+    animatePageTurn(direction);
+  };
+
+  previousButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setActivePage(Number(card.dataset.pageIndex || 0) - 1, "previous");
+    if (event.detail > 0) {
+      previousButton.blur();
+    }
+  });
+  nextButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setActivePage(Number(card.dataset.pageIndex || 0) + 1, "next");
+    if (event.detail > 0) {
+      nextButton.blur();
+    }
+  });
+
+  copy.append(name, pageTitle, domain);
+  face.append(icon, copy);
+  controls.append(previousButton, nextButton);
+  inner.append(face);
+  bottomBar.append(controls);
+  card.append(inner, bottomBar);
+  setActivePage(0);
+  return card;
 }
 
 function groupHistoryBySite(items, options = {}) {
@@ -4703,6 +6192,10 @@ function formatHistoryFullTime(timestamp) {
   }).format(new Date(time));
 }
 
+function formatHistoryTimestamp(timestamp) {
+  return formatHistoryFullTime(timestamp);
+}
+
 function historyDateTimeAttribute(timestamp) {
   const time = Number(timestamp);
   if (!Number.isFinite(time) || time <= 0) {
@@ -4823,6 +6316,13 @@ function inlineIcon(markup) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${markup.trim()}</svg>`;
 }
 
+function searchEngineSearchIcon() {
+  return inlineIcon(`
+    <circle cx="10.75" cy="10.75" r="5.25"></circle>
+    <path d="m14.75 14.75 4.5 4.5"></path>
+  `);
+}
+
 function historyPinIcon(active) {
   if (active) {
     return inlineIcon(`
@@ -4874,6 +6374,14 @@ function gridIcon() {
   `);
 }
 
+function historyIcon() {
+  return inlineIcon(`
+    <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+    <path d="M3 4v5h5"></path>
+    <path d="M12 7v5l3 2"></path>
+  `);
+}
+
 function folderPlusIcon() {
   return inlineIcon(`
     <path d="M12 10v6"></path>
@@ -4886,6 +6394,18 @@ function arrowLeftIcon() {
   return inlineIcon(`
     <path d="m12 19-7-7 7-7"></path>
     <path d="M19 12H5"></path>
+  `);
+}
+
+function chevronLeftIcon() {
+  return inlineIcon(`
+    <path d="M15 7 10 12l5 5"></path>
+  `);
+}
+
+function chevronRightIcon() {
+  return inlineIcon(`
+    <path d="m9 7 5 5-5 5"></path>
   `);
 }
 
@@ -5025,6 +6545,9 @@ function canonicalSiteHost(hostname) {
   const bareHost = host.replace(/^(www|m|mobile)\./, "");
   if (SITE_GROUP_OVERRIDES[bareHost]) {
     return SITE_GROUP_OVERRIDES[bareHost];
+  }
+  if (GOOGLE_REGIONAL_HOST_PATTERN.test(bareHost)) {
+    return "google.com";
   }
 
   const matchedSuffix = SITE_GROUP_SUFFIXES.find((suffix) => (
@@ -5219,27 +6742,6 @@ function decodeURIComponentSafe(value) {
   } catch {
     return value;
   }
-}
-
-function applyGeneratedFallbackIcon(icon, site) {
-  icon.removeAttribute("srcset");
-  icon.src = fallbackIconDataUrl(site?.title || site?.url || t("website"));
-}
-
-function fallbackIconDataUrl(label) {
-  const letter = iconLetter(label);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-      <rect width="128" height="128" rx="28" fill="#315c45"/>
-      <text x="64" y="75" text-anchor="middle" fill="#fffdf7" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif" font-size="54" font-weight="700">${escapeHtml(letter)}</text>
-    </svg>
-  `;
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-}
-
-function iconLetter(label) {
-  const cleanLabel = normalizeText(label);
-  return [...cleanLabel][0]?.toUpperCase() || "•";
 }
 
 function normalizeText(value) {

@@ -12,6 +12,10 @@
 
 ## 已打包图标
 
+- `icons/ai/chatgpt.png`
+- `icons/ai/claude.png`
+- `icons/ai/gemini.png`
+- `icons/ai/grok.png`
 - `icons/portals/baidu.svg`
 - `icons/portals/zhihu.svg`
 - `icons/portals/bilibili.png`
