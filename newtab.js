@@ -175,6 +175,8 @@ const MEDIA_FEED_CONCURRENCY = 3;
 const MAX_CUSTOM_MEDIA_FEEDS = 12;
 const MAX_MEDIA_FEED_FEEDBACK_KEYS = 120;
 const MEDIA_FEED_LARGE_CARD_INTERVAL = 5;
+const RECENT_CARD_DELETE_EXIT_MS = 140;
+const RECENT_CARD_ENTER_MS = 150;
 const LOW_VALUE_MEDIA_FEED_PATTERNS = [
   /早报|晚报|日报|周报|一周|盘点|合集|汇总|速览|快讯|活动|直播|中奖|优惠|招聘|促销|广告|发布会邀请/,
   /newsletter|roundup|daily brief|weekly recap|sponsored|webinar|event|hiring|coupon|deal/i
@@ -1343,6 +1345,7 @@ let mediaFeedObserver = null;
 let mediaFeedRefreshSeed = 0;
 let activeMediaFeedFeedback = normalizeMediaFeedFeedback();
 let activeMediaFeedActionMenu = null;
+let pendingRecentPreviousKeys = null;
 const whiteSvgIconDataUrlCache = new Map();
 const mediaFeedLoadMoreSentinel = document.createElement("div");
 mediaFeedLoadMoreSentinel.className = "media-feed-load-more";
@@ -5843,14 +5846,78 @@ function renderHistory(groups) {
 function renderRecentFolders(groups) {
   if (!groups.length) {
     recentHistoryFolders.innerHTML = emptyState(t("noHistoryItems"));
+    pendingRecentPreviousKeys = null;
     return;
   }
 
+  const previousKeys = pendingRecentPreviousKeys;
+  pendingRecentPreviousKeys = null;
   const fragment = document.createDocumentFragment();
   groups.slice(0, MAX_RECENT_FOLDER_ITEMS).forEach((group) => {
-    fragment.appendChild(createRecentFolderItem(group));
+    const card = createRecentFolderItem(group);
+    fragment.appendChild(card);
   });
   recentHistoryFolders.replaceChildren(fragment);
+  if (previousKeys) {
+    const nextKeys = recentFolderVisibleKeys();
+    animateRecentFolderEntries(new Set([...nextKeys].filter((key) => !previousKeys.has(key))));
+  }
+}
+
+function animateRecentFolderExit(card) {
+  if (!card?.animate) {
+    return;
+  }
+  card.style.willChange = "opacity, transform";
+  card.animate(
+    [
+      { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" },
+      { opacity: 0.84, transform: "translate3d(0, -2px, 0) scale(0.992)", offset: 0.42 },
+      { opacity: 0, transform: "translate3d(0, -10px, 0) scale(0.965)" }
+    ],
+    {
+      duration: RECENT_CARD_DELETE_EXIT_MS,
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      fill: "forwards"
+    }
+  );
+}
+
+function recentFolderVisibleKeys(excludedKey = "") {
+  return new Set(
+    [...recentHistoryFolders.querySelectorAll(".recent-folder-item")]
+      .map((node) => node.dataset.siteKey)
+      .filter((key) => key && key !== excludedKey)
+  );
+}
+
+function animateRecentFolderEntries(enterKeys) {
+  if (!enterKeys.size) {
+    return;
+  }
+
+  const cards = [...recentHistoryFolders.querySelectorAll(".recent-folder-item")];
+  for (const card of cards) {
+    const key = card.dataset.siteKey || "";
+    if (!key || !enterKeys.has(key) || !card.animate) {
+      continue;
+    }
+
+    card.style.willChange = "opacity, transform";
+    const animation = card.animate(
+      [
+        { opacity: 0, transform: "translate3d(6px, 0, 0) scale(0.995)" },
+        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }
+      ],
+      {
+        duration: RECENT_CARD_ENTER_MS,
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)"
+      }
+    );
+    animation.addEventListener("finish", () => {
+      card.style.willChange = "";
+    }, { once: true });
+  }
 }
 
 function createRecentFolderItem(group) {
@@ -5865,6 +5932,7 @@ function createRecentFolderItem(group) {
   const name = document.createElement("strong");
   const pageTitle = document.createElement("span");
   const domain = document.createElement("span");
+  const deleteButton = document.createElement("button");
   const controls = document.createElement("div");
   const previousButton = document.createElement("button");
   const nextButton = document.createElement("button");
@@ -5874,6 +5942,7 @@ function createRecentFolderItem(group) {
   card.className = "recent-folder-item recent-card";
   card.classList.toggle("has-page-drawer", hasPageDrawer);
   card.dataset.pageIndex = "0";
+  card.dataset.siteKey = group.key || "";
   inner.className = "recent-card-inner";
   face.className = "recent-folder-face";
   face.href = item?.url || group.url;
@@ -5891,6 +5960,11 @@ function createRecentFolderItem(group) {
   pageTitle.className = "recent-folder-page-title";
   domain.className = "recent-folder-domain";
   domain.textContent = compactHistoryUrl(safeUrl(group.homeUrl || group.url));
+  deleteButton.className = "recent-card-delete";
+  deleteButton.type = "button";
+  deleteButton.innerHTML = trashIcon();
+  deleteButton.title = t("deleteHistory", { title });
+  deleteButton.setAttribute("aria-label", t("deleteHistory", { title }));
   controls.className = "recent-card-controls";
   previousButton.className = "recent-card-arrow previous";
   previousButton.type = "button";
@@ -6004,11 +6078,24 @@ function createRecentFolderItem(group) {
       nextButton.blur();
     }
   });
+  deleteButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (card.classList.contains("is-deleting")) {
+      return;
+    }
+    deleteButton.disabled = true;
+    const previousKeys = recentFolderVisibleKeys(group.key || "");
+    card.classList.add("is-deleting");
+    pendingRecentPreviousKeys = previousKeys;
+    animateRecentFolderExit(card);
+    window.setTimeout(() => deleteHistoryGroup(group), RECENT_CARD_DELETE_EXIT_MS);
+  });
 
   copy.append(name, pageTitle, domain);
   face.append(icon, copy);
   controls.append(previousButton, nextButton);
-  inner.append(face);
+  inner.append(face, deleteButton);
   bottomBar.append(controls);
   card.append(inner, bottomBar);
   setActivePage(0);
