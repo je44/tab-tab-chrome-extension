@@ -1559,6 +1559,67 @@ body.surface-open .surface-launchers {
   white-space: nowrap;
 }
 
+.sync-settings-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  min-height: 52px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.sync-settings-icon,
+.sync-settings-action {
+  color: var(--muted);
+}
+
+.sync-settings-icon svg,
+.sync-settings-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sync-settings-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.sync-settings-copy strong,
+.sync-settings-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-settings-copy strong {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.sync-settings-copy span {
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.sync-settings-row[data-status="done"] .sync-settings-icon,
+.sync-settings-row[data-status="done"] .sync-settings-action {
+  color: var(--accent);
+}
+
+.sync-settings-row[data-status="unavailable"] {
+  opacity: 0.78;
+}
+
+.sync-settings-row[data-status="unavailable"] .sync-settings-action {
+  pointer-events: none;
+}
+
 .color-picker-grid {
   display: grid;
   gap: 8px;

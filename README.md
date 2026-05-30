@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icons/tab-tab-flat-128.png" width="96" height="96" alt="tab-tab icon">
+  <img src="icons/tab-tab-flat-1024.png" width="96" height="96" alt="tab-tab icon">
 </p>
 
 <h1 align="center">tab-tab Chrome 扩展</h1>

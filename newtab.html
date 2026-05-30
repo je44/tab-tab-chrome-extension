@@ -208,6 +208,22 @@
           <div class="palette-preset-grid" id="palettePresetGrid" role="radiogroup" aria-labelledby="presetPaletteTitle"></div>
         </section>
 
+        <section class="settings-group" aria-labelledby="syncSettingsTitle">
+          <div class="settings-group-heading">
+            <h3 id="syncSettingsTitle">云端同步</h3>
+          </div>
+          <div class="sync-settings-row" id="syncSettingsRow" data-status="ready">
+            <span class="sync-settings-icon" aria-hidden="true"></span>
+            <span class="sync-settings-copy">
+              <strong id="syncSettingsStatus">配置会跟随 Chrome 账号同步</strong>
+              <span id="syncSettingsDetail">同一 Google 账号安装后会自动恢复。</span>
+            </span>
+            <button class="icon-button subtle-action sync-settings-action" id="syncSettingsNowButton" type="button" title="手动同步" aria-label="手动同步">
+              <span class="button-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+        </section>
+
         <section class="settings-group" aria-labelledby="customPaletteTitle">
           <div class="settings-group-heading">
             <h3 id="customPaletteTitle">自定义双色</h3>

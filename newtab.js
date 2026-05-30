@@ -11,7 +11,7 @@ const PORTALS = [
   { title: "MDN", url: "https://developer.mozilla.org", icon: "icons/portals/mdn.svg", category: "developer" },
   { title: "YouTube", url: "https://www.youtube.com", icon: "icons/portals/youtube.svg", category: "media" },
   { title: "Google", url: "https://www.google.com", icon: "icons/portals/google.svg", category: "search" },
-  { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/ai/chatgpt.png", category: "ai" },
+  { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/portals/chatgpt.svg", category: "ai" },
   { title: "Claude", url: "https://claude.ai", icon: "icons/ai/claude.png", category: "ai" },
   { title: "Gemini", url: "https://gemini.google.com", icon: "icons/ai/gemini.png", category: "ai" },
   { title: "Perplexity", url: "https://www.perplexity.ai", icon: "icons/portals/perplexity.svg", category: "ai" },
@@ -37,6 +37,7 @@ const PORTAL_CATEGORY_STATE_STORAGE_KEY = "portalCategoryState";
 const THEME_STORAGE_KEY = "themeMode";
 const THEME_PALETTE_STORAGE_KEY = "themePalette";
 const AI_DIRECT_PROMPT_STORAGE_KEY = "aiDirectPrompts";
+const SYNC_META_STORAGE_KEY = "syncMeta";
 const AI_DIRECT_PROMPT_TOKEN_PARAM = "_tabtab_prompt";
 const AI_DIRECT_PROMPT_TTL_MS = 2 * 60 * 1000;
 const MAX_HISTORY_SITE_GROUPS = 9;
@@ -151,6 +152,18 @@ const MEDIA_FEED_DISCOVERY_SOURCES = [
 ];
 const CUSTOM_MEDIA_FEEDS_STORAGE_KEY = "customMediaFeeds";
 const MEDIA_FEED_FEEDBACK_STORAGE_KEY = "mediaFeedFeedback";
+const SYNC_STORAGE_KEYS = new Set([
+  CUSTOM_PORTALS_STORAGE_KEY,
+  FAVORITE_SITES_STORAGE_KEY,
+  PINNED_HISTORY_STORAGE_KEY,
+  BOOKMARK_FOLDER_STORAGE_KEY,
+  BOOKMARK_LAYOUT_STORAGE_KEY,
+  PORTAL_CATEGORY_STATE_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  THEME_PALETTE_STORAGE_KEY,
+  CUSTOM_MEDIA_FEEDS_STORAGE_KEY,
+  SYNC_META_STORAGE_KEY
+]);
 const MEDIA_FEED_ITEM_LIMIT = 48;
 const MEDIA_FEED_SOURCE_ITEM_LIMIT = 8;
 const MEDIA_FEED_DISCOVERY_ITEM_LIMIT = 8;
@@ -284,7 +297,7 @@ const SEARCH_ENGINES = [
   { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
   { id: "baidu", label: "百度", icon: "icons/portals/baidu.svg", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
   { id: "bing", label: "Bing", icon: "icons/portals/bing.svg", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
-  { id: "chatgpt", command: "/gpt", label: "ChatGPT", icon: "icons/ai/chatgpt.png", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
+  { id: "chatgpt", command: "/gpt", label: "ChatGPT", icon: "icons/portals/chatgpt.svg", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
   { id: "claude", command: "/claude", label: "Claude", icon: "icons/ai/claude.png", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
   { id: "gemini", command: "/gemini", label: "Gemini", icon: "icons/ai/gemini.png", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
   { id: "grok", command: "/grok", label: "Grok", icon: "icons/ai/grok.png", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
@@ -816,6 +829,14 @@ const MESSAGES = {
     themeModeLight: "日间",
     themeModeDark: "夜间",
     presetPaletteTitle: "主题配色",
+    syncSettingsTitle: "云端同步",
+    syncSettingsReady: "配置会跟随 Chrome 账号同步",
+    syncSettingsReadyDetail: "同一 Google 账号安装后会自动恢复。",
+    syncSettingsUnavailable: "当前浏览器不支持同步",
+    syncSettingsUnavailableDetail: "仍会保存在这台设备。",
+    syncSettingsDone: "刚刚写入同步区",
+    syncSettingsDoneDetail: "Chrome 会自动分发到同账号设备。",
+    syncSettingsNow: "手动同步",
     customPaletteTitle: "自定义强调色",
     lightAccent: "日间",
     darkAccent: "夜间",
@@ -1069,6 +1090,14 @@ const MESSAGES = {
     themeModeLight: "Light",
     themeModeDark: "Dark",
     presetPaletteTitle: "Theme palettes",
+    syncSettingsTitle: "Cloud sync",
+    syncSettingsReady: "Settings sync with your Chrome account",
+    syncSettingsReadyDetail: "Install with the same Google account to restore.",
+    syncSettingsUnavailable: "Sync is unavailable in this browser",
+    syncSettingsUnavailableDetail: "Settings still stay on this device.",
+    syncSettingsDone: "Written to sync storage",
+    syncSettingsDoneDetail: "Chrome will distribute it to signed-in devices.",
+    syncSettingsNow: "Sync now",
     customPaletteTitle: "Custom accents",
     lightAccent: "Light",
     darkAccent: "Dark",
@@ -1259,6 +1288,10 @@ const settingsButton = document.querySelector("#settingsButton");
 const settingsPanel = document.querySelector("#settingsPanel");
 const closeSettingsButton = document.querySelector("#closeSettingsButton");
 const palettePresetGrid = document.querySelector("#palettePresetGrid");
+const syncSettingsRow = document.querySelector("#syncSettingsRow");
+const syncSettingsStatus = document.querySelector("#syncSettingsStatus");
+const syncSettingsDetail = document.querySelector("#syncSettingsDetail");
+const syncSettingsNowButton = document.querySelector("#syncSettingsNowButton");
 const lightAccentInput = document.querySelector("#lightAccentInput");
 const darkAccentInput = document.querySelector("#darkAccentInput");
 const lightAccentValue = document.querySelector("#lightAccentValue");
@@ -1316,7 +1349,12 @@ mediaFeedLoadMoreSentinel.className = "media-feed-load-more";
 mediaFeedLoadMoreSentinel.setAttribute("role", "status");
 
 ensureChromeApiFallback();
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", initWithStorageMigration);
+
+async function initWithStorageMigration() {
+  await migrateSyncStorageFromLocal();
+  init();
+}
 
 function ensureChromeApiFallback() {
   if (globalThis.chrome?.storage?.local && globalThis.chrome?.history && globalThis.chrome?.bookmarks) {
@@ -1367,6 +1405,72 @@ function ensureChromeApiFallback() {
       onImportEnded: emptyEvent
     }
   };
+}
+
+function storageAreaForKey(key) {
+  if (SYNC_STORAGE_KEYS.has(key) && chrome.storage?.sync) {
+    return chrome.storage.sync;
+  }
+  return chrome.storage?.local || chrome.storage?.sync;
+}
+
+async function getStoredValues(defaults = {}) {
+  const localDefaults = {};
+  const syncDefaults = {};
+  Object.entries(defaults).forEach(([key, value]) => {
+    if (storageAreaForKey(key) === chrome.storage?.sync) {
+      syncDefaults[key] = value;
+    } else {
+      localDefaults[key] = value;
+    }
+  });
+
+  const [localResult, syncResult] = await Promise.all([
+    Object.keys(localDefaults).length ? storageAreaForKey("__local__").get(localDefaults) : Promise.resolve({}),
+    Object.keys(syncDefaults).length ? chrome.storage.sync.get(syncDefaults) : Promise.resolve({})
+  ]);
+  return { ...localResult, ...syncResult };
+}
+
+async function setStoredValues(values = {}) {
+  const localValues = {};
+  const syncValues = {};
+  Object.entries(values).forEach(([key, value]) => {
+    if (storageAreaForKey(key) === chrome.storage?.sync) {
+      syncValues[key] = value;
+    } else {
+      localValues[key] = value;
+    }
+  });
+
+  await Promise.all([
+    Object.keys(localValues).length ? storageAreaForKey("__local__").set(localValues) : Promise.resolve(),
+    Object.keys(syncValues).length ? chrome.storage.sync.set(syncValues) : Promise.resolve()
+  ]);
+}
+
+async function migrateSyncStorageFromLocal() {
+  if (!chrome.storage?.sync || !chrome.storage?.local || chrome.storage.sync === chrome.storage.local) {
+    return;
+  }
+  const keys = [...SYNC_STORAGE_KEYS];
+  try {
+    const [localValues, syncValues] = await Promise.all([
+      chrome.storage.local.get(keys),
+      chrome.storage.sync.get(keys)
+    ]);
+    const missingSyncValues = {};
+    keys.forEach((key) => {
+      if (typeof localValues[key] !== "undefined" && typeof syncValues[key] === "undefined") {
+        missingSyncValues[key] = localValues[key];
+      }
+    });
+    if (Object.keys(missingSyncValues).length > 0) {
+      await chrome.storage.sync.set(missingSyncValues);
+    }
+  } catch (error) {
+    console.warn("Failed to migrate synced settings", error);
+  }
 }
 
 function resolveLocale() {
@@ -1532,10 +1636,13 @@ function applySettingsLocale() {
   document.querySelector("#settingsTitle").textContent = t("settingsTitle");
   document.querySelector("#appearanceModeTitle").textContent = t("appearanceModeTitle");
   document.querySelector("#presetPaletteTitle").textContent = t("presetPaletteTitle");
+  document.querySelector("#syncSettingsTitle").textContent = t("syncSettingsTitle");
   document.querySelector("#customPaletteTitle").textContent = t("customPaletteTitle");
   document.querySelector('[data-theme-mode="system"]').textContent = t("themeModeSystem");
   document.querySelector('[data-theme-mode="light"]').textContent = t("themeModeLight");
   document.querySelector('[data-theme-mode="dark"]').textContent = t("themeModeDark");
+  setButtonLabel(syncSettingsNowButton, t("syncSettingsNow"));
+  updateSyncSettingsUi();
   lightAccentInput.closest("label").querySelector("span").textContent = t("lightAccent");
   darkAccentInput.closest("label").querySelector("span").textContent = t("darkAccent");
 }
@@ -1575,6 +1682,7 @@ function init() {
   favoriteForm.addEventListener("submit", handleFavoriteSubmit);
   settingsButton.addEventListener("click", toggleSettingsPanel);
   closeSettingsButton.addEventListener("click", () => closeSettingsPanel({ restoreFocus: true }));
+  syncSettingsNowButton?.addEventListener("click", handleManualSyncSettings);
   document.querySelectorAll("[data-theme-mode]").forEach((button) => {
     button.addEventListener("click", () => setThemeMode(button.dataset.themeMode, { persist: true }));
   });
@@ -1681,7 +1789,7 @@ async function initThemeMode() {
   renderThemePalettePresets();
   bindSystemThemeListener();
   try {
-    const result = await chrome.storage.local.get({
+    const result = await getStoredValues({
       [THEME_STORAGE_KEY]: DEFAULT_THEME_MODE,
       [THEME_PALETTE_STORAGE_KEY]: defaultThemePaletteSettings()
     });
@@ -1792,7 +1900,7 @@ function searchEngineById(engineId, options = {}) {
 
 async function initBookmarkLayout() {
   try {
-    const result = await chrome.storage.local.get({ [BOOKMARK_LAYOUT_STORAGE_KEY]: "grid" });
+    const result = await getStoredValues({ [BOOKMARK_LAYOUT_STORAGE_KEY]: "grid" });
     applyBookmarkLayout(result[BOOKMARK_LAYOUT_STORAGE_KEY] === "list" ? "list" : "grid");
   } catch (error) {
     console.warn("Failed to load bookmark layout", error);
@@ -1804,7 +1912,7 @@ async function toggleBookmarkLayout() {
   const nextLayout = bookmarkLayout === "list" ? "grid" : "list";
   applyBookmarkLayout(nextLayout);
   try {
-    await chrome.storage.local.set({ [BOOKMARK_LAYOUT_STORAGE_KEY]: nextLayout });
+    await setStoredValues({ [BOOKMARK_LAYOUT_STORAGE_KEY]: nextLayout });
   } catch (error) {
     console.warn("Failed to save bookmark layout", error);
   }
@@ -1852,7 +1960,7 @@ async function setThemeMode(mode, options = {}) {
     return;
   }
   try {
-    await chrome.storage.local.set({ [THEME_STORAGE_KEY]: activeThemeMode });
+    await setStoredValues({ [THEME_STORAGE_KEY]: activeThemeMode });
   } catch (error) {
     console.warn("Failed to save theme mode", error);
   }
@@ -2058,7 +2166,7 @@ function updateCustomThemeInputs() {
 
 async function saveThemePaletteSettings() {
   try {
-    await chrome.storage.local.set({
+    await setStoredValues({
       [THEME_PALETTE_STORAGE_KEY]: {
         palette: activeThemePalette,
         custom: activeCustomThemeColors
@@ -2085,6 +2193,60 @@ function updateThemeSettingsUi() {
   });
 }
 
+function updateSyncSettingsUi(status = storageSyncAvailable() ? "ready" : "unavailable") {
+  if (!syncSettingsRow || !syncSettingsStatus || !syncSettingsDetail || !syncSettingsNowButton) {
+    return;
+  }
+  const normalizedStatus = status === "done" ? "done" : (storageSyncAvailable() ? "ready" : "unavailable");
+  syncSettingsRow.dataset.status = normalizedStatus;
+  syncSettingsNowButton.disabled = normalizedStatus === "unavailable";
+  syncSettingsNowButton.setAttribute("aria-disabled", String(syncSettingsNowButton.disabled));
+  syncSettingsNowButton.querySelector(".button-icon").innerHTML = refreshIcon();
+  syncSettingsRow.querySelector(".sync-settings-icon").innerHTML = cloudSyncIcon();
+  if (normalizedStatus === "done") {
+    syncSettingsStatus.textContent = t("syncSettingsDone");
+    syncSettingsDetail.textContent = t("syncSettingsDoneDetail");
+    return;
+  }
+  if (normalizedStatus === "unavailable") {
+    syncSettingsStatus.textContent = t("syncSettingsUnavailable");
+    syncSettingsDetail.textContent = t("syncSettingsUnavailableDetail");
+    return;
+  }
+  syncSettingsStatus.textContent = t("syncSettingsReady");
+  syncSettingsDetail.textContent = t("syncSettingsReadyDetail");
+}
+
+function storageSyncAvailable() {
+  return Boolean(chrome.storage?.sync);
+}
+
+async function handleManualSyncSettings() {
+  if (!storageSyncAvailable()) {
+    updateSyncSettingsUi("unavailable");
+    return;
+  }
+  try {
+    const keys = [...SYNC_STORAGE_KEYS].filter((key) => key !== SYNC_META_STORAGE_KEY);
+    const values = await getStoredValues(Object.fromEntries(keys.map((key) => [key, undefined])));
+    const payload = {};
+    keys.forEach((key) => {
+      if (typeof values[key] !== "undefined") {
+        payload[key] = values[key];
+      }
+    });
+    payload[SYNC_META_STORAGE_KEY] = {
+      syncedAt: Date.now(),
+      source: "manual"
+    };
+    await setStoredValues(payload);
+    updateSyncSettingsUi("done");
+  } catch (error) {
+    console.warn("Failed to manually sync settings", error);
+    updateSyncSettingsUi();
+  }
+}
+
 function toggleSettingsPanel() {
   if (settingsPanel.hidden) {
     openSettingsPanel();
@@ -2099,6 +2261,7 @@ function openSettingsPanel() {
   settingsPanel.dataset.open = "true";
   settingsButton.setAttribute("aria-expanded", "true");
   updateThemeSettingsUi();
+  updateSyncSettingsUi();
 }
 
 function closeSettingsPanel(options = {}) {
@@ -2319,12 +2482,12 @@ async function submitAiDirectSearch(engine, query) {
 async function saveAiDirectPrompt(token, payload) {
   const prompts = await loadAiDirectPrompts();
   prompts[token] = payload;
-  await chrome.storage.local.set({ [AI_DIRECT_PROMPT_STORAGE_KEY]: pruneAiDirectPrompts(prompts) });
+  await setStoredValues({ [AI_DIRECT_PROMPT_STORAGE_KEY]: pruneAiDirectPrompts(prompts) });
 }
 
 async function loadAiDirectPrompts() {
   try {
-    const result = await chrome.storage.local.get({ [AI_DIRECT_PROMPT_STORAGE_KEY]: {} });
+    const result = await getStoredValues({ [AI_DIRECT_PROMPT_STORAGE_KEY]: {} });
     const prompts = result[AI_DIRECT_PROMPT_STORAGE_KEY];
     return prompts && typeof prompts === "object" && !Array.isArray(prompts) ? prompts : {};
   } catch {
@@ -2804,7 +2967,7 @@ async function renderPortals() {
 
 async function loadPortalCategoryState(groups) {
   try {
-    const result = await chrome.storage.local.get({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: {} });
+    const result = await getStoredValues({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: {} });
     const saved = result[PORTAL_CATEGORY_STATE_STORAGE_KEY];
     if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
       return defaultPortalCategoryState(groups);
@@ -2823,7 +2986,7 @@ function defaultPortalCategoryState(groups) {
 }
 
 async function savePortalCategoryState() {
-  await chrome.storage.local.set({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: portalCategoryState });
+  await setStoredValues({ [PORTAL_CATEGORY_STATE_STORAGE_KEY]: portalCategoryState });
 }
 
 async function togglePortalCategoryExpanded(category) {
@@ -3412,7 +3575,7 @@ async function handleFavoriteSubmit(event) {
 
 async function loadFavoriteSites() {
   try {
-    const result = await chrome.storage.local.get({ [FAVORITE_SITES_STORAGE_KEY]: [] });
+    const result = await getStoredValues({ [FAVORITE_SITES_STORAGE_KEY]: [] });
     const parsed = result[FAVORITE_SITES_STORAGE_KEY];
     if (!Array.isArray(parsed)) {
       return [];
@@ -3432,7 +3595,7 @@ async function loadFavoriteSites() {
 }
 
 async function saveFavoriteSites(sites) {
-  await chrome.storage.local.set({ [FAVORITE_SITES_STORAGE_KEY]: sites.slice(0, MAX_FAVORITE_SITES) });
+  await setStoredValues({ [FAVORITE_SITES_STORAGE_KEY]: sites.slice(0, MAX_FAVORITE_SITES) });
 }
 
 async function discoverFavoriteSiteIcon(url) {
@@ -3483,11 +3646,11 @@ async function cacheSiteIcon(siteKey, icon) {
     .filter(([, entry]) => normalizeStoredSiteIcon(entry?.icon))
     .sort(([, a], [, b]) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
     .slice(0, MAX_CACHED_SITE_ICONS);
-  await chrome.storage.local.set({ [SITE_ICON_CACHE_STORAGE_KEY]: Object.fromEntries(entries) });
+  await setStoredValues({ [SITE_ICON_CACHE_STORAGE_KEY]: Object.fromEntries(entries) });
 }
 
 async function loadSiteIconCache() {
-  const result = await chrome.storage.local.get({ [SITE_ICON_CACHE_STORAGE_KEY]: {} });
+  const result = await getStoredValues({ [SITE_ICON_CACHE_STORAGE_KEY]: {} });
   const cache = result[SITE_ICON_CACHE_STORAGE_KEY];
   return cache && typeof cache === "object" && !Array.isArray(cache) ? cache : {};
 }
@@ -3689,7 +3852,7 @@ function compactSiteDomain(url) {
 }
 
 function applySiteIcon(icon, site) {
-  const localIcon = site.icon || localIconForUrl(site.url);
+  const localIcon = normalizedSiteIconPath(site);
   storeIconSiteContext(icon, site);
   applySiteIconTile(icon, site, localIcon);
   if (localIcon) {
@@ -3705,6 +3868,14 @@ function localIconForUrl(url) {
   const parsedUrl = safeUrl(url);
   const siteKey = siteGroupKey(parsedUrl);
   return siteKey ? SITE_ICON_BY_SITE_KEY[siteKey] || "" : "";
+}
+
+function normalizedSiteIconPath(site) {
+  const siteIcon = site.icon || "";
+  if (siteIcon === "icons/ai/chatgpt.png" && siteGroupKey(safeUrl(site.url)) === "chatgpt.com") {
+    return "icons/portals/chatgpt.svg";
+  }
+  return siteIcon || localIconForUrl(site.url);
 }
 
 function applyHistoryIcon(icon, site) {
@@ -3920,7 +4091,7 @@ async function handlePortalSubmit(event) {
 
 async function loadCustomPortals() {
   try {
-    const result = await chrome.storage.local.get({ [CUSTOM_PORTALS_STORAGE_KEY]: [] });
+    const result = await getStoredValues({ [CUSTOM_PORTALS_STORAGE_KEY]: [] });
     const parsed = result[CUSTOM_PORTALS_STORAGE_KEY];
     if (!Array.isArray(parsed)) {
       return [];
@@ -3943,7 +4114,7 @@ function normalizePortalCategory(category) {
 }
 
 async function saveCustomPortals(portals) {
-  await chrome.storage.local.set({ [CUSTOM_PORTALS_STORAGE_KEY]: portals });
+  await setStoredValues({ [CUSTOM_PORTALS_STORAGE_KEY]: portals });
 }
 
 async function removeCustomPortal(id) {
@@ -4335,12 +4506,12 @@ async function loadBookmarkFolder(folderId) {
 }
 
 async function loadSelectedBookmarkFolderId() {
-  const result = await chrome.storage.local.get({ [BOOKMARK_FOLDER_STORAGE_KEY]: "" });
+  const result = await getStoredValues({ [BOOKMARK_FOLDER_STORAGE_KEY]: "" });
   return String(result[BOOKMARK_FOLDER_STORAGE_KEY] || "");
 }
 
 async function saveSelectedBookmarkFolderId(folderId) {
-  await chrome.storage.local.set({ [BOOKMARK_FOLDER_STORAGE_KEY]: folderId });
+  await setStoredValues({ [BOOKMARK_FOLDER_STORAGE_KEY]: folderId });
 }
 
 function renderMediaFeedDefaultList() {
@@ -4482,7 +4653,7 @@ async function loadMediaFeedSources() {
 }
 
 async function loadCustomMediaFeeds() {
-  const result = await chrome.storage.local.get({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: [] });
+  const result = await getStoredValues({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: [] });
   return Array.isArray(result[CUSTOM_MEDIA_FEEDS_STORAGE_KEY])
     ? result[CUSTOM_MEDIA_FEEDS_STORAGE_KEY].map(normalizeStoredMediaFeed).filter(Boolean).slice(0, MAX_CUSTOM_MEDIA_FEEDS)
     : [];
@@ -4502,12 +4673,12 @@ function normalizeStoredMediaFeed(feed) {
 }
 
 async function saveCustomMediaFeeds(feeds) {
-  await chrome.storage.local.set({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: feeds });
+  await setStoredValues({ [CUSTOM_MEDIA_FEEDS_STORAGE_KEY]: feeds });
 }
 
 async function initMediaFeedFeedback() {
   try {
-    const result = await chrome.storage.local.get({ [MEDIA_FEED_FEEDBACK_STORAGE_KEY]: normalizeMediaFeedFeedback() });
+    const result = await getStoredValues({ [MEDIA_FEED_FEEDBACK_STORAGE_KEY]: normalizeMediaFeedFeedback() });
     activeMediaFeedFeedback = normalizeMediaFeedFeedback(result[MEDIA_FEED_FEEDBACK_STORAGE_KEY]);
   } catch (error) {
     console.warn("Failed to load media feed feedback", error);
@@ -4516,7 +4687,7 @@ async function initMediaFeedFeedback() {
 }
 
 async function saveMediaFeedFeedback() {
-  await chrome.storage.local.set({
+  await setStoredValues({
     [MEDIA_FEED_FEEDBACK_STORAGE_KEY]: normalizeMediaFeedFeedback(activeMediaFeedFeedback)
   });
 }
@@ -6206,7 +6377,7 @@ function historyDateTimeAttribute(timestamp) {
 
 async function loadPinnedHistory() {
   try {
-    const result = await chrome.storage.local.get({ [PINNED_HISTORY_STORAGE_KEY]: [] });
+    const result = await getStoredValues({ [PINNED_HISTORY_STORAGE_KEY]: [] });
     const parsed = result[PINNED_HISTORY_STORAGE_KEY];
     if (!Array.isArray(parsed)) {
       return [];
@@ -6222,7 +6393,7 @@ async function loadPinnedHistory() {
 }
 
 async function savePinnedHistory(items) {
-  await chrome.storage.local.set({ [PINNED_HISTORY_STORAGE_KEY]: items.slice(0, MAX_PINNED_HISTORY_ITEMS) });
+  await setStoredValues({ [PINNED_HISTORY_STORAGE_KEY]: items.slice(0, MAX_PINNED_HISTORY_ITEMS) });
 }
 
 async function pinHistoryItem(item) {
@@ -6351,6 +6522,13 @@ function refreshIcon() {
     <path d="M21 3v5h-5"></path>
     <path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"></path>
     <path d="M3 21v-5h5"></path>
+  `);
+}
+
+function cloudSyncIcon() {
+  return inlineIcon(`
+    <path d="M17.5 19H8a5 5 0 1 1 1.6-9.74A6 6 0 0 1 20 13.5"></path>
+    <path d="m16 15 2 2 3-3"></path>
   `);
 }
 
