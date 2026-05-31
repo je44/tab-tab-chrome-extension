@@ -1,20 +1,20 @@
 <p align="center">
-  <img src="icons/tab-tab-flat-1024.png" width="96" height="96" alt="tab-tab icon">
+  <img src="icons/wayleaf-flat-1024.png" width="96" height="96" alt="Wayleaf icon">
 </p>
 
-<h1 align="center">tab-tab Chrome 扩展</h1>
+<h1 align="center">Wayleaf Chrome 扩展</h1>
 
 <p align="center">
   中文 | <a href="README.en.md">English</a>
 </p>
 
-`tab-tab` 是一个本地优先的 Chrome 新标签页扩展。它把搜索、常用入口、自选书签、最近浏览和 AI 指令放到同一个工作台里，让每次新建标签页都能直接开始下一步。
+`Wayleaf` 是一个本地优先的 Chrome 新标签页扩展。它把搜索、常用入口、自选书签、最近浏览和 AI 指令放到同一个工作台里，让每次新建标签页都能直接开始下一步。
 
 ## 预览
 
 | 日间模式 | 夜间模式 |
 | --- | --- |
-| ![tab-tab 日间模式](docs/previews/tab-tab-light.png) | ![tab-tab 夜间模式](docs/previews/tab-tab-dark.png) |
+| ![Wayleaf 日间模式](docs/previews/wayleaf-light.png) | ![Wayleaf 夜间模式](docs/previews/wayleaf-dark.png) |
 
 ## 适合谁
 
@@ -39,16 +39,16 @@
 
 ## 下载和安装
 
-推荐从 [Releases 页面](https://github.com/je44/tab-tab-chrome-extension/releases/latest) 下载最新打包产物。
+推荐从 [Releases 页面](https://github.com/je44/wayleaf-chrome-extension/releases/latest) 下载最新打包产物。
 
-当前版本安装包：[tab-tab-v1.0.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.0/tab-tab-v1.0.0.zip)
+当前版本安装包：[wayleaf-v1.0.0.zip](https://github.com/je44/wayleaf-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
 
-1. 下载 `tab-tab-v1.0.0.zip` 并解压。
+1. 下载 `wayleaf-v1.0.0.zip` 并解压。
 2. 打开 Chrome 的 `chrome://extensions/`。
 3. 打开右上角「开发者模式」。
 4. 点击「加载已解压的扩展程序」。
 5. 选择刚才解压出来、包含 `manifest.json` 的文件夹。
-6. 新建一个标签页，确认页面已经切换为 `tab-tab`。
+6. 新建一个标签页，确认页面已经切换为 `Wayleaf`。
 
 > Chrome 不会直接加载 zip 文件。必须先解压，再通过「加载已解压的扩展程序」选择目录。
 
@@ -88,14 +88,14 @@
 
 说明：
 
-- 如果你已经登录对应 AI 网站，`tab-tab` 会跳转过去，并尝试把问题填入输入框。
-- 如果 AI 网站要求登录，先完成登录，再重新从 `tab-tab` 发送一次。
+- 如果你已经登录对应 AI 网站，`Wayleaf` 会跳转过去，并尝试把问题填入输入框。
+- 如果 AI 网站要求登录，先完成登录，再重新从 `Wayleaf` 发送一次。
 - 如果目标网站改版，自动填入或自动发送可能失败，但跳转和问题暂存仍会尽量保留。
 - 不想继续 AI 模式时，按 `Esc`，或清空搜索框后按退格。
 
 ## 权限和隐私
 
-`tab-tab` 没有后端服务，也不要求创建账号。偏好、入口、置顶记录、书签选择和 AI 暂存问题保存在 Chrome 的扩展存储里。
+`Wayleaf` 没有后端服务，也不要求创建账号。偏好、入口、置顶记录、书签选择和 AI 暂存问题保存在 Chrome 的扩展存储里。
 
 | 权限 | 用途 |
 | --- | --- |
@@ -134,7 +134,7 @@
 
 1. 修改 `manifest.json`、`newtab.html`、`newtab.css`、`newtab.js` 或 `ai-submit.js`。
 2. 打开 `chrome://extensions/`。
-3. 在 `tab-tab` 卡片上点击刷新。
+3. 在 `Wayleaf` 卡片上点击刷新。
 4. 新建标签页检查效果。
 
 可以用只读本地服务器预览静态页面，但 Chrome 扩展 API 只有在扩展环境里才完整可用：
@@ -159,8 +159,8 @@ node --check ai-submit.js
 
 ```sh
 mkdir -p dist
-zip -r -X dist/tab-tab-v1.0.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons
-unzip -t dist/tab-tab-v1.0.0.zip
+zip -r -X dist/wayleaf-v1.0.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons
+unzip -t dist/wayleaf-v1.0.0.zip
 ```
 
 ## 发布清单
@@ -169,7 +169,7 @@ unzip -t dist/tab-tab-v1.0.0.zip
 2. 更新 README 中的当前安装包版本和下载链接。
 3. 运行验证命令。
 4. 确认 zip 根目录直接包含 `manifest.json`。
-5. 在 GitHub Release 上传 `dist/tab-tab-vX.Y.Z.zip`。
+5. 在 GitHub Release 上传 `dist/wayleaf-vX.Y.Z.zip`。
 
 ## 常见问题
 
@@ -183,7 +183,7 @@ unzip -t dist/tab-tab-v1.0.0.zip
 
 ### AI 自动填入失败
 
-目标 AI 网站可能未登录、加载较慢，或页面结构已经变化。先完成登录，再从 `tab-tab` 重新发送一次；如果仍失败，可以在目标页面手动粘贴问题。
+目标 AI 网站可能未登录、加载较慢，或页面结构已经变化。先完成登录，再从 `Wayleaf` 重新发送一次；如果仍失败，可以在目标页面手动粘贴问题。
 
 ### 设置没有同步到另一台设备
 

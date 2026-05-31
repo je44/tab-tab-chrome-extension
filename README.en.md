@@ -1,20 +1,20 @@
 <p align="center">
-  <img src="icons/tab-tab-flat-1024.png" width="96" height="96" alt="tab-tab icon">
+  <img src="icons/wayleaf-flat-1024.png" width="96" height="96" alt="Wayleaf icon">
 </p>
 
-<h1 align="center">tab-tab Chrome Extension</h1>
+<h1 align="center">Wayleaf Chrome Extension</h1>
 
 <p align="center">
   <a href="README.md">中文</a> | English
 </p>
 
-`tab-tab` is a local-first Chrome new tab extension. It puts search, shortcuts, selected bookmarks, recent browsing, and AI commands in one workspace, so every new tab can start with the next action.
+`Wayleaf` is a local-first Chrome new tab extension. It puts search, shortcuts, selected bookmarks, recent browsing, and AI commands in one workspace, so every new tab can start with the next action.
 
 ## Preview
 
 | Light mode | Dark mode |
 | --- | --- |
-| ![tab-tab light mode](docs/previews/tab-tab-light.png) | ![tab-tab dark mode](docs/previews/tab-tab-dark.png) |
+| ![Wayleaf light mode](docs/previews/wayleaf-light.png) | ![Wayleaf dark mode](docs/previews/wayleaf-dark.png) |
 
 ## Who It Is For
 
@@ -39,16 +39,16 @@
 
 ## Download and Install
 
-Download the latest package from the [Releases page](https://github.com/je44/tab-tab-chrome-extension/releases/latest).
+Download the latest package from the [Releases page](https://github.com/je44/wayleaf-chrome-extension/releases/latest).
 
-Current package: [tab-tab-v1.0.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.0/tab-tab-v1.0.0.zip)
+Current package: [wayleaf-v1.0.0.zip](https://github.com/je44/wayleaf-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
 
-1. Download `tab-tab-v1.0.0.zip` and unzip it.
+1. Download `wayleaf-v1.0.0.zip` and unzip it.
 2. Open `chrome://extensions/` in Chrome.
 3. Turn on Developer mode.
 4. Click Load unpacked.
 5. Select the unzipped folder that contains `manifest.json`.
-6. Open a new tab and confirm that it shows `tab-tab`.
+6. Open a new tab and confirm that it shows `Wayleaf`.
 
 > Chrome does not load the zip file directly. Unzip it first, then load the folder as an unpacked extension.
 
@@ -88,14 +88,14 @@ Type one of these formats in the center search box, then press Enter:
 
 Notes:
 
-- If you are already signed in to the AI site, `tab-tab` opens it and tries to fill the prompt.
-- If the AI site asks you to sign in, sign in first, then send the prompt from `tab-tab` again.
+- If you are already signed in to the AI site, `Wayleaf` opens it and tries to fill the prompt.
+- If the AI site asks you to sign in, sign in first, then send the prompt from `Wayleaf` again.
 - If the target site changes its page, auto-fill or auto-submit may fail, but the jump and temporary prompt handoff still try to work.
 - To leave AI mode, press `Esc`, or clear the search box and press Backspace.
 
 ## Permissions and Privacy
 
-`tab-tab` has no backend service and does not require an account. Preferences, shortcuts, pinned pages, bookmark choices, and temporary AI prompts stay in Chrome extension storage.
+`Wayleaf` has no backend service and does not require an account. Preferences, shortcuts, pinned pages, bookmark choices, and temporary AI prompts stay in Chrome extension storage.
 
 | Permission | Purpose |
 | --- | --- |
@@ -134,7 +134,7 @@ This project has no dependency installation step.
 
 1. Edit `manifest.json`, `newtab.html`, `newtab.css`, `newtab.js`, or `ai-submit.js`.
 2. Open `chrome://extensions/`.
-3. Click reload on the `tab-tab` extension card.
+3. Click reload on the `Wayleaf` extension card.
 4. Open a new tab and check the result.
 
 You can preview the static page with a local read-only server, but Chrome extension APIs only work fully inside the extension environment:
@@ -159,8 +159,8 @@ For release packages, also verify the zip structure:
 
 ```sh
 mkdir -p dist
-zip -r -X dist/tab-tab-v1.0.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons
-unzip -t dist/tab-tab-v1.0.0.zip
+zip -r -X dist/wayleaf-v1.0.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons
+unzip -t dist/wayleaf-v1.0.0.zip
 ```
 
 ## Release Checklist
@@ -169,7 +169,7 @@ unzip -t dist/tab-tab-v1.0.0.zip
 2. Update the current package version and download link in the README files.
 3. Run the verification commands.
 4. Confirm that `manifest.json` is at the zip root.
-5. Upload `dist/tab-tab-vX.Y.Z.zip` to the GitHub Release.
+5. Upload `dist/wayleaf-vX.Y.Z.zip` to the GitHub Release.
 
 ## Troubleshooting
 
@@ -183,7 +183,7 @@ Choose a folder with website bookmarks in the Bookmarks view first. A folder wit
 
 ### AI auto-fill failed
 
-The target AI site may be signed out, slow to load, or using a changed page structure. Sign in first, then send the prompt from `tab-tab` again. If it still fails, paste the prompt manually on the target page.
+The target AI site may be signed out, slow to load, or using a changed page structure. Sign in first, then send the prompt from `Wayleaf` again. If it still fails, paste the prompt manually on the target page.
 
 ### Settings did not sync to another device
 

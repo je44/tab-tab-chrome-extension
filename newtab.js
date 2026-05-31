@@ -39,7 +39,7 @@ const THEME_STORAGE_KEY = "themeMode";
 const THEME_PALETTE_STORAGE_KEY = "themePalette";
 const AI_DIRECT_PROMPT_STORAGE_KEY = "aiDirectPrompts";
 const SYNC_META_STORAGE_KEY = "syncMeta";
-const AI_DIRECT_PROMPT_TOKEN_PARAM = "_tabtab_prompt";
+const AI_DIRECT_PROMPT_TOKEN_PARAM = "_wayleaf_prompt";
 const AI_DIRECT_PROMPT_TTL_MS = 2 * 60 * 1000;
 const MAX_HISTORY_SITE_GROUPS = 9;
 const MAX_HISTORY_PAGES_PER_SITE = 4;
@@ -784,7 +784,7 @@ const SUPPORTED_LOCALES = ["zh-CN", "zh-TW", "en", "ja", "ko", "es", "fr", "de"]
 const MESSAGES = {
   "zh-CN": {
     topbarLabel: "顶部功能区",
-    shellLabel: "tab-tab 控制台",
+    shellLabel: "Wayleaf 控制台",
     portalTitle: "导航中枢",
     mobilePortalTab: "快捷",
     mobileMediaTab: "信息",
@@ -1047,7 +1047,7 @@ const MESSAGES = {
   },
   en: {
     topbarLabel: "Top bar",
-    shellLabel: "tab-tab dashboard",
+    shellLabel: "Wayleaf dashboard",
     portalTitle: "Navigation hub",
     mobilePortalTab: "Shortcuts",
     mobileMediaTab: "Media",
@@ -5213,7 +5213,7 @@ function withMediaFeedRefreshParam(url) {
   if (!parsed) {
     return url;
   }
-  parsed.searchParams.set("_tabtab_refresh", String(mediaFeedRefreshSeed));
+  parsed.searchParams.set("_wayleaf_refresh", String(mediaFeedRefreshSeed));
   return parsed.href;
 }
 

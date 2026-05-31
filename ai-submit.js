@@ -1,15 +1,15 @@
 (() => {
 "use strict";
 
-const TABTAB_STORAGE_KEY = "aiDirectPrompts";
-const TABTAB_PROMPT_TOKEN_PARAM = "_tabtab_prompt";
-const TABTAB_MAX_PROMPT_LENGTH = 12000;
-const TABTAB_PROMPT_TTL_MS = 2 * 60 * 1000;
-const TABTAB_SUBMIT_TIMEOUT_MS = 12000;
-const TABTAB_EDITOR_SYNC_DELAY_MS = 260;
-const TABTAB_BOOT_DELAY_MS = 500;
-const TABTAB_BOOT_MAX_ATTEMPTS = 18;
-const TABTAB_TOKEN_CLEANUP_DURATION_MS = 15000;
+const WAYLEAF_STORAGE_KEY = "aiDirectPrompts";
+const WAYLEAF_PROMPT_TOKEN_PARAM = "_wayleaf_prompt";
+const WAYLEAF_MAX_PROMPT_LENGTH = 12000;
+const WAYLEAF_PROMPT_TTL_MS = 2 * 60 * 1000;
+const WAYLEAF_SUBMIT_TIMEOUT_MS = 12000;
+const WAYLEAF_EDITOR_SYNC_DELAY_MS = 260;
+const WAYLEAF_BOOT_DELAY_MS = 500;
+const WAYLEAF_BOOT_MAX_ATTEMPTS = 18;
+const WAYLEAF_TOKEN_CLEANUP_DURATION_MS = 15000;
 
 const PROVIDERS = {
   "chatgpt.com": {
@@ -80,8 +80,8 @@ const PROVIDERS = {
   }
 };
 
-window.tabTabSubmitStoredPrompt = submitStoredPrompt;
-window.tabTabSubmitPrompt = submitPrompt;
+window.wayleafSubmitStoredPrompt = submitStoredPrompt;
+window.wayleafSubmitPrompt = submitPrompt;
 
 consumeStoredPromptForCurrentProvider();
 watchPromptTokenCleanup();
@@ -116,20 +116,20 @@ async function readPromptFromStorage(token) {
   if (!token || !chrome.storage?.local) {
     return "";
   }
-  const result = await chrome.storage.local.get({ [TABTAB_STORAGE_KEY]: {} });
-  const prompts = result[TABTAB_STORAGE_KEY] || {};
+  const result = await chrome.storage.local.get({ [WAYLEAF_STORAGE_KEY]: {} });
+  const prompts = result[WAYLEAF_STORAGE_KEY] || {};
   const item = prompts[token];
-  return String(item?.prompt || "").trim().slice(0, TABTAB_MAX_PROMPT_LENGTH);
+  return String(item?.prompt || "").trim().slice(0, WAYLEAF_MAX_PROMPT_LENGTH);
 }
 
 async function removePromptFromStorage(token) {
   if (!token || !chrome.storage?.local) {
     return;
   }
-  const result = await chrome.storage.local.get({ [TABTAB_STORAGE_KEY]: {} });
-  const prompts = result[TABTAB_STORAGE_KEY] || {};
+  const result = await chrome.storage.local.get({ [WAYLEAF_STORAGE_KEY]: {} });
+  const prompts = result[WAYLEAF_STORAGE_KEY] || {};
   delete prompts[token];
-  await chrome.storage.local.set({ [TABTAB_STORAGE_KEY]: prompts });
+  await chrome.storage.local.set({ [WAYLEAF_STORAGE_KEY]: prompts });
 }
 
 async function consumeStoredPromptForCurrentProvider() {
@@ -142,28 +142,28 @@ async function consumeStoredPromptForCurrentProvider() {
   }
   const token = promptTokenFromLocation(location);
   cleanupPromptTokenFromUrl();
-  for (let attempt = 0; attempt < TABTAB_BOOT_MAX_ATTEMPTS; attempt += 1) {
+  for (let attempt = 0; attempt < WAYLEAF_BOOT_MAX_ATTEMPTS; attempt += 1) {
     const entry = await findStoredPromptForProvider(provider, token);
     if (!entry) {
-      await delay(TABTAB_BOOT_DELAY_MS);
+      await delay(WAYLEAF_BOOT_DELAY_MS);
       continue;
     }
     const result = await submitStoredPrompt(entry.token);
     if (isTerminalStatus(result.status)) {
       return;
     }
-    await delay(TABTAB_BOOT_DELAY_MS);
+    await delay(WAYLEAF_BOOT_DELAY_MS);
   }
 }
 
 async function findStoredPromptForProvider(provider, targetToken) {
-  const result = await chrome.storage.local.get({ [TABTAB_STORAGE_KEY]: {} });
-  const prompts = result[TABTAB_STORAGE_KEY] || {};
+  const result = await chrome.storage.local.get({ [WAYLEAF_STORAGE_KEY]: {} });
+  const prompts = result[WAYLEAF_STORAGE_KEY] || {};
   const now = Date.now();
   let changed = false;
   for (const [storedToken, item] of Object.entries(prompts)) {
     const createdAt = Number(item?.createdAt || 0);
-    const expired = now - createdAt >= TABTAB_PROMPT_TTL_MS;
+    const expired = now - createdAt >= WAYLEAF_PROMPT_TTL_MS;
     if (expired) {
       delete prompts[storedToken];
       changed = true;
@@ -171,7 +171,7 @@ async function findStoredPromptForProvider(provider, targetToken) {
     }
   }
   if (changed) {
-    await chrome.storage.local.set({ [TABTAB_STORAGE_KEY]: prompts });
+    await chrome.storage.local.set({ [WAYLEAF_STORAGE_KEY]: prompts });
   }
   const item = targetToken
     ? prompts[targetToken]
@@ -191,7 +191,7 @@ function latestStoredPromptForProvider(prompts, provider) {
 
 function promptTokenFromLocation(currentLocation) {
   try {
-    return new URL(currentLocation.href).searchParams.get(TABTAB_PROMPT_TOKEN_PARAM) || "";
+    return new URL(currentLocation.href).searchParams.get(WAYLEAF_PROMPT_TOKEN_PARAM) || "";
   } catch {
     return "";
   }
@@ -200,7 +200,7 @@ function promptTokenFromLocation(currentLocation) {
 function urlWithoutPromptToken(currentLocation) {
   try {
     const url = new URL(currentLocation.href);
-    url.searchParams.delete(TABTAB_PROMPT_TOKEN_PARAM);
+    url.searchParams.delete(WAYLEAF_PROMPT_TOKEN_PARAM);
     return url.href;
   } catch {
     return currentLocation.href;
@@ -220,7 +220,7 @@ function watchPromptTokenCleanup() {
   cleanupPromptTokenFromUrl();
   const intervalId = window.setInterval(() => {
     cleanupPromptTokenFromUrl();
-    if (Date.now() - startedAt >= TABTAB_TOKEN_CLEANUP_DURATION_MS) {
+    if (Date.now() - startedAt >= WAYLEAF_TOKEN_CLEANUP_DURATION_MS) {
       window.clearInterval(intervalId);
     }
   }, 500);
@@ -239,12 +239,12 @@ function shouldRemoveStoredPrompt(status) {
 }
 
 async function submitPromptWhenReady(config, prompt) {
-  const input = await waitForElement(config.inputSelectors, isWritableInput, TABTAB_SUBMIT_TIMEOUT_MS);
+  const input = await waitForElement(config.inputSelectors, isWritableInput, WAYLEAF_SUBMIT_TIMEOUT_MS);
   if (!input) {
     return "input-not-found";
   }
   focusAndSetInputValue(input, prompt);
-  await delay(TABTAB_EDITOR_SYNC_DELAY_MS);
+  await delay(WAYLEAF_EDITOR_SYNC_DELAY_MS);
   const submitButton = await waitForElement(config.submitSelectors, isClickableButton, 6000);
   if (submitButton && await clickSubmitButton(submitButton)) {
     return "submitted";
