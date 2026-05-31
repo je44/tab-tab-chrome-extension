@@ -39,9 +39,9 @@
 
 ## Download and Install
 
-Download the latest package from the [Releases page](https://github.com/je44/wayleaf-chrome-extension/releases/latest).
+Download the latest package from the [Releases page](https://github.com/je44/tab-tab-chrome-extension/releases/latest).
 
-Current package: [wayleaf-v1.0.0.zip](https://github.com/je44/wayleaf-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
+Current package: [wayleaf-v1.0.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
 
 1. Download `wayleaf-v1.0.0.zip` and unzip it.
 2. Open `chrome://extensions/` in Chrome.

@@ -39,9 +39,9 @@
 
 ## 下载和安装
 
-推荐从 [Releases 页面](https://github.com/je44/wayleaf-chrome-extension/releases/latest) 下载最新打包产物。
+推荐从 [Releases 页面](https://github.com/je44/tab-tab-chrome-extension/releases/latest) 下载最新打包产物。
 
-当前版本安装包：[wayleaf-v1.0.0.zip](https://github.com/je44/wayleaf-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
+当前版本安装包：[wayleaf-v1.0.0.zip](https://github.com/je44/tab-tab-chrome-extension/releases/download/v1.0/wayleaf-v1.0.0.zip)
 
 1. 下载 `wayleaf-v1.0.0.zip` 并解压。
 2. 打开 Chrome 的 `chrome://extensions/`。
