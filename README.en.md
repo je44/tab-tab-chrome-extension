@@ -8,13 +8,34 @@
   <a href="README.md">中文</a> | English
 </p>
 
-`tab-tab` is a local Chrome new tab extension. It puts search, favorite sites, AI shortcuts, bookmarks, and recent browsing on one page. Open a new tab, then go to a site, continue a recent page, or send a question to an AI engine.
+`tab-tab` is a local-first Chrome new tab extension. It puts search, shortcuts, selected bookmarks, recent browsing, and AI commands in one workspace, so every new tab can start with the next action.
 
 ## Preview
 
 | Light mode | Dark mode |
 | --- | --- |
 | ![tab-tab light mode](docs/previews/tab-tab-light.png) | ![tab-tab dark mode](docs/previews/tab-tab-dark.png) |
+
+## Who It Is For
+
+- People who want a denser replacement for Chrome's default new tab page.
+- People who want frequent sites, bookmark folders, and recent pages on one screen.
+- People who often send prompts from the search box to ChatGPT, Claude, Gemini, or Grok.
+- People who prefer local browser storage over creating an account for a new tab tool.
+
+## Features
+
+- **Navigation hub**: Built-in shortcuts for search, social, shopping, developer, productivity, media, design, and AI sites.
+- **Custom shortcuts**: Add up to 48 custom sites with a title, URL, and category.
+- **Selected bookmarks**: Pick one Chrome bookmark folder and show its sites grouped by title initial.
+- **Recent browsing**: Surface repeatedly visited sites so you can continue where you left off; important pages can be pinned.
+- **Local search**: Search history and bookmarks from the main search box, or open a full URL directly.
+- **Search engines**: Use Google, Baidu, Bing, or the default aggregate search that opens Google and Bing.
+- **AI commands**: Send prompts to ChatGPT, Claude, Gemini, or Grok with `/gpt`, `/claude`, `/gemini`, or `/grok`.
+- **Feeds panel**: Read built-in Chinese and English tech sources, or add custom RSS/JSON sources.
+- **Appearance**: Use system, light, dark, preset accent colors, or custom light/dark colors.
+- **Chrome sync**: Preferences can be written to `chrome.storage.sync`; unsupported browsers keep them on the current device.
+- **Localized interface**: The UI follows the browser language for Chinese, English, Japanese, Korean, Spanish, French, or German.
 
 ## Download and Install
 
@@ -26,25 +47,35 @@ Current package: [tab-tab-v1.0.0.zip](https://github.com/je44/tab-tab-chrome-ext
 2. Open `chrome://extensions/` in Chrome.
 3. Turn on Developer mode.
 4. Click Load unpacked.
-5. Select the unzipped folder.
-6. Open a new tab and check that it shows `tab-tab`.
+5. Select the unzipped folder that contains `manifest.json`.
+6. Open a new tab and confirm that it shows `tab-tab`.
 
-## Features
+> Chrome does not load the zip file directly. Unzip it first, then load the folder as an unpacked extension.
 
-- **Favorite sites**: Show sites you use often in the middle of the page.
-- **Add a favorite site**: Click the add button below the search box, enter a URL, then save it.
-- **Recent browsing**: Show sites you visited repeatedly, so you can continue where you left off.
-- **Pinned history**: Pin important recent pages so they stay easy to find.
-- **Bookmark folder**: Pick a Chrome bookmark folder and show its pages on the new tab.
-- **Quick search**: Type a keyword in the center search box, then press Enter.
-- **Open a URL**: Type a full URL in the search box, then press Enter.
-- **AI shortcuts**: Use ChatGPT, Claude, Gemini, and Grok from the search box.
-- **AI commands**: Type a command plus your question, then press Enter. `tab-tab` opens the AI page and tries to fill and send the question.
-- **Appearance**: Choose system, light, or dark mode in settings.
-- **Colors**: Pick a preset color or set your own light and dark colors.
-- **Local storage**: Favorite sites, theme, bookmark choice, and pinned history stay in your browser.
+## Daily Use
 
-## How to Use AI
+### Search and Open Sites
+
+- Type a keyword and press Enter to search with the current engine.
+- Type a full URL and press Enter to open it directly.
+- Click the icon on the left side of the search box to switch between local search, Google, Baidu, Bing, and AI command modes.
+- Pick a local search result to open a matching history item or bookmark.
+
+### Add a Shortcut
+
+1. Open the navigation hub in the top right.
+2. Click the add button.
+3. Enter a title, an `http` or `https` URL, and a category.
+4. Save it. The shortcut appears in its category.
+
+### Show a Bookmark Folder
+
+1. Open the navigation hub.
+2. Switch to Bookmarks.
+3. Click `+` and choose a folder with website bookmarks.
+4. Sites from that folder appear on the new tab page and refresh when Chrome bookmarks change.
+
+### Use AI Commands
 
 Type one of these formats in the center search box, then press Enter:
 
@@ -55,52 +86,114 @@ Type one of these formats in the center search box, then press Enter:
 /grok Explain this news
 ```
 
-Available commands:
+Notes:
 
-- `/gpt`: send to ChatGPT.
-- `/claude`: send to Claude.
-- `/gemini`: send to Gemini.
-- `/grok`: send to Grok.
+- If you are already signed in to the AI site, `tab-tab` opens it and tries to fill the prompt.
+- If the AI site asks you to sign in, sign in first, then send the prompt from `tab-tab` again.
+- If the target site changes its page, auto-fill or auto-submit may fail, but the jump and temporary prompt handoff still try to work.
+- To leave AI mode, press `Esc`, or clear the search box and press Backspace.
+
+## Permissions and Privacy
+
+`tab-tab` has no backend service and does not require an account. Preferences, shortcuts, pinned pages, bookmark choices, and temporary AI prompts stay in Chrome extension storage.
+
+| Permission | Purpose |
+| --- | --- |
+| `bookmarks` | Read the bookmark folder you choose and support deleting those bookmarks from the extension. |
+| `history` | Read recent browsing history, detect repeated sites, and support deleting history entries. |
+| `favicon` | Show site icons through Chrome's favicon support. |
+| `storage` | Save theme, shortcuts, bookmark choice, pinned pages, sync state, and layout preferences. |
+| `tabs` | Open search results, AI pages, and multiple search targets. |
+| `scripting` | Support AI page handoff and prompt fill. |
+| `http://*/*`, `https://*/*` | Recognize web shortcuts, fetch site icons, and assist supported AI pages. |
 
 Notes:
 
-- If you are already signed in to the AI site, `tab-tab` opens it and tries to put your question in the input box.
-- If the AI site asks you to sign in, sign in first, then send the question from `tab-tab` again.
-- If the AI site changes its page, auto-send may fail, but `tab-tab` still tries to keep the jump and saved question.
-- To leave AI mode, press `Esc`, or clear the search box and press Backspace.
-
-## Permissions
-
-- `bookmarks`: reads the bookmark folder you choose to show.
-- `history`: reads recent browsing history for the recent section.
-- `favicon`: shows site icons.
-- `storage`: saves theme, favorite sites, pinned pages, and layout choices.
-- `tabs` and `scripting`: support AI page handoff and auto-fill.
-- `http://*/*` and `https://*/*`: let the extension recognize and show web entries.
-
-All preferences and browsing-related data stay in your local browser.
+- History and bookmark access happen inside your local browser.
+- Custom shortcuts and appearance preferences sync to the same Chrome account when sync is available; otherwise they stay on the current device.
+- AI commands send your prompt to the selected AI website. That service's account, privacy, and data rules are controlled by that provider.
 
 ## Project Structure
 
 This is a Chrome Manifest V3 extension with no build step. Chrome can load the folder directly.
 
-- `manifest.json`: extension metadata, version, permissions, icons, and new tab entry.
-- `newtab.html`: new tab page structure.
-- `newtab.css`: layout, theme, responsive rules, and motion.
-- `newtab.js`: page logic for Chrome APIs, saved state, rendering, and interactions.
-- `ai-submit.js`: helper script for AI page handoff and input.
-- `icons/`: extension icons, site icons, and AI icons.
-- `docs/`: preview images, product notes, and icon source notes.
+```text
+.
+├── manifest.json        # Extension metadata, permissions, icons, and new tab entry
+├── newtab.html          # New tab page structure
+├── newtab.css           # Layout, theme, responsive rules, and motion
+├── newtab.js            # Chrome API reads, state persistence, rendering, and interaction
+├── ai-submit.js         # Helper script for AI page handoff
+├── icons/               # Extension icons, site icons, and AI icons
+└── docs/                # Preview images, product facts, and icon source notes
+```
 
-## Packaging
+## Local Development
+
+This project has no dependency installation step.
+
+1. Edit `manifest.json`, `newtab.html`, `newtab.css`, `newtab.js`, or `ai-submit.js`.
+2. Open `chrome://extensions/`.
+3. Click reload on the `tab-tab` extension card.
+4. Open a new tab and check the result.
+
+You can preview the static page with a local read-only server, but Chrome extension APIs only work fully inside the extension environment:
+
+```sh
+python3 -m http.server 8080
+```
+
+Then open `http://127.0.0.1:8080/newtab.html` for layout checks.
+
+## Verification
+
+Run at least these checks before committing:
+
+```sh
+jq empty manifest.json
+node --check newtab.js
+node --check ai-submit.js
+```
+
+For release packages, also verify the zip structure:
 
 ```sh
 mkdir -p dist
 zip -r -X dist/tab-tab-v1.0.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons
-jq empty manifest.json
-node --check newtab.js
-node --check ai-submit.js
 unzip -t dist/tab-tab-v1.0.0.zip
 ```
 
-The release package must keep `manifest.json` at the zip root and match the GitHub Release version.
+## Release Checklist
+
+1. Update `version` in `manifest.json`.
+2. Update the current package version and download link in the README files.
+3. Run the verification commands.
+4. Confirm that `manifest.json` is at the zip root.
+5. Upload `dist/tab-tab-vX.Y.Z.zip` to the GitHub Release.
+
+## Troubleshooting
+
+### The new tab page did not change
+
+Make sure the extension is enabled and Chrome's extension page shows no manifest or permission errors. If multiple new tab extensions are installed, Chrome usually uses the currently enabled override page.
+
+### The bookmark area is empty
+
+Choose a folder with website bookmarks in the Bookmarks view first. A folder with only subfolders and no page URLs will not show sites.
+
+### AI auto-fill failed
+
+The target AI site may be signed out, slow to load, or using a changed page structure. Sign in first, then send the prompt from `tab-tab` again. If it still fails, paste the prompt manually on the target page.
+
+### Settings did not sync to another device
+
+Make sure both devices use the same Chrome/Google account and that Chrome is allowed to sync extension data. If sync is unavailable, settings stay on the current device.
+
+## Maintenance Status
+
+Current version: `1.0.0`. The project stays focused on being a lightweight local extension with no build step, direct loading, clear permission explanations, and a stable core new tab experience.
+
+## Related Docs
+
+- [Product facts](docs/product-facts.md)
+- [Icon source notes](docs/icon-sources.md)
