@@ -12,8 +12,8 @@ const PORTALS = [
   { title: "YouTube", url: "https://www.youtube.com", icon: "icons/portals/youtube.svg", category: "media" },
   { title: "Google", url: "https://www.google.com", icon: "icons/portals/google.svg", category: "search" },
   { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/portals/chatgpt.svg", category: "ai" },
-  { title: "Claude", url: "https://claude.ai", icon: "icons/ai/claude.png", category: "ai" },
-  { title: "Gemini", url: "https://gemini.google.com", icon: "icons/ai/gemini.png", category: "ai" },
+  { title: "Claude", url: "https://claude.ai", icon: "icons/sites/claude.svg", category: "ai" },
+  { title: "Gemini", url: "https://gemini.google.com", icon: "icons/sites/googlegemini.svg", category: "ai" },
   { title: "Perplexity", url: "https://www.perplexity.ai", icon: "icons/portals/perplexity.svg", category: "ai" },
   { title: "Notion", url: "https://www.notion.so", icon: "icons/portals/notion.svg", category: "productivity" },
   { title: "Figma", url: "https://www.figma.com", icon: "icons/portals/figma.svg", category: "design" },
@@ -358,13 +358,13 @@ const THEME_PALETTES = [
 ];
 const SEARCH_ENGINES = [
   { id: "local", label: "聚合搜索", local: true },
-  { id: "google", label: "Google", icon: "icons/portals/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
-  { id: "baidu", label: "百度", icon: "icons/portals/baidu.svg", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
-  { id: "bing", label: "Bing", icon: "icons/portals/bing.svg", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
-  { id: "chatgpt", command: "/gpt", label: "ChatGPT", icon: "icons/portals/chatgpt.svg", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
-  { id: "claude", command: "/claude", label: "Claude", icon: "icons/ai/claude.png", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
-  { id: "gemini", command: "/gemini", label: "Gemini", icon: "icons/ai/gemini.png", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
-  { id: "grok", command: "/grok", label: "Grok", icon: "icons/ai/grok.png", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
+  { id: "google", label: "Google", icon: "icons/sites/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
+  { id: "baidu", label: "百度", icon: "icons/sites/baidu.ico", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
+  { id: "bing", label: "Bing", icon: "icons/sites/bing.ico", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
+  { id: "chatgpt", command: "/gpt", commands: ["/gpt", "/chatgpt"], label: "ChatGPT", icon: "icons/sites/chatgpt.svg", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
+  { id: "claude", command: "/claude", label: "Claude", icon: "icons/sites/claude.svg", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
+  { id: "gemini", command: "/gemini", label: "Gemini", icon: "icons/sites/googlegemini.svg", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
+  { id: "grok", command: "/grok", label: "Grok", icon: "icons/sites/grok.svg", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
 ];
 const AGGREGATE_SEARCH_ENGINE_IDS = ["google", "bing"];
 const AI_COMMAND_ENGINES = SEARCH_ENGINES.filter((engine) => engine.aiDirect && engine.command);
@@ -442,10 +442,13 @@ const SITE_NAME_BY_KEY = {
 };
 const SITE_GROUP_OVERRIDES = {
   "docs.b.ai": "docs.b.ai",
+  "calendar.google.com": "calendar.google.com",
   "drive.google.com": "drive.google.com",
+  "docs.google.com": "docs.google.com",
   "console.firebase.google.com": "firebase.google.com",
   "firebase.google.com": "firebase.google.com",
   "mail.google.com": "gmail.com",
+  "teams.microsoft.com": "teams.microsoft.com",
   "www.office.com": "office.com",
   "music.163.com": "music.163.com",
   "developer.mozilla.org": "developer.mozilla.org",
@@ -665,24 +668,35 @@ const DEFAULT_SITE_ICON_BY_SITE_KEY = Object.freeze({
   "zoom.us": "icons/sites/zoom.svg"
 });
 const EXTENDED_SITE_ICON_BY_SITE_KEY = Object.freeze({
+  "1688.com": "icons/sites/1688.ico",
   "adobe.com": "icons/sites/adobe.svg",
+  "alibaba.com": "icons/sites/alibabadotcom.svg",
   "amazon.com": "icons/sites/amazon.svg",
   "apache.org": "icons/sites/apache.svg",
   "audible.com": "icons/sites/audible.svg",
   "aws.amazon.com": "icons/sites/aws.svg",
   "azure.microsoft.com": "icons/sites/azure.svg",
-  "baidu.com": "icons/sites/baidu.svg",
+  "baidu.com": "icons/sites/baidu.ico",
   "bbc.com": "icons/sites/bbc.svg",
-  "bing.com": "icons/sites/bing.svg",
+  "bing.com": "icons/sites/bing.ico",
   "canva.com": "icons/sites/canva.svg",
   "chatgpt.com": "icons/sites/chatgpt.svg",
   "chrome.google.com": "icons/sites/chrome.svg",
   "codepen.io": "icons/sites/codepen.svg",
+  "claude.ai": "icons/sites/claude.svg",
+  "cursor.com": "icons/sites/cursor.svg",
   "dailymotion.com": "icons/sites/dailymotion.svg",
   "datadoghq.com": "icons/sites/datadog.svg",
   "discord.com": "icons/sites/discord.svg",
+  "docs.google.com": "icons/sites/googledocs.svg",
+  "douyin.com": "icons/sites/douyin.ico",
   "duckduckgo.com": "icons/sites/duckduckgo.svg",
   "figma.com": "icons/sites/figma.svg",
+  "framer.com": "icons/sites/framer.svg",
+  "calendar.google.com": "icons/sites/googlecalendar.svg",
+  "gemini.google.com": "icons/sites/googlegemini.svg",
+  "google.com": "icons/sites/google.svg",
+  "grok.com": "icons/sites/grok.svg",
   "freecodecamp.org": "icons/sites/freecodecamp.svg",
   "github.com": "icons/sites/github.svg",
   "gmail.com": "icons/sites/gmail.svg",
@@ -692,14 +706,18 @@ const EXTENDED_SITE_ICON_BY_SITE_KEY = Object.freeze({
   "maps.google.com": "icons/sites/googlemaps.svg",
   "meet.google.com": "icons/sites/googlemeet.svg",
   "heroku.com": "icons/sites/heroku.svg",
+  "iconfont.cn": "icons/sites/iconfont.svg",
   "imdb.com": "icons/sites/imdb.svg",
   "atlassian.net": "icons/sites/jira.svg",
   "kaggle.com": "icons/sites/kaggle.svg",
+  "kagi.com": "icons/sites/kagi.svg",
   "lastpass.com": "icons/sites/lastpass.svg",
+  "larksuite.com": "icons/sites/larksuite.ico",
   "linkedin.com": "icons/sites/linkedin.svg",
   "mailchimp.com": "icons/sites/mailchimp.svg",
   "matrix.org": "icons/sites/matrix.svg",
   "microsoft.com": "icons/sites/microsoft.svg",
+  "midjourney.com": "icons/sites/midjourney.svg",
   "office.com": "icons/sites/microsoftoffice.svg",
   "miro.com": "icons/sites/miro.svg",
   "mongodb.com": "icons/sites/mongodb.svg",
@@ -709,32 +727,42 @@ const EXTENDED_SITE_ICON_BY_SITE_KEY = Object.freeze({
   "openai.com": "icons/sites/openai.svg",
   "oracle.com": "icons/sites/oracle.svg",
   "playstation.com": "icons/sites/playstation.svg",
+  "pinduoduo.com": "icons/sites/pinduoduo.jpg",
+  "poe.com": "icons/sites/poe.svg",
   "postgresql.org": "icons/sites/postgresql.svg",
+  "replicate.com": "icons/sites/replicate.svg",
   "slack.com": "icons/sites/slack.svg",
   "snapchat.com": "icons/sites/snapchat.svg",
   "sony.com": "icons/sites/sony.svg",
+  "sogou.com": "icons/sites/sogou.svg",
   "tailwindcss.com": "icons/sites/tailwindcss.svg",
+  "teams.microsoft.com": "icons/sites/microsoftteams.ico",
+  "tmall.com": "icons/sites/tmall.png",
   "twitter.com": "icons/sites/twitter.svg",
   "ubuntu.com": "icons/sites/ubuntu.svg",
   "unity.com": "icons/sites/unity.svg",
   "unsplash.com": "icons/sites/unsplash.svg",
+  "uizard.io": "icons/sites/uizard.ico",
   "code.visualstudio.com": "icons/sites/visualstudiocode.svg",
   "w3schools.com": "icons/sites/w3schools.svg",
   "webflow.com": "icons/sites/webflow.svg",
   "xbox.com": "icons/sites/xbox.svg",
   "yahoo.com": "icons/sites/yahoo.svg",
+  "yandex.com": "icons/sites/yandex.ico",
   "ycombinator.com": "icons/sites/ycombinator.svg",
   "zendesk.com": "icons/sites/zendesk.svg",
   "zotero.org": "icons/sites/zotero.svg"
 });
 const SITE_ICON_BY_SITE_KEY = Object.freeze({
+  ...PORTAL_ICON_BY_SITE_KEY,
   ...DEFAULT_SITE_ICON_BY_SITE_KEY,
-  ...EXTENDED_SITE_ICON_BY_SITE_KEY,
-  ...PORTAL_ICON_BY_SITE_KEY
+  ...EXTENDED_SITE_ICON_BY_SITE_KEY
 });
 const SITE_ICON_TILE_COLOR_BY_SITE_KEY = Object.freeze({
+  "1688.com": "#ff6000",
   "adobe.com": "#ff0000",
   "airbnb.com": "#ff5a5f",
+  "alibaba.com": "#ff6a00",
   "alibabacloud.com": "#ff6a00",
   "aliexpress.com": "#e62e04",
   "alipay.com": "#1677ff",
@@ -746,35 +774,70 @@ const SITE_ICON_TILE_COLOR_BY_SITE_KEY = Object.freeze({
   "bilibili.com": "#00a1d6",
   "bing.com": "#258ffa",
   "canva.com": "#00c4cc",
-  "chatgpt.com": "#10a37f",
+  "chatgpt.com": "#ffffff",
   "claude.ai": "#d97757",
   "cloudflare.com": "#f38020",
+  "cursor.com": "#000000",
   "discord.com": "#5865f2",
   "docs.b.ai": "#111827",
+  "docs.google.com": "#4285f4",
+  "douyin.com": "#000000",
   "duckduckgo.com": "#de5833",
   "figma.com": "#f24e1e",
+  "framer.com": "#000000",
+  "calendar.google.com": "#4285f4",
   "gemini.google.com": "#4285f4",
   "github.com": "#181717",
   "gmail.com": "#ea4335",
+  "google.com": "#4285f4",
+  "grok.com": "#000000",
   "drive.google.com": "#4285f4",
+  "iconfont.cn": "#0c6066",
+  "kagi.com": "#ffb319",
+  "larksuite.com": "#00d6b9",
   "linkedin.com": "#0a66c2",
   "microsoft.com": "#5e5e5e",
+  "midjourney.com": "#0050c9",
   "notion.so": "#000000",
   "openai.com": "#412991",
   "perplexity.ai": "#1fb8cd",
-  "pinterest.com": "#000000",
+  "pinterest.com": "#bd081c",
+  "pinduoduo.com": "#e02e24",
+  "poe.com": "#5d5cde",
   "reddit.com": "#ff4500",
+  "replicate.com": "#000000",
   "slack.com": "#4a154b",
+  "sogou.com": "#fb6022",
   "spotify.com": "#1ed760",
   "stackoverflow.com": "#f58025",
   "taobao.com": "#e94f20",
+  "teams.microsoft.com": "#6264a7",
+  "tmall.com": "#ff0036",
+  "uizard.io": "#00f9e5",
   "vercel.com": "#000000",
   "weibo.com": "#e6162d",
   "x.com": "#000000",
   "xiaohongshu.com": "#ff2442",
+  "yandex.com": "#ffcc00",
   "youtube.com": "#ff0000",
   "zhihu.com": "#0084ff"
 });
+const MULTICOLOR_BRAND_ICON_SITE_KEYS = new Set([
+  "calendar.google.com",
+  "docs.google.com",
+  "drive.google.com",
+  "figma.com",
+  "gemini.google.com",
+  "gmail.com",
+  "google.com",
+  "maps.google.com",
+  "meet.google.com",
+  "microsoft.com",
+  "slack.com"
+]);
+const NATIVE_ROUNDED_BRAND_ICON_SITE_KEYS = new Set([
+  "grok.com"
+]);
 const PORTAL_CATEGORY_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS.map((portal) => {
   const url = new URL(portal.url);
   return [canonicalSiteHost(url.hostname), portal.category];
@@ -874,7 +937,7 @@ const MESSAGES = {
     quickSearch: "搜索",
     quickSearchLocal: "打开",
     quickSearchAggregate: "聚合搜索",
-    quickSearchAiCommandHint: "输入 /gpt /claude /gemini /grok 切换 AI",
+    quickSearchAiCommandHint: "输入 /gpt 或 /chatgpt 切换 ChatGPT，输入 /claude /gemini /grok 切换 AI",
     quickSearchAiSelected: "当前选择",
     quickSearchEngine: "搜索模式",
     quickSearchWith: "使用 {engine} 搜索",
@@ -958,7 +1021,7 @@ const MESSAGES = {
     quickSearch: "搜尋",
     quickSearchLocal: "打開",
     quickSearchAggregate: "聚合搜尋",
-    quickSearchAiCommandHint: "輸入 /gpt /claude /gemini /grok 切換 AI",
+    quickSearchAiCommandHint: "輸入 /gpt 或 /chatgpt 切換 ChatGPT，輸入 /claude /gemini /grok 切換 AI",
     quickSearchAiSelected: "目前選擇",
     quickSearchEngine: "搜尋模式",
     quickSearchWith: "使用 {engine} 搜尋",
@@ -1135,7 +1198,7 @@ const MESSAGES = {
     quickSearch: "Search",
     quickSearchLocal: "Open",
     quickSearchAggregate: "Aggregate search",
-    quickSearchAiCommandHint: "Type /gpt /claude /gemini /grok to switch AI",
+    quickSearchAiCommandHint: "Type /gpt or /chatgpt for ChatGPT, or /claude /gemini /grok to switch AI",
     quickSearchAiSelected: "Selected",
     quickSearchEngine: "Search mode",
     quickSearchWith: "Search with {engine}",
@@ -1422,7 +1485,7 @@ document.addEventListener("DOMContentLoaded", initWithStorageMigration);
 
 async function initWithStorageMigration() {
   await migrateSyncStorageFromLocal();
-  init();
+  await init();
 }
 
 function ensureChromeApiFallback() {
@@ -1716,10 +1779,10 @@ function applySettingsLocale() {
   darkAccentInput.closest("label").querySelector("span").textContent = t("darkAccent");
 }
 
-function init() {
+async function init() {
   applyLocale();
-  initThemeMode();
-  initQuickSearchEngine();
+  await initThemeMode();
+  await initQuickSearchEngine();
   renderFavoriteSites();
   renderPortals();
   initBookmarkLayout();
@@ -1953,7 +2016,11 @@ function renderAiEnginePill(engine) {
   icon.alt = "";
   icon.decoding = "async";
   icon.dataset.engineIcon = engine.id;
-  applySiteIcon(icon, { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon || "" });
+  applySiteIcon(icon, {
+    url: engine.searchUrl || engine.directUrl || "",
+    title: engine.label,
+    icon: engine.icon || ""
+  });
   label.textContent = engine.label;
   aiEnginePill.replaceChildren(icon, label);
   aiEnginePill.hidden = false;
@@ -2010,7 +2077,7 @@ function applyThemeMode(theme) {
   activeThemeMode = theme === "dark" || theme === "light" || theme === "system" ? theme : DEFAULT_THEME_MODE;
   const resolvedTheme = resolvedThemeMode();
   document.documentElement.dataset.theme = resolvedTheme;
-  refreshMonochromeSiteIcons();
+  refreshAdaptiveSiteIcons();
   updateThemeSettingsUi();
 }
 
@@ -2042,7 +2109,11 @@ function bindSystemThemeListener() {
     return;
   }
   systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  systemThemeQuery.addEventListener?.("change", handleSystemThemeChange);
+  if (systemThemeQuery.addEventListener) {
+    systemThemeQuery.addEventListener("change", handleSystemThemeChange);
+  } else if (systemThemeQuery.addListener) {
+    systemThemeQuery.addListener(handleSystemThemeChange);
+  }
 }
 
 function handleSystemThemeChange() {
@@ -2273,7 +2344,6 @@ function updateSyncSettingsUi(status = storageSyncAvailable() ? "ready" : "unava
   syncSettingsNowButton.disabled = normalizedStatus === "unavailable";
   syncSettingsNowButton.setAttribute("aria-disabled", String(syncSettingsNowButton.disabled));
   syncSettingsNowButton.querySelector(".button-icon").innerHTML = refreshIcon();
-  syncSettingsRow.querySelector(".sync-settings-icon").innerHTML = cloudSyncIcon();
   if (normalizedStatus === "done") {
     syncSettingsStatus.textContent = t("syncSettingsDone");
     syncSettingsDetail.textContent = t("syncSettingsDoneDetail");
@@ -2422,7 +2492,7 @@ function searchAiCommand(value) {
     return null;
   }
   const command = `/${match[1].toLowerCase()}`;
-  const engine = AI_COMMAND_ENGINES.find((item) => item.command === command);
+  const engine = AI_COMMAND_ENGINES.find((item) => aiEngineCommands(item).includes(command));
   if (!engine) {
     return null;
   }
@@ -2430,6 +2500,12 @@ function searchAiCommand(value) {
     engine,
     remainder: match[2] || ""
   };
+}
+
+function aiEngineCommands(engine) {
+  return Array.from(new Set([engine.command, ...(engine.commands || [])]
+    .filter(Boolean)
+    .map((item) => String(item).toLowerCase())));
 }
 
 function handleQuickSearchBlur() {
@@ -3994,16 +4070,18 @@ function compactSiteDomain(url) {
 }
 
 function applySiteIcon(icon, site, options = {}) {
-  const localIcon = normalizedSiteIconPath(site);
+  const localIcon = localIconForUrl(site.url);
+  const siteIcon = normalizeStoredSiteIcon(site.icon || "");
+  const iconSource = localIcon || siteIcon;
   storeIconSiteContext(icon, site);
   applySiteIconTile(icon, site, localIcon);
-  if (localIcon) {
-    const displayIcon = displayIconSource(icon, localIcon, options);
+  if (iconSource) {
+    const displayIcon = displayIconSource(icon, iconSource, options);
     const setIconSource = (source) => {
-      icon.dataset.iconSource = localIcon;
+      icon.dataset.iconSource = iconSource;
       icon.src = source;
       icon.removeAttribute("srcset");
-      bindFaviconFallback(icon, site, 128, { skipLocalIcon: true });
+      bindFaviconFallback(icon, site, 128);
     };
     if (displayIcon instanceof Promise) {
       return displayIcon.then((source) => setIconSource(source));
@@ -4023,24 +4101,11 @@ function localIconForUrl(url) {
 }
 
 function normalizedSiteIconPath(site) {
-  const siteIcon = site.icon || "";
-  if (siteIcon === "icons/ai/chatgpt.png" && siteGroupKey(safeUrl(site.url)) === "chatgpt.com") {
-    return "icons/portals/chatgpt.svg";
-  }
-  return siteIcon || localIconForUrl(site.url);
+  return localIconForUrl(site.url) || normalizeStoredSiteIcon(site.icon || "");
 }
 
 function applyHistoryIcon(icon, site) {
-  const localIcon = localIconForUrl(site.url);
-  storeIconSiteContext(icon, site);
-  applySiteIconTile(icon, site, localIcon);
-  if (localIcon) {
-    icon.dataset.iconSource = localIcon;
-    icon.src = displayIconSource(icon, localIcon);
-    icon.removeAttribute("srcset");
-  } else {
-    applyFaviconIcon(icon, site, 64);
-  }
+  applySiteIcon(icon, site);
 }
 
 function applyGeneratedSiteIcon(icon, site) {
@@ -4048,8 +4113,8 @@ function applyGeneratedSiteIcon(icon, site) {
   const label = siteDisplayName(parsedUrl, site.title).slice(0, 2).toUpperCase() || "?";
   icon.removeAttribute("srcset");
   icon.dataset.iconMissing = "false";
-  icon.dataset.iconTile = "generated";
-  icon.style.setProperty("--site-icon-tile", "#ffffff");
+  const tileColors = genericIconTileColors(parsedUrl?.hostname || site.url || site.title);
+  applyIconTile(icon, "generated", tileColors, false);
   icon.src = generatedSiteIconDataUrl(label, parsedUrl?.hostname || site.url);
 }
 
@@ -4088,48 +4153,95 @@ function applySiteIconTile(icon, site, iconPath = "") {
   const parsedUrl = safeUrl(site.url);
   const siteKey = siteGroupKey(parsedUrl);
   const tileColor = siteKey ? SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "" : "";
-  const tileMode = darkIconTileColor(tileColor) ? "monochrome" : (tileColor ? "brand" : "plain");
-  icon.dataset.iconTile = tileMode;
-  icon.style.setProperty("--site-icon-tile", iconTileColor(tileColor));
-  icon.classList.toggle("site-icon-local", Boolean(iconPath));
-  applyIconTileToShell(icon, tileMode, tileColor);
+  const tileMode = iconPath ? "brand" : "plain";
+  const tileColors = iconPath && tileColor
+    ? brandIconTileColors(tileColor, siteKey, iconPath)
+    : genericIconTileColors(parsedUrl?.hostname || site.url || site.title);
+  applyIconTile(icon, tileMode, tileColors, Boolean(iconPath));
 }
 
-function iconTileColor(tileColor) {
-  return darkIconTileColor(tileColor)
-    ? "var(--monochrome-site-icon-tile)"
-    : (tileColor || "#ffffff");
+function brandIconTileColors(tileColor, siteKey = "", iconPath = "") {
+  const color = normalizeHexColor(tileColor);
+  if (!color) {
+    return genericIconTileColors("");
+  }
+  if (nativeRoundedBrandIcon(siteKey)) {
+    return {
+      light: color,
+      dark: color
+    };
+  }
+  if (keepsBrandIconOriginal(siteKey, iconPath)) {
+    return {
+      light: "#ffffff",
+      dark: "#f8fafc"
+    };
+  }
+  if (nearWhiteBrandColor(color)) {
+    return {
+      light: "#000000",
+      dark: "#f8fafc"
+    };
+  }
+  return {
+    light: color,
+    dark: "#f8fafc"
+  };
 }
 
-function darkIconTileColor(tileColor) {
+function keepsBrandIconOriginal(siteKey, iconPath = "") {
+  return !String(iconPath || "").endsWith(".svg") || MULTICOLOR_BRAND_ICON_SITE_KEYS.has(siteKey);
+}
+
+function nativeRoundedBrandIcon(siteKey) {
+  return NATIVE_ROUNDED_BRAND_ICON_SITE_KEYS.has(siteKey);
+}
+
+function genericIconTileColors(seed) {
+  const hue = Math.abs(hashText(seed || "site")) % 360;
+  return {
+    light: `hsl(${hue} 42% 92%)`,
+    dark: `hsl(${hue} 26% 24%)`
+  };
+}
+
+function normalizeHexColor(tileColor) {
   const color = String(tileColor || "").trim();
   const match = color.match(/^#([0-9a-f]{6})$/i);
   if (!match) {
-    return false;
+    return "";
   }
-  const value = match[1];
-  const red = parseInt(value.slice(0, 2), 16);
-  const green = parseInt(value.slice(2, 4), 16);
-  const blue = parseInt(value.slice(4, 6), 16);
-  const maxChannel = Math.max(red, green, blue);
-  const minChannel = Math.min(red, green, blue);
-  return maxChannel < 96 && (maxChannel - minChannel) < 32 && (red * 0.2126 + green * 0.7152 + blue * 0.0722) < 56;
+  return `#${match[1].toLowerCase()}`;
 }
 
-function applyIconTileToShell(icon, tileMode, tileColor) {
+function applyIconTile(icon, tileMode, tileColors, hasLocalIcon) {
+  icon.dataset.iconTile = tileMode;
+  icon.style.setProperty("--site-icon-tile", tileColors.light);
+  icon.style.setProperty("--site-icon-tile-light", tileColors.light);
+  icon.style.setProperty("--site-icon-tile-dark", tileColors.dark);
+  icon.classList.toggle("site-icon-local", Boolean(hasLocalIcon));
+  applyIconTileToShell(icon, tileMode, tileColors);
+}
+
+function applyIconTileToShell(icon, tileMode, tileColors) {
   const shell = icon.closest(".favorite-icon-shell");
   if (!shell) {
     return;
   }
   shell.dataset.iconTile = tileMode;
-  shell.style.setProperty("--site-icon-tile", iconTileColor(tileColor));
+  shell.style.setProperty("--site-icon-tile", tileColors.light);
+  shell.style.setProperty("--site-icon-tile-light", tileColors.light);
+  shell.style.setProperty("--site-icon-tile-dark", tileColors.dark);
 }
 
 function displayIconSource(icon, source, options = {}) {
-  if ((icon.dataset.iconTile !== "brand" && icon.dataset.iconTile !== "monochrome") || !source.endsWith(".svg")) {
+  if (icon.dataset.iconTile !== "brand" || !source.endsWith(".svg")) {
     return source;
   }
-  if (icon.dataset.iconTile === "monochrome" && document.documentElement.dataset.theme !== "dark") {
+  if (icon.dataset.iconTile === "brand" && !shouldInvertBrandSvg(source)) {
+    return source;
+  }
+  if (icon.dataset.iconTile === "brand" && !iconTileNeedsWhiteGlyph(currentIconTileColor(icon))) {
     return source;
   }
   if (options.awaitDisplayIcon) {
@@ -4143,11 +4255,76 @@ function displayIconSource(icon, source, options = {}) {
   return source;
 }
 
-function refreshMonochromeSiteIcons() {
-  document.querySelectorAll('img[data-icon-tile="monochrome"][data-icon-source]').forEach((icon) => {
+function currentIconTileColor(icon) {
+  if (document.documentElement.dataset.theme === "dark") {
+    const darkColor = getComputedStyle(icon).getPropertyValue("--site-icon-tile-dark").trim()
+      || icon.style.getPropertyValue("--site-icon-tile-dark").trim();
+    if (darkColor) {
+      return darkColor;
+    }
+  }
+  const computedColor = getComputedStyle(icon).getPropertyValue("--site-icon-tile").trim();
+  return computedColor || icon.style.getPropertyValue("--site-icon-tile").trim();
+}
+
+function shouldInvertBrandSvg(source) {
+  const siteUrl = iconSourceSiteUrl(source);
+  const siteKey = siteGroupKey(safeUrl(siteUrl));
+  if (nativeRoundedBrandIcon(siteKey)) {
+    return false;
+  }
+  if (keepsBrandIconOriginal(siteKey, source)) {
+    return false;
+  }
+  const tileColor = siteKey ? normalizeHexColor(SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "") : "";
+  return Boolean(tileColor);
+}
+
+function iconSourceSiteUrl(source) {
+  for (const [siteKey, iconPath] of Object.entries(SITE_ICON_BY_SITE_KEY)) {
+    if (iconPath === source) {
+      return `https://${siteKey}`;
+    }
+  }
+  return "";
+}
+
+function nearWhiteBrandColor(tileColor) {
+  const hex = normalizeHexColor(tileColor);
+  if (!hex) {
+    return false;
+  }
+  const red = parseInt(hex.slice(1, 3), 16);
+  const green = parseInt(hex.slice(3, 5), 16);
+  const blue = parseInt(hex.slice(5, 7), 16);
+  const luminance = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+  const spread = Math.max(red, green, blue) - Math.min(red, green, blue);
+  return luminance > 235 && spread < 28;
+}
+
+function iconTileNeedsWhiteGlyph(tileColor) {
+  const hex = normalizeHexColor(tileColor);
+  if (!hex) {
+    return false;
+  }
+  return !nearWhiteBrandColor(hex);
+}
+
+function refreshAdaptiveSiteIcons() {
+  document.querySelectorAll('img[data-icon-tile="brand"][data-icon-source]').forEach((icon) => {
     const source = icon.dataset.iconSource || "";
     if (source) {
-      icon.src = displayIconSource(icon, source);
+      icon.src = source;
+      const displayIcon = displayIconSource(icon, source, { awaitDisplayIcon: true });
+      if (displayIcon instanceof Promise) {
+        displayIcon.then((nextSource) => {
+          if (icon.dataset.iconSource === source) {
+            icon.src = nextSource;
+          }
+        });
+      } else {
+        icon.src = displayIcon;
+      }
     }
   });
 }
@@ -4171,12 +4348,11 @@ function whiteSvgIconSource(source) {
 
 function normalizeSvgGlyphColor(svg) {
   let output = String(svg || "");
-  output = output.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
-    const withoutFill = attrs.replace(/\sfill=(["'])[^"']*\1/gi, "");
-    return `<svg${withoutFill} fill="#ffffff">`;
-  });
   output = output.replace(/\sfill=(["'])(?!none\1)[^"']*\1/gi, ' fill="#ffffff"');
   output = output.replace(/\sstroke=(["'])(?!none\1)[^"']*\1/gi, ' stroke="#ffffff"');
+  output = output.replace(/<svg\b([^>]*)>/i, (match, attrs) => (
+    /\sfill=/i.test(attrs) ? `<svg${attrs}>` : `<svg${attrs} fill="#ffffff">`
+  ));
   return output;
 }
 
@@ -4190,6 +4366,14 @@ function applyFaviconIcon(icon, site, size, options = {}) {
   icon.removeAttribute("srcset");
   storeIconSiteContext(icon, site);
   const candidates = extensionIconFallbackChain(site.url, size, options);
+  if (options.skipLocalIcon && !options.skipGeneratedFallback) {
+    const siteKey = siteGroupKey(safeUrl(site.url));
+    const tileColor = siteKey ? SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "" : "";
+    if (tileColor) {
+      applyGeneratedSiteIcon(icon, site);
+      return;
+    }
+  }
   applyIconCandidate(icon, candidates, 0);
 }
 
@@ -4218,21 +4402,115 @@ function applyIconCandidate(icon, candidates, index) {
   icon.dataset.iconMissing = "false";
   icon.dataset.iconCandidate = nextIcon;
   const isLocalIcon = nextIcon.startsWith("icons/");
-  icon.classList.toggle("site-icon-local", isLocalIcon);
   if (isLocalIcon) {
     icon.dataset.iconSource = nextIcon;
   } else {
     delete icon.dataset.iconSource;
   }
   if (!isLocalIcon) {
-    icon.dataset.iconTile = "plain";
-    icon.style.setProperty("--site-icon-tile", "#ffffff");
-    applyIconTileToShell(icon, "plain", "");
+    const tileColors = genericIconTileColors(icon.dataset.siteUrl || icon.dataset.siteTitle || "");
+    applyIconTile(icon, "plain", tileColors, false);
+    icon.addEventListener("load", () => applyFaviconMatchedTile(icon), { once: true });
   }
   icon.src = displayIconSource(icon, nextIcon);
   icon.addEventListener("error", () => {
     applyIconCandidate(icon, candidates, index + 1);
   }, { once: true });
+}
+
+function applyFaviconMatchedTile(icon) {
+  if (icon.dataset.iconTile !== "plain" || icon.dataset.iconCandidate?.startsWith("icons/")) {
+    return;
+  }
+  const color = dominantImageColor(icon);
+  if (!color) {
+    return;
+  }
+  const tileColors = faviconMatchedTileColors(color);
+  applyIconTile(icon, "plain", tileColors, false);
+}
+
+function dominantImageColor(image) {
+  if (!image.naturalWidth || !image.naturalHeight) {
+    return null;
+  }
+  const canvas = document.createElement("canvas");
+  const size = 24;
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) {
+    return null;
+  }
+  try {
+    context.drawImage(image, 0, 0, size, size);
+    const { data } = context.getImageData(0, 0, size, size);
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let weight = 0;
+    for (let index = 0; index < data.length; index += 4) {
+      const alpha = data[index + 3] / 255;
+      if (alpha < 0.35) {
+        continue;
+      }
+      const pixelRed = data[index];
+      const pixelGreen = data[index + 1];
+      const pixelBlue = data[index + 2];
+      const saturation = colorSaturation(pixelRed, pixelGreen, pixelBlue);
+      const pixelWeight = alpha * (0.35 + saturation);
+      red += pixelRed * pixelWeight;
+      green += pixelGreen * pixelWeight;
+      blue += pixelBlue * pixelWeight;
+      weight += pixelWeight;
+    }
+    if (!weight) {
+      return null;
+    }
+    return {
+      red: Math.round(red / weight),
+      green: Math.round(green / weight),
+      blue: Math.round(blue / weight)
+    };
+  } catch {
+    return null;
+  }
+}
+
+function colorSaturation(red, green, blue) {
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  return max ? (max - min) / max : 0;
+}
+
+function faviconMatchedTileColors(color) {
+  const hue = rgbHue(color.red, color.green, color.blue);
+  const saturation = Math.max(24, Math.round(colorSaturation(color.red, color.green, color.blue) * 54));
+  return {
+    light: `hsl(${hue} ${saturation}% 92%)`,
+    dark: `hsl(${hue} ${Math.max(22, saturation - 12)}% 24%)`
+  };
+}
+
+function rgbHue(red, green, blue) {
+  const r = red / 255;
+  const g = green / 255;
+  const b = blue / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  if (!delta) {
+    return 160;
+  }
+  let hue;
+  if (max === r) {
+    hue = ((g - b) / delta) % 6;
+  } else if (max === g) {
+    hue = (b - r) / delta + 2;
+  } else {
+    hue = (r - g) / delta + 4;
+  }
+  return Math.round((hue * 60 + 360) % 360);
 }
 
 function showPortalForm() {
@@ -7000,13 +7278,6 @@ function refreshIcon() {
     <path d="M21 3v5h-5"></path>
     <path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"></path>
     <path d="M3 21v-5h5"></path>
-  `);
-}
-
-function cloudSyncIcon() {
-  return inlineIcon(`
-    <path d="M17.5 19H8a5 5 0 1 1 1.6-9.74A6 6 0 0 1 20 13.5"></path>
-    <path d="m16 15 2 2 3-3"></path>
   `);
 }
 
