@@ -928,6 +928,7 @@ const MESSAGES = {
     switchBookmarkLayoutToList: "切换为列表显示",
     switchBookmarkLayoutToGrid: "切换为一行 4 个显示",
     chooseBookmarkFolder: "选择书签文件夹",
+    collapseSurface: "收起面板",
     back: "返回",
     chooseBookmarkFolderPrompt: "选择一个书签文件夹",
     historyTitle: "最近浏览",
@@ -1207,6 +1208,7 @@ const MESSAGES = {
     switchBookmarkLayoutToList: "Switch to list view",
     switchBookmarkLayoutToGrid: "Switch to 4-column grid view",
     chooseBookmarkFolder: "Choose bookmark folder",
+    collapseSurface: "Collapse panel",
     back: "Back",
     chooseBookmarkFolderPrompt: "Choose a bookmark folder",
     historyTitle: "Recent browsing",
@@ -1420,6 +1422,8 @@ const LOCALE = resolveLocale();
 const MEDIA_FEED_LOCALE_LANGUAGE = mediaFeedLanguageForLocale(LOCALE);
 
 const secondaryShell = document.querySelector("#secondaryShell");
+const homeStage = document.querySelector(".home-stage");
+const surfaceBackdrop = document.querySelector("#surfaceBackdrop");
 const portalSurfaceButton = document.querySelector("#portalSurfaceButton");
 const surfaceBackButtons = [...document.querySelectorAll(".surface-back-button")];
 const portalGrid = document.querySelector("#portalGrid");
@@ -1487,6 +1491,10 @@ const portalForm = document.querySelector("#portalForm");
 const portalTitleInput = document.querySelector("#portalTitleInput");
 const portalUrlInput = document.querySelector("#portalUrlInput");
 const portalCategorySelect = document.querySelector("#portalCategorySelect");
+const portalCategoryPicker = document.querySelector("#portalCategoryPicker");
+const portalCategoryTrigger = document.querySelector("#portalCategoryTrigger");
+const portalCategoryCurrent = document.querySelector("#portalCategoryCurrent");
+const portalCategoryList = document.querySelector("#portalCategoryList");
 const portalFormError = document.querySelector("#portalFormError");
 const cancelPortalButton = document.querySelector("#cancelPortalButton");
 const mobileSectionTabs = [...document.querySelectorAll(".mobile-section-tab")];
@@ -1715,7 +1723,8 @@ function applyLocale() {
   document.querySelector(".topbar")?.setAttribute("aria-label", t("topbarLabel"));
   document.querySelector(".shell")?.setAttribute("aria-label", t("shellLabel"));
   setButtonLabel(portalSurfaceButton, t("openPortalSurface"));
-  surfaceBackButtons.forEach((button) => setButtonLabel(button, t("back")));
+  surfaceBackButtons.forEach((button) => setButtonLabel(button, t("collapseSurface")));
+  setButtonLabel(surfaceBackdrop, t("collapseSurface"));
   document.querySelector("#recent-folders-title").textContent = t("historyTitle");
   document.querySelector("#portal-title").textContent = t("portalTitle");
   document.querySelector("#smartPortalTab").textContent = t("smartPortalTab");
@@ -1742,7 +1751,7 @@ function applyLocale() {
 
   const portalTitleLabel = portalTitleInput.closest("label")?.querySelector("span");
   const portalUrlLabel = portalUrlInput.closest("label")?.querySelector("span");
-  const portalCategoryLabel = portalCategorySelect.closest("label")?.querySelector("span");
+  const portalCategoryLabel = document.querySelector("#portalCategoryLabel");
   if (portalTitleLabel) {
     portalTitleLabel.textContent = t("portalName");
   }
@@ -1812,6 +1821,7 @@ function setStaticButtonIcons() {
     button.querySelector(".button-icon").innerHTML = arrowLeftIcon();
   });
   togglePortalFormButton.querySelector(".button-icon").innerHTML = plusIcon();
+  document.querySelector(".portal-category-trigger-icon").innerHTML = chevronDownIcon();
   refreshBookmarkFolderButton.querySelector(".button-icon").innerHTML = refreshIcon();
   chooseBookmarkFolderButton.querySelector(".button-icon").innerHTML = folderPlusIcon();
   closeBookmarkPickerButton.querySelector(".button-icon").innerHTML = arrowLeftIcon();
@@ -1883,6 +1893,7 @@ async function init() {
   surfaceBackButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveSurfacePanel(""));
   });
+  surfaceBackdrop?.addEventListener("click", () => setActiveSurfacePanel(""));
   quickSearchForm.addEventListener("submit", handleQuickSearchSubmit);
   quickSearchInput.addEventListener("keydown", handleQuickSearchInputKeydown);
   quickSearchInput.addEventListener("input", handleQuickSearchInput);
@@ -1892,6 +1903,9 @@ async function init() {
     tab.addEventListener("click", () => activatePortalView(tab.dataset.portalView));
   });
   togglePortalFormButton.addEventListener("click", showPortalForm);
+  portalCategoryTrigger?.addEventListener("click", togglePortalCategoryPicker);
+  portalCategoryList?.addEventListener("click", handlePortalCategoryOptionClick);
+  portalCategoryList?.addEventListener("keydown", handlePortalCategoryListKeydown);
   cancelPortalButton.addEventListener("click", hidePortalForm);
   portalForm.addEventListener("submit", handlePortalSubmit);
   favoriteAddButton.addEventListener("click", toggleFavoriteForm);
@@ -1913,6 +1927,7 @@ async function init() {
   document.addEventListener("pointerdown", handleBookmarkDeleteDismiss, true);
   document.addEventListener("pointerdown", handleFavoriteDeleteDismiss, true);
   document.addEventListener("pointerdown", handleSurfacePanelDismiss, true);
+  document.addEventListener("pointerdown", handlePortalCategoryPickerDismiss, true);
   document.addEventListener("pointerdown", handleSearchSuggestionDismiss, true);
   document.addEventListener("pointerdown", handleSettingsPanelDismiss, true);
   document.addEventListener("keydown", handleBookmarkDeleteEscape);
@@ -1937,7 +1952,7 @@ function activatePortalView(view) {
     viewNode.classList.toggle("active", isActive);
     viewNode.hidden = !isActive;
   });
-  togglePortalFormButton.hidden = nextView === "bookmarks";
+  togglePortalFormButton.hidden = nextView === "bookmarks" || !portalForm.hidden;
   clearBookmarkDeleteMode();
   if (nextView === "bookmarks" && bookmarkPicker.hidden) {
     renderSelectedBookmarkFolder();
@@ -1968,6 +1983,11 @@ function setActiveSurfacePanel(panelId) {
   secondaryShell.classList.toggle("surface-open", Boolean(activeSurfacePanelId));
   secondaryShell.classList.toggle("surface-closing", Boolean(!activeSurfacePanelId && previousPanelId));
   document.body.classList.toggle("surface-open", Boolean(activeSurfacePanelId));
+  if (surfaceBackdrop) {
+    surfaceBackdrop.hidden = !activeSurfacePanelId && !previousPanelId;
+    surfaceBackdrop.setAttribute("aria-hidden", String(!activeSurfacePanelId));
+  }
+  homeStage?.setAttribute("aria-hidden", String(Boolean(activeSurfacePanelId)));
   document.querySelectorAll(".panel").forEach((panel) => {
     const isActive = panel.id === activeSurfacePanelId;
     const isClosing = !activeSurfacePanelId && panel.id === previousPanelId;
@@ -1982,17 +2002,40 @@ function setActiveSurfacePanel(panelId) {
   if (activeSurfacePanelId === "portalPanel" && activePortalView === "bookmarks" && bookmarkPicker.hidden) {
     renderSelectedBookmarkFolder();
   }
+  if (activeSurfacePanelId) {
+    focusActiveSurfacePanel(activeSurfacePanelId);
+  }
   if (!activeSurfacePanelId && previousPanelId) {
     window.setTimeout(() => {
       if (!activeSurfacePanelId) {
+        if (surfaceBackdrop) {
+          surfaceBackdrop.hidden = true;
+        }
+        homeStage?.removeAttribute("aria-hidden");
         secondaryShell.classList.remove("surface-closing");
         secondaryShell.dataset.previousSurface = "";
         document.querySelectorAll(".panel.surface-closing").forEach((panel) => {
           panel.classList.remove("surface-closing");
         });
+        if (previousPanelId === "portalPanel") {
+          portalSurfaceButton.focus({ preventScroll: true });
+        }
       }
     }, 340);
   }
+}
+
+function focusActiveSurfacePanel(panelId) {
+  window.requestAnimationFrame(() => {
+    if (activeSurfacePanelId !== panelId) {
+      return;
+    }
+    const panel = document.getElementById(panelId);
+    const heading = panel?.querySelector("h1, h2");
+    if (heading instanceof HTMLElement) {
+      heading.focus({ preventScroll: true });
+    }
+  });
 }
 
 function handleSurfacePanelDismiss(event) {
@@ -2049,6 +2092,11 @@ function renderSearchEngineIcon(target, engine) {
 
 function handleGlobalEscape(event) {
   if (event.key !== "Escape") {
+    return;
+  }
+  if (portalCategoryPicker?.classList.contains("open")) {
+    event.preventDefault();
+    closePortalCategoryPicker({ restoreFocus: true });
     return;
   }
   if (onboardingGuide && !onboardingGuide.hidden) {
@@ -3644,13 +3692,139 @@ function portalCategoryLabel(category) {
 }
 
 function populatePortalCategoryOptions() {
-  portalCategorySelect.replaceChildren(...PORTAL_CATEGORY_ORDER.map((category) => {
+  const categories = PORTAL_CATEGORY_ORDER.filter((category) => category !== "featured");
+  const currentCategory = normalizePortalCategory(portalCategorySelect.value);
+  portalCategorySelect.replaceChildren(...categories.map((category) => {
     const option = document.createElement("option");
     option.value = category;
     option.textContent = portalCategoryLabel(category);
     return option;
   }));
-  portalCategorySelect.value = "custom";
+  renderPortalCategoryPickerOptions(categories);
+  setPortalCategory(categories.includes(currentCategory) ? currentCategory : "custom");
+}
+
+function renderPortalCategoryPickerOptions(categories) {
+  if (!portalCategoryList) {
+    return;
+  }
+  portalCategoryList.replaceChildren(...categories.map((category) => {
+    const option = document.createElement("button");
+    option.className = "portal-category-option";
+    option.type = "button";
+    option.setAttribute("role", "option");
+    option.dataset.category = category;
+    option.id = `portalCategoryOption-${category}`;
+    option.textContent = portalCategoryLabel(category);
+    option.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+    });
+    return option;
+  }));
+}
+
+function setPortalCategory(category, options = {}) {
+  const nextCategory = normalizePortalCategory(category);
+  portalCategorySelect.value = nextCategory;
+  if (portalCategoryCurrent) {
+    portalCategoryCurrent.textContent = portalCategoryLabel(nextCategory);
+  }
+  portalCategoryList?.querySelectorAll(".portal-category-option").forEach((option) => {
+    const isSelected = option.dataset.category === nextCategory;
+    option.setAttribute("aria-selected", String(isSelected));
+    option.tabIndex = isSelected ? 0 : -1;
+  });
+  portalCategoryTrigger?.setAttribute("aria-activedescendant", `portalCategoryOption-${nextCategory}`);
+  if (options.focus) {
+    portalCategoryTrigger?.focus({ preventScroll: true });
+  }
+}
+
+function togglePortalCategoryPicker() {
+  if (portalCategoryPicker?.classList.contains("open")) {
+    closePortalCategoryPicker({ restoreFocus: true });
+  } else {
+    openPortalCategoryPicker();
+  }
+}
+
+function openPortalCategoryPicker() {
+  if (!portalCategoryPicker || !portalCategoryTrigger || !portalCategoryList) {
+    return;
+  }
+  portalCategoryPicker.classList.add("open");
+  portalCategoryTrigger.setAttribute("aria-expanded", "true");
+  portalCategoryList.hidden = false;
+  const selectedOption = portalCategoryList.querySelector('[aria-selected="true"]');
+  if (selectedOption instanceof HTMLElement) {
+    selectedOption.focus({ preventScroll: true });
+  }
+}
+
+function closePortalCategoryPicker(options = {}) {
+  if (!portalCategoryPicker || !portalCategoryTrigger || !portalCategoryList) {
+    return;
+  }
+  portalCategoryPicker.classList.remove("open");
+  portalCategoryTrigger.setAttribute("aria-expanded", "false");
+  portalCategoryList.hidden = true;
+  if (options.restoreFocus) {
+    portalCategoryTrigger.focus({ preventScroll: true });
+  }
+}
+
+function handlePortalCategoryOptionClick(event) {
+  const option = event.target.closest?.(".portal-category-option");
+  if (!option) {
+    return;
+  }
+  setPortalCategory(option.dataset.category, { focus: true });
+  closePortalCategoryPicker();
+}
+
+function handlePortalCategoryListKeydown(event) {
+  const options = [...portalCategoryList.querySelectorAll(".portal-category-option")];
+  const currentIndex = options.findIndex((option) => option === document.activeElement);
+  if (event.key === "Escape") {
+    event.preventDefault();
+    event.stopPropagation();
+    closePortalCategoryPicker({ restoreFocus: true });
+    return;
+  }
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    event.stopPropagation();
+    const currentOption = options[currentIndex];
+    if (currentOption) {
+      setPortalCategory(currentOption.dataset.category, { focus: true });
+      closePortalCategoryPicker();
+    }
+    return;
+  }
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+    return;
+  }
+  event.preventDefault();
+  const lastIndex = options.length - 1;
+  const nextIndex = event.key === "Home"
+    ? 0
+    : event.key === "End"
+      ? lastIndex
+      : event.key === "ArrowUp"
+        ? Math.max(0, currentIndex - 1)
+        : Math.min(lastIndex, currentIndex + 1);
+  options[nextIndex]?.focus({ preventScroll: true });
+}
+
+function handlePortalCategoryPickerDismiss(event) {
+  if (!portalCategoryPicker?.classList.contains("open")) {
+    return;
+  }
+  const target = event.target;
+  if (target instanceof Element && portalCategoryPicker.contains(target)) {
+    return;
+  }
+  closePortalCategoryPicker();
 }
 
 function createSiteCard(site) {
@@ -4647,13 +4821,19 @@ function rgbHue(red, green, blue) {
 
 function showPortalForm() {
   portalForm.hidden = false;
+  togglePortalFormButton.hidden = true;
+  togglePortalFormButton.setAttribute("aria-expanded", "true");
   portalFormError.textContent = "";
   portalTitleInput.focus();
 }
 
 function hidePortalForm() {
   portalForm.hidden = true;
+  togglePortalFormButton.hidden = activePortalView === "bookmarks";
+  togglePortalFormButton.setAttribute("aria-expanded", "false");
   portalForm.reset();
+  setPortalCategory("custom");
+  closePortalCategoryPicker();
   portalFormError.textContent = "";
 }
 

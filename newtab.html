@@ -70,6 +70,7 @@
         <div class="recent-folder-grid" id="recentHistoryFolders" aria-live="polite"></div>
       </section>
     </main>
+    <button class="surface-backdrop" id="surfaceBackdrop" type="button" aria-label="关闭导航中枢" title="关闭导航中枢" hidden></button>
 
     <nav class="mobile-section-switcher" aria-label="切换信息分区">
       <button class="mobile-section-tab active" type="button" data-panel-target="portalPanel" aria-controls="portalPanel" aria-selected="true">入口</button>
@@ -77,17 +78,14 @@
 
     <aside class="shell" id="secondaryShell" aria-label="Wayleaf 控制台" data-active-surface="">
       <section class="panel portal-panel" id="portalPanel" aria-labelledby="portal-title">
+        <header class="panel-header">
+          <div>
+            <h1 id="portal-title" tabindex="-1">导航中枢</h1>
+          </div>
+        </header>
         <button class="icon-button surface-back-button" type="button" title="返回" aria-label="返回">
           <span class="button-icon" aria-hidden="true"></span>
         </button>
-        <header class="panel-header">
-          <div>
-            <h1 id="portal-title">导航中枢</h1>
-          </div>
-          <button class="icon-button subtle-action" id="togglePortalFormButton" type="button" title="添加入口" aria-label="添加入口">
-            <span class="button-icon" aria-hidden="true"></span>
-          </button>
-        </header>
 
         <div class="portal-mode-tabs" role="tablist" aria-label="导航中枢" data-active-view="smart">
           <button class="portal-mode-tab active" id="smartPortalTab" type="button" role="tab" aria-selected="true" aria-controls="smartPortalView" data-portal-view="smart">智能常用</button>
@@ -96,6 +94,11 @@
 
         <div class="portal-workspace">
           <div class="portal-view active" id="smartPortalView" role="tabpanel" aria-labelledby="smartPortalTab">
+          <div class="portal-view-toolbar">
+            <button class="icon-button subtle-action" id="togglePortalFormButton" type="button" title="添加入口" aria-label="添加入口">
+              <span class="button-icon" aria-hidden="true"></span>
+            </button>
+          </div>
           <form class="portal-form" id="portalForm" hidden>
             <label>
               <span>名称</span>
@@ -105,10 +108,17 @@
               <span>网址</span>
               <input id="portalUrlInput" name="url" autocomplete="off" inputmode="url" placeholder="https://www.notion.so">
             </label>
-            <label>
-              <span>归类</span>
-              <select id="portalCategorySelect" name="category"></select>
-            </label>
+            <div class="portal-form-field portal-category-field">
+              <label id="portalCategoryLabel" for="portalCategorySelect">归类</label>
+              <select class="portal-category-native" id="portalCategorySelect" name="category" tabindex="-1" aria-hidden="true"></select>
+              <div class="portal-category-picker" id="portalCategoryPicker">
+                <button class="portal-category-trigger" id="portalCategoryTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="portalCategoryList" aria-labelledby="portalCategoryLabel portalCategoryCurrent">
+                  <span id="portalCategoryCurrent">自定义</span>
+                  <span class="button-icon portal-category-trigger-icon" aria-hidden="true"></span>
+                </button>
+                <div class="portal-category-list" id="portalCategoryList" role="listbox" aria-labelledby="portalCategoryLabel" hidden></div>
+              </div>
+            </div>
             <div class="form-actions">
               <button class="text-button" type="button" id="cancelPortalButton">取消</button>
               <button class="text-button primary" type="submit">添加</button>
@@ -155,17 +165,17 @@
       </section>
 
       <section class="panel history-panel" id="historyPanel" aria-labelledby="history-title">
-        <button class="icon-button surface-back-button" type="button" title="返回" aria-label="返回">
-          <span class="button-icon" aria-hidden="true"></span>
-        </button>
         <header class="panel-header history-header">
           <div>
-            <h2 id="history-title">最近浏览</h2>
+            <h2 id="history-title" tabindex="-1">最近浏览</h2>
           </div>
           <button class="icon-button" id="refreshHistoryButton" type="button" title="刷新历史记录" aria-label="刷新历史记录">
             <span class="button-icon" aria-hidden="true"></span>
           </button>
         </header>
+        <button class="icon-button surface-back-button" type="button" title="返回" aria-label="返回">
+          <span class="button-icon" aria-hidden="true"></span>
+        </button>
         <div class="history-stack" aria-live="polite">
           <section class="history-group pinned-group" aria-labelledby="pinned-title">
             <h3 class="section-title" id="pinned-title">置顶</h3>
