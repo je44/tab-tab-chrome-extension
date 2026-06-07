@@ -124,8 +124,8 @@
 ├── newtab.css           # 布局、主题、响应式规则和动效
 ├── newtab.js            # Chrome API 读取、状态保存、渲染和交互
 ├── ai-submit.js         # AI 页面直达后的输入辅助脚本
-├── icons/               # 扩展图标、常用网站图标和 AI 图标
-└── docs/                # 预览图、产品事实和图标来源记录
+├── icons/               # 扩展图标和常用网站图标
+└── docs/                # 预览图
 ```
 
 ## 本地开发
@@ -195,5 +195,5 @@ unzip -t dist/wayleaf-v1.2.0.zip
 
 ## 相关文档
 
-- [产品事实记录](docs/product-facts.md)
-- [图标来源记录](docs/icon-sources.md)
+- [日间模式预览](docs/previews/wayleaf-light.png)
+- [夜间模式预览](docs/previews/wayleaf-dark.png)

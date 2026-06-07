@@ -124,8 +124,8 @@ This is a Chrome Manifest V3 extension with no build step. Chrome can load the f
 ├── newtab.css           # Layout, theme, responsive rules, and motion
 ├── newtab.js            # Chrome API reads, state persistence, rendering, and interaction
 ├── ai-submit.js         # Helper script for AI page handoff
-├── icons/               # Extension icons, site icons, and AI icons
-└── docs/                # Preview images, product facts, and icon source notes
+├── icons/               # Extension icons and site icons
+└── docs/                # Preview images
 ```
 
 ## Local Development
@@ -195,5 +195,5 @@ Current version: `1.2.0`. The project stays focused on being a lightweight local
 
 ## Related Docs
 
-- [Product facts](docs/product-facts.md)
-- [Icon source notes](docs/icon-sources.md)
+- [Light mode preview](docs/previews/wayleaf-light.png)
+- [Dark mode preview](docs/previews/wayleaf-dark.png)

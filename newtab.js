@@ -1,31 +1,31 @@
 "use strict";
 
 const PORTALS = [
-  { title: "百度", url: "https://www.baidu.com", icon: "icons/portals/baidu.svg", category: "search" },
-  { title: "知乎", url: "https://www.zhihu.com", icon: "icons/portals/zhihu.svg", category: "social" },
-  { title: "哔哩哔哩", url: "https://www.bilibili.com", icon: "icons/portals/bilibili.svg", category: "media" },
-  { title: "微博", url: "https://weibo.com", icon: "icons/portals/weibo.svg", category: "social" },
-  { title: "淘宝", url: "https://www.taobao.com", icon: "icons/portals/taobao.svg", category: "shopping" },
-  { title: "京东", url: "https://www.jd.com", icon: "icons/portals/jd.ico", category: "shopping" },
-  { title: "GitHub", url: "https://github.com", icon: "icons/portals/github.svg", category: "developer" },
-  { title: "MDN", url: "https://developer.mozilla.org", icon: "icons/portals/mdn.svg", category: "developer" },
-  { title: "YouTube", url: "https://www.youtube.com", icon: "icons/portals/youtube.svg", category: "media" },
-  { title: "Google", url: "https://www.google.com", icon: "icons/portals/google.svg", category: "search" },
-  { title: "ChatGPT", url: "https://chatgpt.com", icon: "icons/portals/chatgpt.svg", category: "ai" },
-  { title: "Claude", url: "https://claude.ai", icon: "icons/sites/claude.svg", category: "ai" },
-  { title: "Gemini", url: "https://gemini.google.com", icon: "icons/sites/googlegemini.svg", category: "ai" },
-  { title: "Perplexity", url: "https://www.perplexity.ai", icon: "icons/portals/perplexity.svg", category: "ai" },
-  { title: "Notion", url: "https://www.notion.so", icon: "icons/portals/notion.svg", category: "productivity" },
-  { title: "Figma", url: "https://www.figma.com", icon: "icons/portals/figma.svg", category: "design" },
-  { title: "Vercel", url: "https://vercel.com", icon: "icons/portals/vercel.svg", category: "developer" },
-  { title: "Cloudflare", url: "https://www.cloudflare.com", icon: "icons/portals/cloudflare.svg", category: "developer" },
-  { title: "Gmail", url: "https://mail.google.com", icon: "icons/portals/gmail.svg", category: "productivity" },
-  { title: "Google Drive", url: "https://drive.google.com", icon: "icons/portals/google-drive.svg", category: "productivity" },
-  { title: "Discord", url: "https://discord.com", icon: "icons/portals/discord.svg", category: "social" },
-  { title: "小红书", url: "https://www.xiaohongshu.com", icon: "icons/portals/xiaohongshu.svg", category: "social" },
-  { title: "LinkedIn", url: "https://www.linkedin.com", icon: "icons/portals/linkedin.ico", category: "social" },
-  { title: "Canva", url: "https://www.canva.com", icon: "icons/portals/canva.ico", category: "design" },
-  { title: "飞书", url: "https://www.feishu.cn", icon: "icons/portals/feishu.png", category: "productivity" }
+  { title: "百度", url: "https://www.baidu.com", category: "search" },
+  { title: "知乎", url: "https://www.zhihu.com", category: "social" },
+  { title: "哔哩哔哩", url: "https://www.bilibili.com", category: "media" },
+  { title: "微博", url: "https://weibo.com", category: "social" },
+  { title: "淘宝", url: "https://www.taobao.com", category: "shopping" },
+  { title: "京东", url: "https://www.jd.com", category: "shopping" },
+  { title: "GitHub", url: "https://github.com", category: "developer" },
+  { title: "MDN", url: "https://developer.mozilla.org", category: "developer" },
+  { title: "YouTube", url: "https://www.youtube.com", category: "media" },
+  { title: "Google", url: "https://www.google.com", category: "search" },
+  { title: "ChatGPT", url: "https://chatgpt.com", category: "ai" },
+  { title: "Claude", url: "https://claude.ai", category: "ai" },
+  { title: "Gemini", url: "https://gemini.google.com", category: "ai" },
+  { title: "Perplexity", url: "https://www.perplexity.ai", category: "ai" },
+  { title: "Notion", url: "https://www.notion.so", category: "productivity" },
+  { title: "Figma", url: "https://www.figma.com", category: "design" },
+  { title: "Vercel", url: "https://vercel.com", category: "developer" },
+  { title: "Cloudflare", url: "https://www.cloudflare.com", category: "developer" },
+  { title: "Gmail", url: "https://mail.google.com", category: "productivity" },
+  { title: "Google Drive", url: "https://drive.google.com", category: "productivity" },
+  { title: "Discord", url: "https://discord.com", category: "social" },
+  { title: "小红书", url: "https://www.xiaohongshu.com", category: "social" },
+  { title: "LinkedIn", url: "https://www.linkedin.com", category: "social" },
+  { title: "Canva", url: "https://www.canva.com", category: "design" },
+  { title: "飞书", url: "https://www.feishu.cn", category: "productivity" }
 ];
 const CUSTOM_PORTALS_STORAGE_KEY = "customPortals";
 const FAVORITE_SITES_STORAGE_KEY = "favoriteSites";
@@ -360,13 +360,13 @@ const THEME_PALETTES = [
 ];
 const SEARCH_ENGINES = [
   { id: "local", label: "聚合搜索", local: true },
-  { id: "google", label: "Google", icon: "icons/sites/google.svg", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
-  { id: "baidu", label: "百度", icon: "icons/sites/baidu.ico", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
-  { id: "bing", label: "Bing", icon: "icons/sites/bing.ico", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
-  { id: "chatgpt", command: "/gpt", commands: ["/gpt", "/chatgpt"], label: "ChatGPT", icon: "icons/sites/chatgpt.svg", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
-  { id: "claude", command: "/claude", label: "Claude", icon: "icons/sites/claude.svg", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
-  { id: "gemini", command: "/gemini", label: "Gemini", icon: "icons/sites/googlegemini.svg", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
-  { id: "grok", command: "/grok", label: "Grok", icon: "icons/sites/grok.svg", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
+  { id: "google", label: "Google", searchUrl: "https://www.google.com/search", queryParam: "q", aggregateDefault: true },
+  { id: "baidu", label: "百度", searchUrl: "https://www.baidu.com/s", queryParam: "wd" },
+  { id: "bing", label: "Bing", searchUrl: "https://www.bing.com/search", queryParam: "q", aggregateDefault: true },
+  { id: "chatgpt", command: "/gpt", commands: ["/gpt", "/chatgpt"], label: "ChatGPT", searchUrl: "https://chatgpt.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://chatgpt.com/", themeColor: "#10a37f" },
+  { id: "claude", command: "/claude", label: "Claude", searchUrl: "https://claude.ai/new", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://claude.ai/new", themeColor: "#d97757" },
+  { id: "gemini", command: "/gemini", label: "Gemini", searchUrl: "https://gemini.google.com/app", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://gemini.google.com/app", themeColor: "#4285f4" },
+  { id: "grok", command: "/grok", label: "Grok", searchUrl: "https://grok.com/", queryParam: "q", aiDirect: true, autoSubmit: true, directUrl: "https://grok.com/", themeColor: "#777f86" }
 ];
 const AGGREGATE_SEARCH_ENGINE_IDS = ["google", "bing"];
 const AI_COMMAND_ENGINES = SEARCH_ENGINES.filter((engine) => engine.aiDirect && engine.command);
@@ -566,202 +566,45 @@ const AUTH_HISTORY_QUERY_PARAMS = new Set([
   "scope",
   "state"
 ]);
-const PORTAL_ICON_BY_SITE_KEY = Object.freeze(Object.fromEntries(PORTALS
-  .filter((portal) => portal.icon)
-  .map((portal) => {
-    const url = new URL(portal.url);
-    return [canonicalSiteHost(url.hostname), portal.icon];
-  })));
-const DEFAULT_SITE_ICON_BY_SITE_KEY = Object.freeze({
-  "airbnb.com": "icons/sites/airbnb.svg",
-  "airtable.com": "icons/sites/airtable.svg",
-  "alibabacloud.com": "icons/sites/alibabacloud.svg",
-  "aliexpress.com": "icons/sites/aliexpress.svg",
-  "alipay.com": "icons/sites/alipay.svg",
-  "amd.com": "icons/sites/amd.svg",
-  "angular.dev": "icons/sites/angular.svg",
-  "anthropic.com": "icons/sites/anthropic.svg",
-  "apple.com": "icons/sites/apple.svg",
-  "arxiv.org": "icons/sites/arxiv.svg",
-  "asana.com": "icons/sites/asana.svg",
-  "atlassian.com": "icons/sites/atlassian.svg",
-  "behance.net": "icons/sites/behance.svg",
-  "bitbucket.org": "icons/sites/bitbucket.svg",
-  "booking.com": "icons/sites/bookingdotcom.svg",
-  "box.com": "icons/sites/box.svg",
-  "bsky.app": "icons/sites/bluesky.svg",
-  "bytedance.com": "icons/sites/bytedance.svg",
-  "codesandbox.io": "icons/sites/codesandbox.svg",
-  "coursera.org": "icons/sites/coursera.svg",
-  "deepseek.com": "icons/sites/deepseek.svg",
-  "digitalocean.com": "icons/sites/digitalocean.svg",
-  "docker.com": "icons/sites/docker.svg",
-  "douban.com": "icons/sites/douban.svg",
-  "dribbble.com": "icons/sites/dribbble.svg",
-  "dropbox.com": "icons/sites/dropbox.svg",
-  "duolingo.com": "icons/sites/duolingo.svg",
-  "ebay.com": "icons/sites/ebay.svg",
-  "epicgames.com": "icons/sites/epicgames.svg",
-  "expedia.com": "icons/sites/expedia.svg",
-  "facebook.com": "icons/sites/facebook.svg",
-  "firebase.google.com": "icons/sites/firebase.svg",
-  "gitbook.io": "icons/sites/gitbook.svg",
-  "gitlab.com": "icons/sites/gitlab.svg",
-  "huggingface.co": "icons/sites/huggingface.svg",
-  "icloud.com": "icons/sites/icloud.svg",
-  "ieee.org": "icons/sites/ieee.svg",
-  "instagram.com": "icons/sites/instagram.svg",
-  "intel.com": "icons/sites/intel.svg",
-  "itch.io": "icons/sites/itchdotio.svg",
-  "khanacademy.org": "icons/sites/khanacademy.svg",
-  "kuaishou.com": "icons/sites/kuaishou.svg",
-  "kubernetes.io": "icons/sites/kubernetes.svg",
-  "leetcode.com": "icons/sites/leetcode.svg",
-  "line.me": "icons/sites/line.svg",
-  "linear.app": "icons/sites/linear.svg",
-  "mastodon.social": "icons/sites/mastodon.svg",
-  "medium.com": "icons/sites/medium.svg",
-  "messenger.com": "icons/sites/messenger.svg",
-  "music.163.com": "icons/sites/neteasecloudmusic.svg",
-  "netflix.com": "icons/sites/netflix.svg",
-  "netlify.com": "icons/sites/netlify.svg",
-  "nodejs.org": "icons/sites/nodedotjs.svg",
-  "npmjs.com": "icons/sites/npm.svg",
-  "nvidia.com": "icons/sites/nvidia.svg",
-  "obsidian.md": "icons/sites/obsidian.svg",
-  "paypal.com": "icons/sites/paypal.svg",
-  "pinterest.com": "icons/sites/pinterest.svg",
-  "producthunt.com": "icons/sites/producthunt.svg",
-  "proton.me": "icons/sites/protonmail.svg",
-  "pypi.org": "icons/sites/pypi.svg",
-  "python.org": "icons/sites/python.svg",
-  "quora.com": "icons/sites/quora.svg",
-  "react.dev": "icons/sites/react.svg",
-  "reddit.com": "icons/sites/reddit.svg",
-  "replit.com": "icons/sites/replit.svg",
-  "roblox.com": "icons/sites/roblox.svg",
-  "shopify.com": "icons/sites/shopify.svg",
-  "soundcloud.com": "icons/sites/soundcloud.svg",
-  "spotify.com": "icons/sites/spotify.svg",
-  "stackoverflow.com": "icons/sites/stackoverflow.svg",
-  "steamcommunity.com": "icons/sites/steam.svg",
-  "steampowered.com": "icons/sites/steam.svg",
-  "stripe.com": "icons/sites/stripe.svg",
-  "substack.com": "icons/sites/substack.svg",
-  "supabase.com": "icons/sites/supabase.svg",
-  "svelte.dev": "icons/sites/svelte.svg",
-  "telegram.org": "icons/sites/telegram.svg",
-  "threads.net": "icons/sites/threads.svg",
-  "tiktok.com": "icons/sites/tiktok.svg",
-  "trello.com": "icons/sites/trello.svg",
-  "tripadvisor.com": "icons/sites/tripadvisor.svg",
-  "tumblr.com": "icons/sites/tumblr.svg",
-  "twitch.tv": "icons/sites/twitch.svg",
-  "udemy.com": "icons/sites/udemy.svg",
-  "vimeo.com": "icons/sites/vimeo.svg",
-  "vuejs.org": "icons/sites/vuedotjs.svg",
-  "wechat.com": "icons/sites/wechat.svg",
-  "whatsapp.com": "icons/sites/whatsapp.svg",
-  "wikipedia.org": "icons/sites/wikipedia.svg",
-  "wolfram.com": "icons/sites/wolfram.svg",
-  "wordpress.com": "icons/sites/wordpress.svg",
-  "x.com": "icons/sites/x.svg",
-  "yelp.com": "icons/sites/yelp.svg",
-  "zoom.us": "icons/sites/zoom.svg"
-});
-const EXTENDED_SITE_ICON_BY_SITE_KEY = Object.freeze({
-  "1688.com": "icons/sites/1688.ico",
-  "adobe.com": "icons/sites/adobe.svg",
-  "alibaba.com": "icons/sites/alibabadotcom.svg",
-  "amazon.com": "icons/sites/amazon.svg",
-  "apache.org": "icons/sites/apache.svg",
-  "audible.com": "icons/sites/audible.svg",
-  "aws.amazon.com": "icons/sites/aws.svg",
-  "azure.microsoft.com": "icons/sites/azure.svg",
-  "b.ai": "icons/sites/bai.png",
-  "baidu.com": "icons/sites/baidu.ico",
-  "bbc.com": "icons/sites/bbc.svg",
-  "bing.com": "icons/sites/bing.ico",
-  "canva.com": "icons/sites/canva.svg",
-  "chatgpt.com": "icons/sites/chatgpt.svg",
-  "chrome.google.com": "icons/sites/chrome.svg",
-  "codepen.io": "icons/sites/codepen.svg",
-  "claude.ai": "icons/sites/claude.svg",
-  "cursor.com": "icons/sites/cursor.svg",
-  "dailymotion.com": "icons/sites/dailymotion.svg",
-  "datadoghq.com": "icons/sites/datadog.svg",
-  "discord.com": "icons/sites/discord.svg",
-  "docs.b.ai": "icons/sites/baidocs.svg",
-  "docs.google.com": "icons/sites/googledocs.svg",
-  "douyin.com": "icons/sites/douyin.ico",
-  "duckduckgo.com": "icons/sites/duckduckgo.svg",
-  "figma.com": "icons/sites/figma.svg",
-  "framer.com": "icons/sites/framer.svg",
-  "calendar.google.com": "icons/sites/googlecalendar.svg",
-  "gemini.google.com": "icons/sites/googlegemini.svg",
-  "google.com": "icons/sites/google.svg",
-  "grok.com": "icons/sites/grok.svg",
-  "freecodecamp.org": "icons/sites/freecodecamp.svg",
-  "github.com": "icons/sites/github.svg",
-  "gmail.com": "icons/sites/gmail.svg",
-  "googleads.google.com": "icons/sites/googleads.svg",
-  "analytics.google.com": "icons/sites/googleanalytics.svg",
-  "drive.google.com": "icons/sites/googledrive.svg",
-  "maps.google.com": "icons/sites/googlemaps.svg",
-  "meet.google.com": "icons/sites/googlemeet.svg",
-  "heroku.com": "icons/sites/heroku.svg",
-  "iconfont.cn": "icons/sites/iconfont.svg",
-  "imdb.com": "icons/sites/imdb.svg",
-  "atlassian.net": "icons/sites/jira.svg",
-  "kaggle.com": "icons/sites/kaggle.svg",
-  "kagi.com": "icons/sites/kagi.svg",
-  "lastpass.com": "icons/sites/lastpass.svg",
-  "larksuite.com": "icons/sites/larksuite.ico",
-  "linkedin.com": "icons/sites/linkedin.svg",
-  "mailchimp.com": "icons/sites/mailchimp.svg",
-  "matrix.org": "icons/sites/matrix.svg",
-  "microsoft.com": "icons/sites/microsoft.svg",
-  "midjourney.com": "icons/sites/midjourney.svg",
-  "office.com": "icons/sites/microsoftoffice.svg",
-  "miro.com": "icons/sites/miro.svg",
-  "mongodb.com": "icons/sites/mongodb.svg",
-  "mysql.com": "icons/sites/mysql.svg",
-  "nextjs.org": "icons/sites/nextdotjs.svg",
-  "notion.so": "icons/sites/notion.svg",
-  "openai.com": "icons/sites/openai.svg",
-  "oracle.com": "icons/sites/oracle.svg",
-  "playstation.com": "icons/sites/playstation.svg",
-  "pinduoduo.com": "icons/sites/pinduoduo.jpg",
-  "poe.com": "icons/sites/poe.svg",
-  "postgresql.org": "icons/sites/postgresql.svg",
-  "replicate.com": "icons/sites/replicate.svg",
-  "slack.com": "icons/sites/slack.svg",
-  "snapchat.com": "icons/sites/snapchat.svg",
-  "sony.com": "icons/sites/sony.svg",
-  "sogou.com": "icons/sites/sogou.svg",
-  "tailwindcss.com": "icons/sites/tailwindcss.svg",
-  "teams.microsoft.com": "icons/sites/microsoftteams.ico",
-  "tmall.com": "icons/sites/tmall.png",
-  "trip.com": "icons/sites/tripdotcom.svg",
-  "twitter.com": "icons/sites/twitter.svg",
-  "ubuntu.com": "icons/sites/ubuntu.svg",
-  "unity.com": "icons/sites/unity.svg",
-  "unsplash.com": "icons/sites/unsplash.svg",
-  "uizard.io": "icons/sites/uizard.ico",
-  "code.visualstudio.com": "icons/sites/visualstudiocode.svg",
-  "w3schools.com": "icons/sites/w3schools.svg",
-  "webflow.com": "icons/sites/webflow.svg",
-  "xbox.com": "icons/sites/xbox.svg",
-  "yahoo.com": "icons/sites/yahoo.svg",
-  "yandex.com": "icons/sites/yandex.ico",
-  "ycombinator.com": "icons/sites/ycombinator.svg",
-  "zendesk.com": "icons/sites/zendesk.svg",
-  "zotero.org": "icons/sites/zotero.svg"
-});
-const SITE_ICON_BY_SITE_KEY = Object.freeze({
-  ...PORTAL_ICON_BY_SITE_KEY,
-  ...DEFAULT_SITE_ICON_BY_SITE_KEY,
-  ...EXTENDED_SITE_ICON_BY_SITE_KEY
+const SITE_ICON_DIRECTORY = "icons/sites";
+const SITE_ICON_FILE_BY_SITE_KEY = Object.freeze({
+  "1688.com": "1688.ico",
+  "alibaba.com": "alibabadotcom.svg",
+  "analytics.google.com": "googleanalytics.svg",
+  "atlassian.net": "jira.svg",
+  "b.ai": "bai.png",
+  "booking.com": "bookingdotcom.svg",
+  "bsky.app": "bluesky.svg",
+  "calendar.google.com": "googlecalendar.svg",
+  "code.visualstudio.com": "visualstudiocode.svg",
+  "datadoghq.com": "datadog.svg",
+  "developer.mozilla.org": "mdn.svg",
+  "docs.b.ai": "baidocs.svg",
+  "docs.google.com": "googledocs.svg",
+  "douyin.com": "douyin.ico",
+  "drive.google.com": "googledrive.svg",
+  "feishu.cn": "feishu.png",
+  "gemini.google.com": "googlegemini.svg",
+  "itch.io": "itchdotio.svg",
+  "jd.com": "jd.ico",
+  "larksuite.com": "larksuite.ico",
+  "maps.google.com": "googlemaps.svg",
+  "meet.google.com": "googlemeet.svg",
+  "music.163.com": "neteasecloudmusic.svg",
+  "nextjs.org": "nextdotjs.svg",
+  "nodejs.org": "nodedotjs.svg",
+  "npmjs.com": "npm.svg",
+  "office.com": "microsoftoffice.svg",
+  "pinduoduo.com": "pinduoduo.jpg",
+  "proton.me": "protonmail.svg",
+  "steamcommunity.com": "steam.svg",
+  "steampowered.com": "steam.svg",
+  "teams.microsoft.com": "microsoftteams.ico",
+  "tmall.com": "tmall.png",
+  "trip.com": "tripdotcom.svg",
+  "uizard.io": "uizard.ico",
+  "vuejs.org": "vuedotjs.svg",
+  "yandex.com": "yandex.ico"
 });
 const SITE_ICON_TILE_COLOR_BY_SITE_KEY = Object.freeze({
   "1688.com": "#ff6000",
@@ -1423,6 +1266,7 @@ const MEDIA_FEED_LOCALE_LANGUAGE = mediaFeedLanguageForLocale(LOCALE);
 
 const secondaryShell = document.querySelector("#secondaryShell");
 const homeStage = document.querySelector(".home-stage");
+const topbar = document.querySelector(".topbar");
 const surfaceBackdrop = document.querySelector("#surfaceBackdrop");
 const portalSurfaceButton = document.querySelector("#portalSurfaceButton");
 const surfaceBackButtons = [...document.querySelectorAll(".surface-back-button")];
@@ -1528,6 +1372,7 @@ let activeMediaFeedFeedback = normalizeMediaFeedFeedback();
 let activeMediaFeedActionMenu = null;
 let pendingRecentPreviousKeys = null;
 let favoriteSitesHydrated = false;
+let availableSiteIconFiles = new Set();
 const whiteSvgIconDataUrlCache = new Map();
 const mediaFeedLoadMoreSentinel = document.createElement("div");
 mediaFeedLoadMoreSentinel.className = "media-feed-load-more";
@@ -1539,6 +1384,26 @@ document.addEventListener("DOMContentLoaded", initWithStorageMigration);
 async function initWithStorageMigration() {
   await migrateSyncStorageFromLocal();
   await init();
+}
+
+async function initSiteIconIndex() {
+  try {
+    const response = await fetch(`${SITE_ICON_DIRECTORY}/index.json`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Site icon index request failed: ${response.status}`);
+    }
+    const files = await response.json();
+    availableSiteIconFiles = new Set(Array.isArray(files)
+      ? files.filter(isValidSiteIconFileName)
+      : []);
+  } catch (error) {
+    console.warn("Failed to load site icon index", error);
+    availableSiteIconFiles = new Set();
+  }
+}
+
+function isValidSiteIconFileName(fileName) {
+  return /^[a-z0-9][a-z0-9._-]*\.(?:svg|png|jpg|jpeg|ico|webp)$/i.test(String(fileName || ""));
 }
 
 function ensureChromeApiFallback() {
@@ -1875,6 +1740,7 @@ function applySettingsLocale() {
 }
 
 async function init() {
+  await initSiteIconIndex();
   applyLocale();
   await initThemeMode();
   await initQuickSearchEngine();
@@ -1987,7 +1853,7 @@ function setActiveSurfacePanel(panelId) {
     surfaceBackdrop.hidden = !activeSurfacePanelId && !previousPanelId;
     surfaceBackdrop.setAttribute("aria-hidden", String(!activeSurfacePanelId));
   }
-  homeStage?.setAttribute("aria-hidden", String(Boolean(activeSurfacePanelId)));
+  setHomeSurfaceIsolation(Boolean(activeSurfacePanelId));
   document.querySelectorAll(".panel").forEach((panel) => {
     const isActive = panel.id === activeSurfacePanelId;
     const isClosing = !activeSurfacePanelId && panel.id === previousPanelId;
@@ -2011,7 +1877,7 @@ function setActiveSurfacePanel(panelId) {
         if (surfaceBackdrop) {
           surfaceBackdrop.hidden = true;
         }
-        homeStage?.removeAttribute("aria-hidden");
+        setHomeSurfaceIsolation(false);
         secondaryShell.classList.remove("surface-closing");
         secondaryShell.dataset.previousSurface = "";
         document.querySelectorAll(".panel.surface-closing").forEach((panel) => {
@@ -2023,6 +1889,21 @@ function setActiveSurfacePanel(panelId) {
       }
     }, 340);
   }
+}
+
+function setHomeSurfaceIsolation(isIsolated) {
+  [homeStage, topbar].forEach((node) => {
+    if (!(node instanceof HTMLElement)) {
+      return;
+    }
+    if (isIsolated) {
+      node.setAttribute("aria-hidden", "true");
+      node.inert = true;
+      return;
+    }
+    node.removeAttribute("aria-hidden");
+    node.inert = false;
+  });
 }
 
 function focusActiveSurfacePanel(panelId) {
@@ -2085,8 +1966,7 @@ function renderSearchEngineIcon(target, engine) {
   icon.alt = "";
   icon.decoding = "async";
   icon.dataset.engineIcon = engine.id;
-  const iconSite = { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon || "" };
-  applySiteIcon(icon, iconSite);
+  applySiteIcon(icon, { url: engine.searchUrl || engine.directUrl || "", title: engine.label });
   target.appendChild(icon);
 }
 
@@ -2159,8 +2039,7 @@ function renderAiEnginePill(engine) {
   icon.dataset.engineIcon = engine.id;
   applySiteIcon(icon, {
     url: engine.searchUrl || engine.directUrl || "",
-    title: engine.label,
-    icon: engine.icon || ""
+    title: engine.label
   });
   label.textContent = engine.label;
   aiEnginePill.replaceChildren(icon, label);
@@ -3213,10 +3092,11 @@ function createSearchEngineChoices(item) {
     button.title = t("quickSearchWith", { engine: engine.label });
     button.setAttribute("aria-label", t("quickSearchWith", { engine: engine.label }));
     button.setAttribute("aria-pressed", String(engine.id === selectedEngineId));
-    if (engine.icon) {
+    const engineUrl = engine.searchUrl || engine.directUrl || "";
+    if (engineUrl) {
       const icon = document.createElement("img");
       icon.alt = "";
-      applySiteIcon(icon, { url: engine.searchUrl || engine.directUrl || "", icon: engine.icon });
+      applySiteIcon(icon, { url: engineUrl, title: engine.label });
       button.append(icon);
     } else {
       button.textContent = engine.label.slice(0, 1);
@@ -4385,6 +4265,9 @@ function applySiteIcon(icon, site, options = {}) {
     const displayIcon = displayIconSource(icon, iconSource, options);
     const setIconSource = (source) => {
       icon.dataset.iconSource = iconSource;
+      if (!localIcon) {
+        icon.addEventListener("load", () => applyFaviconMatchedTile(icon), { once: true });
+      }
       icon.src = source;
       icon.removeAttribute("srcset");
       bindFaviconFallback(icon, site, 128);
@@ -4403,7 +4286,18 @@ function applySiteIcon(icon, site, options = {}) {
 function localIconForUrl(url) {
   const parsedUrl = safeUrl(url);
   const siteKey = siteGroupKey(parsedUrl);
-  return siteKey ? SITE_ICON_BY_SITE_KEY[siteKey] || "" : "";
+  return siteIconPathForSiteKey(siteKey);
+}
+
+function siteIconPathForSiteKey(siteKey) {
+  if (!siteKey) {
+    return "";
+  }
+  const fileName = SITE_ICON_FILE_BY_SITE_KEY[siteKey] || `${siteKey.split(".")[0]}.svg`;
+  if (!availableSiteIconFiles.has(fileName)) {
+    return "";
+  }
+  return `${SITE_ICON_DIRECTORY}/${fileName}`;
 }
 
 function normalizedSiteIconPath(site) {
@@ -4458,6 +4352,7 @@ function storeIconSiteContext(icon, site) {
 function applySiteIconTile(icon, site, iconPath = "") {
   const parsedUrl = safeUrl(site.url);
   const siteKey = siteGroupKey(parsedUrl);
+  icon.dataset.siteKey = siteKey || "";
   const tileColor = siteKey ? SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "" : "";
   const tileMode = iconPath ? "brand" : "plain";
   const tileColors = iconPath && tileColor
@@ -4544,7 +4439,7 @@ function displayIconSource(icon, source, options = {}) {
   if (icon.dataset.iconTile !== "brand" || !source.endsWith(".svg")) {
     return source;
   }
-  if (icon.dataset.iconTile === "brand" && !shouldInvertBrandSvg(source)) {
+  if (icon.dataset.iconTile === "brand" && !shouldInvertBrandSvg(icon, source)) {
     return source;
   }
   if (icon.dataset.iconTile === "brand" && !iconTileNeedsWhiteGlyph(currentIconTileColor(icon))) {
@@ -4573,9 +4468,8 @@ function currentIconTileColor(icon) {
   return computedColor || icon.style.getPropertyValue("--site-icon-tile").trim();
 }
 
-function shouldInvertBrandSvg(source) {
-  const siteUrl = iconSourceSiteUrl(source);
-  const siteKey = siteGroupKey(safeUrl(siteUrl));
+function shouldInvertBrandSvg(icon, source) {
+  const siteKey = icon.dataset.siteKey || siteGroupKey(safeUrl(icon.dataset.siteUrl));
   if (nativeRoundedBrandIcon(siteKey)) {
     return false;
   }
@@ -4584,15 +4478,6 @@ function shouldInvertBrandSvg(source) {
   }
   const tileColor = siteKey ? normalizeHexColor(SITE_ICON_TILE_COLOR_BY_SITE_KEY[siteKey] || "") : "";
   return Boolean(tileColor);
-}
-
-function iconSourceSiteUrl(source) {
-  for (const [siteKey, iconPath] of Object.entries(SITE_ICON_BY_SITE_KEY)) {
-    if (iconPath === source) {
-      return `https://${siteKey}`;
-    }
-  }
-  return "";
 }
 
 function nearWhiteBrandColor(tileColor) {
@@ -4728,15 +4613,18 @@ function applyFaviconMatchedTile(icon) {
   if (icon.dataset.iconTile !== "plain" || icon.dataset.iconCandidate?.startsWith("icons/")) {
     return;
   }
-  const color = dominantImageColor(icon);
-  if (!color) {
+  const color = dominantImageBackgroundColor(icon);
+  if (!color || !color.confidence) {
     return;
   }
   const tileColors = faviconMatchedTileColors(color);
+  if (!tileColors) {
+    return;
+  }
   applyIconTile(icon, "plain", tileColors, false);
 }
 
-function dominantImageColor(image) {
+function dominantImageBackgroundColor(image) {
   if (!image.naturalWidth || !image.naturalHeight) {
     return null;
   }
@@ -4751,11 +4639,14 @@ function dominantImageColor(image) {
   try {
     context.drawImage(image, 0, 0, size, size);
     const { data } = context.getImageData(0, 0, size, size);
-    let red = 0;
-    let green = 0;
-    let blue = 0;
-    let weight = 0;
+    const buckets = new Map();
+    let sampleWeight = 0;
     for (let index = 0; index < data.length; index += 4) {
+      const pixelIndex = index / 4;
+      const x = pixelIndex % size;
+      const y = Math.floor(pixelIndex / size);
+      const edgeWeight = iconBackgroundSampleWeight(x, y, size);
+      sampleWeight += edgeWeight;
       const alpha = data[index + 3] / 255;
       if (alpha < 0.35) {
         continue;
@@ -4763,60 +4654,79 @@ function dominantImageColor(image) {
       const pixelRed = data[index];
       const pixelGreen = data[index + 1];
       const pixelBlue = data[index + 2];
-      const saturation = colorSaturation(pixelRed, pixelGreen, pixelBlue);
-      const pixelWeight = alpha * (0.35 + saturation);
-      red += pixelRed * pixelWeight;
-      green += pixelGreen * pixelWeight;
-      blue += pixelBlue * pixelWeight;
-      weight += pixelWeight;
+      if (!edgeWeight) {
+        continue;
+      }
+      const pixelWeight = alpha * edgeWeight;
+      const bucketKey = [
+        Math.round(pixelRed / 16),
+        Math.round(pixelGreen / 16),
+        Math.round(pixelBlue / 16)
+      ].join(":");
+      const bucket = buckets.get(bucketKey) || {
+        red: 0,
+        green: 0,
+        blue: 0,
+        weight: 0
+      };
+      bucket.red += pixelRed * pixelWeight;
+      bucket.green += pixelGreen * pixelWeight;
+      bucket.blue += pixelBlue * pixelWeight;
+      bucket.weight += pixelWeight;
+      buckets.set(bucketKey, bucket);
     }
-    if (!weight) {
+    if (!sampleWeight || !buckets.size) {
       return null;
     }
-    return {
-      red: Math.round(red / weight),
-      green: Math.round(green / weight),
-      blue: Math.round(blue / weight)
+    const dominantBucket = [...buckets.values()].sort((a, b) => b.weight - a.weight)[0];
+    if (!dominantBucket?.weight) {
+      return null;
+    }
+    const color = {
+      red: Math.round(dominantBucket.red / dominantBucket.weight),
+      green: Math.round(dominantBucket.green / dominantBucket.weight),
+      blue: Math.round(dominantBucket.blue / dominantBucket.weight)
     };
+    color.confidence = dominantBucket.weight / sampleWeight;
+    return color;
   } catch {
     return null;
   }
 }
 
-function colorSaturation(red, green, blue) {
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  return max ? (max - min) / max : 0;
+function iconBackgroundSampleWeight(x, y, size) {
+  const edgeDistance = Math.min(x, y, size - 1 - x, size - 1 - y);
+  if (edgeDistance <= 1) {
+    return 3;
+  }
+  if (edgeDistance <= 3) {
+    return 2;
+  }
+  if (edgeDistance <= 5) {
+    return 1;
+  }
+  return 0.35;
 }
 
 function faviconMatchedTileColors(color) {
-  const hue = rgbHue(color.red, color.green, color.blue);
-  const saturation = Math.max(24, Math.round(colorSaturation(color.red, color.green, color.blue) * 54));
+  if (!faviconColorShouldUseOriginalTile(color)) {
+    return null;
+  }
+  const tileColor = rgbToHex(color.red, color.green, color.blue);
   return {
-    light: `hsl(${hue} ${saturation}% 92%)`,
-    dark: `hsl(${hue} ${Math.max(22, saturation - 12)}% 24%)`
+    light: tileColor,
+    dark: tileColor
   };
 }
 
-function rgbHue(red, green, blue) {
-  const r = red / 255;
-  const g = green / 255;
-  const b = blue / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  if (!delta) {
-    return 160;
-  }
-  let hue;
-  if (max === r) {
-    hue = ((g - b) / delta) % 6;
-  } else if (max === g) {
-    hue = (b - r) / delta + 2;
-  } else {
-    hue = (r - g) / delta + 4;
-  }
-  return Math.round((hue * 60 + 360) % 360);
+function faviconColorShouldUseOriginalTile(color) {
+  return color.confidence >= 0.32;
+}
+
+function rgbToHex(red, green, blue) {
+  return `#${[red, green, blue].map((channel) => Math.max(0, Math.min(255, channel))
+    .toString(16)
+    .padStart(2, "0")).join("")}`;
 }
 
 function showPortalForm() {

@@ -87,6 +87,8 @@
   --shadow: none;
   --shadow-soft: none;
   --section-gap-bg: color-mix(in srgb, var(--paper) 78%, var(--panel-soft));
+  --surface-scrim: color-mix(in srgb, var(--paper) 72%, transparent);
+  --surface-panel-width: clamp(360px, 32vw, 460px);
   --topbar-search-radius: 8px;
   --topbar-search-button-radius: 5px;
   --ui-icon-stroke: 1.75;
@@ -258,9 +260,9 @@ body.surface-open .surface-launchers {
 
 body.surface-open .home-stage,
 body.surface-open .topbar {
-  opacity: 0.32;
-  filter: saturate(0.72);
-  transform: translate3d(24px, 0, 0) scale(0.985);
+  opacity: 0.24;
+  filter: saturate(0.62) contrast(0.9);
+  transform: translate3d(30px, 0, 0) scale(0.982);
 }
 
 body.surface-open .topbar {
@@ -273,7 +275,7 @@ body.surface-open .topbar {
   z-index: 150;
   display: block;
   border: 0;
-  background: color-mix(in srgb, var(--paper) 34%, transparent);
+  background: var(--surface-scrim);
   cursor: default;
   opacity: 0;
   pointer-events: none;
@@ -764,12 +766,12 @@ body.surface-open .surface-backdrop {
 
 .recent-folders {
   display: grid;
-  grid-template-rows: auto minmax(184px, auto);
+  grid-template-rows: auto minmax(152px, auto);
   gap: 10px;
   width: min(1120px, calc(100vw - 72px));
-  min-height: 211px;
+  min-height: 179px;
   margin-top: 0;
-  transform: translateY(84px);
+  transform: translateY(100px);
 }
 
 .recent-folders-header {
@@ -795,13 +797,13 @@ body.surface-open .surface-backdrop {
   gap: 18px;
   align-items: start;
   min-width: 0;
-  min-height: 184px;
+  min-height: 152px;
 }
 
 .recent-folder-grid .empty-state {
   position: relative;
   grid-column: 1 / -1;
-  min-height: 184px;
+  min-height: 152px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -811,7 +813,7 @@ body.surface-open .surface-backdrop {
 .recent-folder-grid .empty-state > div {
   display: grid;
   width: 100%;
-  min-height: 184px;
+  min-height: 152px;
   place-items: center;
   padding: 0;
   margin: 0;
@@ -833,7 +835,7 @@ body.surface-open .surface-backdrop {
   position: relative;
   display: block;
   min-width: 0;
-  height: 184px;
+  height: 152px;
   overflow: hidden;
   border: 0;
   border-radius: 8px;
@@ -886,12 +888,12 @@ body.surface-open .surface-backdrop {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 13px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
   min-width: 0;
   height: 100%;
-  padding: 18px 18px 18px;
+  padding: 16px 16px 16px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -921,8 +923,8 @@ body.surface-open .surface-backdrop {
 }
 
 .recent-folder-logo {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   padding: 6px;
   border: 0;
   border-radius: 7px;
@@ -960,9 +962,9 @@ body.surface-open .surface-backdrop {
 
 .recent-folder-domain {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
-  left: 18px;
+  right: 16px;
+  bottom: 15px;
+  left: 16px;
   overflow: hidden;
   color: var(--muted);
   font-size: 13px;
@@ -1931,9 +1933,9 @@ body.surface-open .surface-backdrop {
   left: 0;
   z-index: 160;
   display: grid;
-  width: clamp(320px, 30vw, 430px);
-  min-width: 320px;
-  max-width: 430px;
+  width: var(--surface-panel-width);
+  min-width: 360px;
+  max-width: 460px;
   height: 100vh;
   min-height: 100vh;
   margin: 0;
@@ -2064,7 +2066,7 @@ body.surface-open .surface-backdrop {
 
 .portal-panel .panel-header {
   justify-content: flex-start;
-  gap: 8px;
+  gap: 12px;
 }
 
 .portal-panel .panel-header > div {
@@ -2144,6 +2146,20 @@ h2 {
   color: var(--faint);
   transform: none;
   transition: color 160ms ease;
+}
+
+.portal-panel .panel-header .surface-back-button {
+  position: static;
+  z-index: auto;
+  width: 38px;
+  height: 38px;
+  margin-left: -8px;
+  color: var(--muted);
+}
+
+.portal-panel .panel-header .surface-back-button:hover,
+.portal-panel .panel-header .surface-back-button:focus-visible {
+  color: var(--ink);
 }
 
 .icon-button.surface-back-button:hover,
@@ -4791,8 +4807,9 @@ a.history-page-link:hover {
 
   .shell {
     grid-template-columns: 1fr;
-    width: min(88vw, 430px);
+    width: min(94vw, 460px);
     min-width: 0;
+    max-width: 460px;
     height: 100vh;
     min-height: 100vh;
     padding: 0;
@@ -4876,11 +4893,19 @@ a.history-page-link:hover {
   }
 
   .recent-folders {
+    grid-template-rows: auto minmax(128px, auto);
+    min-height: 155px;
     margin-top: 34px;
   }
 
   .recent-folder-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 128px;
+  }
+
+  .recent-folder-grid .empty-state,
+  .recent-folder-grid .empty-state > div {
+    min-height: 128px;
   }
 
   .recent-folder-item {
@@ -4925,6 +4950,15 @@ a.history-page-link:hover {
 
   .panel {
     padding: 18px 14px;
+  }
+
+  .shell {
+    width: 100vw;
+    max-width: none;
+  }
+
+  .portal-panel .panel-header .surface-back-button {
+    margin-left: -4px;
   }
 
   .portal-category-grid {
