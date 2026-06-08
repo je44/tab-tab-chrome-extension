@@ -41,9 +41,9 @@
 
 推荐从 [Releases 页面](https://github.com/je44/wayleaf/releases/latest) 下载最新打包产物。
 
-当前版本安装包：[wayleaf-v1.2.0.zip](https://github.com/je44/wayleaf/releases/download/v1.2/wayleaf-v1.2.0.zip)
+当前版本安装包：[wayleaf-v1.3.0.zip](https://github.com/je44/wayleaf/releases/download/v1.3/wayleaf-v1.3.0.zip)
 
-1. 下载 `wayleaf-v1.2.0.zip` 并解压。
+1. 下载 `wayleaf-v1.3.0.zip` 并解压。
 2. 打开 Chrome 的 `chrome://extensions/`。
 3. 打开右上角「开发者模式」。
 4. 点击「加载已解压的扩展程序」。
@@ -161,8 +161,8 @@ node --check ai-submit.js
 
 ```sh
 mkdir -p dist
-zip -r -X dist/wayleaf-v1.2.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons vendor docs -x '*/._*' '._*' '*.DS_Store' '*/.DS_Store'
-unzip -t dist/wayleaf-v1.2.0.zip
+zip -r -X dist/wayleaf-v1.3.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons vendor docs -x '*/._*' '._*' '*.DS_Store' '*/.DS_Store'
+unzip -t dist/wayleaf-v1.3.0.zip
 ```
 
 ## 发布清单
@@ -193,7 +193,7 @@ unzip -t dist/wayleaf-v1.2.0.zip
 
 ## 维护状态
 
-当前版本：`1.2.0`。项目以轻量本地扩展为目标，优先保持无构建步骤、可直接加载、权限解释清楚和核心体验稳定。
+当前版本：`1.3.0`。项目以轻量本地扩展为目标，优先保持无构建步骤、可直接加载、权限解释清楚和核心体验稳定。
 
 ## 相关文档
 

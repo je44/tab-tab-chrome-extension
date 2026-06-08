@@ -41,9 +41,9 @@
 
 Download the latest package from the [Releases page](https://github.com/je44/wayleaf/releases/latest).
 
-Current package: [wayleaf-v1.2.0.zip](https://github.com/je44/wayleaf/releases/download/v1.2/wayleaf-v1.2.0.zip)
+Current package: [wayleaf-v1.3.0.zip](https://github.com/je44/wayleaf/releases/download/v1.3/wayleaf-v1.3.0.zip)
 
-1. Download `wayleaf-v1.2.0.zip` and unzip it.
+1. Download `wayleaf-v1.3.0.zip` and unzip it.
 2. Open `chrome://extensions/` in Chrome.
 3. Turn on Developer mode.
 4. Click Load unpacked.
@@ -161,8 +161,8 @@ For release packages, also verify the zip structure:
 
 ```sh
 mkdir -p dist
-zip -r -X dist/wayleaf-v1.2.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons vendor docs -x '*/._*' '._*' '*.DS_Store' '*/.DS_Store'
-unzip -t dist/wayleaf-v1.2.0.zip
+zip -r -X dist/wayleaf-v1.3.0.zip manifest.json newtab.html newtab.css newtab.js ai-submit.js icons vendor docs -x '*/._*' '._*' '*.DS_Store' '*/.DS_Store'
+unzip -t dist/wayleaf-v1.3.0.zip
 ```
 
 ## Release Checklist
@@ -193,7 +193,7 @@ Make sure both devices use the same Chrome/Google account and that Chrome is all
 
 ## Maintenance Status
 
-Current version: `1.2.0`. The project stays focused on being a lightweight local extension with no build step, direct loading, clear permission explanations, and a stable core new tab experience.
+Current version: `1.3.0`. The project stays focused on being a lightweight local extension with no build step, direct loading, clear permission explanations, and a stable core new tab experience.
 
 ## Related Docs
 

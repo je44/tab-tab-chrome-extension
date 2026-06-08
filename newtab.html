@@ -9,12 +9,12 @@
   <body>
     <header class="topbar" aria-label="顶部功能区">
       <div class="surface-launchers" aria-label="二级页面入口">
-        <button class="icon-button surface-toggle" id="portalSurfaceButton" type="button" aria-controls="portalPanel" aria-expanded="false" title="导航中枢" aria-label="导航中枢">
+        <button class="icon-button surface-toggle" id="portalSurfaceButton" type="button" aria-controls="portalPanel" aria-expanded="false" aria-label="导航中枢">
           <span class="button-icon" aria-hidden="true"></span>
         </button>
       </div>
       <div class="topbar-actions">
-        <button class="icon-button theme-toggle settings-toggle" id="settingsButton" type="button" aria-haspopup="dialog" aria-controls="settingsPanel" aria-expanded="false" title="设置中心">
+        <button class="icon-button theme-toggle settings-toggle" id="settingsButton" type="button" aria-haspopup="dialog" aria-controls="settingsPanel" aria-expanded="false">
           <span class="theme-toggle-icon" aria-hidden="true"></span>
         </button>
       </div>
@@ -70,7 +70,7 @@
         <div class="recent-folder-grid" id="recentHistoryFolders" aria-live="polite"></div>
       </section>
     </main>
-    <button class="surface-backdrop" id="surfaceBackdrop" type="button" aria-label="关闭导航中枢" title="关闭导航中枢" hidden></button>
+    <button class="surface-backdrop" id="surfaceBackdrop" type="button" aria-label="关闭导航中枢" hidden></button>
 
     <nav class="mobile-section-switcher" aria-label="切换信息分区">
       <button class="mobile-section-tab active" type="button" data-panel-target="portalPanel" aria-controls="portalPanel" aria-selected="true">入口</button>
@@ -79,7 +79,7 @@
     <aside class="shell" id="secondaryShell" aria-label="Wayleaf 控制台" data-active-surface="">
       <section class="panel portal-panel" id="portalPanel" aria-labelledby="portal-title">
         <header class="panel-header">
-          <button class="icon-button surface-back-button" type="button" title="关闭导航中枢" aria-label="关闭导航中枢">
+          <button class="icon-button surface-back-button" type="button" aria-label="关闭导航中枢">
             <span class="button-icon" aria-hidden="true"></span>
           </button>
           <div>
@@ -95,7 +95,7 @@
         <div class="portal-workspace">
           <div class="portal-view active" id="smartPortalView" role="tabpanel" aria-labelledby="smartPortalTab">
           <div class="portal-view-toolbar">
-            <button class="icon-button subtle-action" id="togglePortalFormButton" type="button" title="添加入口" aria-label="添加入口">
+            <button class="icon-button subtle-action" id="togglePortalFormButton" type="button" aria-label="添加入口">
               <span class="button-icon" aria-hidden="true"></span>
             </button>
           </div>
@@ -133,20 +133,20 @@
           <div class="bookmark-toolbar">
             <div class="bookmark-folder-meta" id="bookmarkFolderMeta"></div>
             <div class="header-actions">
-              <button class="icon-button subtle-action" id="refreshBookmarkFolderButton" type="button" title="刷新当前书签文件夹" aria-label="刷新当前书签文件夹">
+              <button class="icon-button subtle-action" id="refreshBookmarkFolderButton" type="button" aria-label="刷新当前书签文件夹">
                 <span class="button-icon" aria-hidden="true"></span>
               </button>
-              <button class="icon-button subtle-action" id="toggleBookmarkLayoutButton" type="button" title="切换为列表显示" aria-label="切换为列表显示" aria-pressed="false">
+              <button class="icon-button subtle-action" id="toggleBookmarkLayoutButton" type="button" aria-label="切换为列表显示" aria-pressed="false">
                 <span class="button-icon" aria-hidden="true"></span>
               </button>
-              <button class="icon-button subtle-action" id="chooseBookmarkFolderButton" type="button" title="选择书签文件夹" aria-label="选择书签文件夹">
+              <button class="icon-button subtle-action" id="chooseBookmarkFolderButton" type="button" aria-label="选择书签文件夹">
                 <span class="button-icon" aria-hidden="true"></span>
               </button>
             </div>
           </div>
           <div class="bookmark-toolbar bookmark-picker-toolbar" id="bookmarkPickerToolbar" hidden>
             <div class="header-actions">
-              <button class="icon-button subtle-action" id="closeBookmarkPickerButton" type="button" title="返回" aria-label="返回">
+              <button class="icon-button subtle-action" id="closeBookmarkPickerButton" type="button" aria-label="返回">
                 <span class="button-icon" aria-hidden="true"></span>
               </button>
             </div>
@@ -169,11 +169,11 @@
           <div>
             <h2 id="history-title" tabindex="-1">最近浏览</h2>
           </div>
-          <button class="icon-button" id="refreshHistoryButton" type="button" title="刷新历史记录" aria-label="刷新历史记录">
+          <button class="icon-button" id="refreshHistoryButton" type="button" aria-label="刷新历史记录">
             <span class="button-icon" aria-hidden="true"></span>
           </button>
         </header>
-        <button class="icon-button surface-back-button" type="button" title="返回" aria-label="返回">
+        <button class="icon-button surface-back-button" type="button" aria-label="返回">
           <span class="button-icon" aria-hidden="true"></span>
         </button>
         <div class="history-stack" aria-live="polite">
@@ -194,7 +194,7 @@
         <div>
           <h2 id="settingsTitle">设置中心</h2>
         </div>
-        <button class="icon-button subtle-action" id="closeSettingsButton" type="button" title="关闭设置中心" aria-label="关闭设置中心">
+        <button class="icon-button subtle-action" id="closeSettingsButton" type="button" aria-label="关闭设置中心">
           <span class="button-icon" aria-hidden="true"></span>
         </button>
       </header>
@@ -227,7 +227,7 @@
               <strong id="syncSettingsStatus">配置会跟随 Chrome 账号同步</strong>
               <span id="syncSettingsDetail">同一 Google 账号安装后会自动恢复。</span>
             </span>
-            <button class="icon-button subtle-action sync-settings-action" id="syncSettingsNowButton" type="button" title="手动同步" aria-label="手动同步">
+            <button class="icon-button subtle-action sync-settings-action" id="syncSettingsNowButton" type="button" aria-label="手动同步">
               <span class="button-icon" aria-hidden="true"></span>
             </button>
           </div>
@@ -261,7 +261,7 @@
             <h2 id="onboardingTitle">先花一分钟了解 Wayleaf</h2>
             <p id="onboardingIntro">Wayleaf 会把新标签页变成你的本地工作台。下面这些点能帮你安全、顺手地开始。</p>
           </div>
-          <button class="icon-button subtle-action" id="onboardingCloseButton" type="button" title="关闭指引" aria-label="关闭指引">
+          <button class="icon-button subtle-action" id="onboardingCloseButton" type="button" aria-label="关闭指引">
             <span class="button-icon" aria-hidden="true"></span>
           </button>
         </header>
@@ -307,7 +307,7 @@
             <span class="site-domain"></span>
           </span>
         </a>
-        <button class="site-remove" type="button" title="删除自定义入口" aria-label="删除自定义入口"></button>
+        <button class="site-remove" type="button" aria-label="删除自定义入口"></button>
       </div>
     </template>
 
@@ -318,7 +318,7 @@
             <img class="favorite-icon" alt="">
           </span>
         </a>
-        <button class="favorite-remove" type="button" title="删除自定义网站" aria-label="删除自定义网站"></button>
+        <button class="favorite-remove" type="button" aria-label="删除自定义网站"></button>
       </div>
     </template>
 
