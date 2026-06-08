@@ -128,7 +128,7 @@
 └── docs/                # 预览图
 ```
 
-扩展主图标、安装页图标和工具栏图标均使用最新的 `icons/wayleaf-flat-16.png`、`32.png`、`48.png`、`128.png` 和 `1024.png` 资源；发布包会直接包含这些 PNG 和 `icons/sites/` 本地站点图标资源。
+扩展主图标、安装页图标和工具栏图标在 `manifest.json` 中按 `16/32/48/128` 声明，但运行时统一指向 `icons/wayleaf-flat-128.png`，让 Chrome 从 128px 源图缩放以提升小尺寸清晰度；发布包会直接包含 `icons/wayleaf-flat-16.png`、`32.png`、`48.png`、`128.png`、`1024.png` 和 `icons/sites/` 本地站点图标资源。
 
 ## 本地开发
 

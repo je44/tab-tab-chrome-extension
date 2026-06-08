@@ -128,7 +128,7 @@ This is a Chrome Manifest V3 extension with no build step. Chrome can load the f
 └── docs/                # Preview images
 ```
 
-The extension icon, install-page icon, and toolbar icon all use the latest `icons/wayleaf-flat-16.png`, `32.png`, `48.png`, `128.png`, and `1024.png` assets. Release packages include those PNG files and the local `icons/sites/` site icon catalog.
+The extension icon, install-page icon, and toolbar icon still declare `16/32/48/128` entries in `manifest.json`, but they all point to `icons/wayleaf-flat-128.png` at runtime so Chrome scales from the 128px source for clearer small icons. Release packages include `icons/wayleaf-flat-16.png`, `32.png`, `48.png`, `128.png`, `1024.png`, and the local `icons/sites/` site icon catalog.
 
 ## Local Development
 
