@@ -5,19 +5,14 @@
 <h1 align="center">Wayleaf Chrome Extension</h1>
 
 <p align="center">
-  A local-first Chrome new tab workspace for search, shortcuts, bookmarks, recent browsing, feeds, and AI commands.
+  <strong>Turn Chrome's new tab page into a local-first workspace.</strong><br>
+  Search, shortcuts, selected bookmarks, recent browsing, tech feeds, and AI commands live on one screen.
 </p>
 
 <p align="center">
-  <a href="README.md">中文</a> | English
-</p>
-
-<p align="center">
-  <a href="#preview">Preview</a> ·
-  <a href="#quick-install">Quick Install</a> ·
-  <a href="#features">Features</a> ·
-  <a href="#permissions-and-privacy">Permissions and Privacy</a> ·
-  <a href="#local-development">Local Development</a>
+  <a href="README.md">中文</a> | English ·
+  <a href="https://github.com/je44/wayleaf/releases/latest">Releases</a> ·
+  <a href="https://github.com/je44/wayleaf/releases/download/v1.3/wayleaf-v1.3.0.zip">Download v1.3.0</a>
 </p>
 
 ## Preview
@@ -26,76 +21,56 @@
 | --- | --- |
 | ![Wayleaf light mode](docs/previews/wayleaf-light.png) | ![Wayleaf dark mode](docs/previews/wayleaf-dark.png) |
 
-## Overview
+## Why Wayleaf
 
-| Item | Details |
+Most new-tab sessions start with the same small set of actions: open a frequent site, recover a page you just visited, search something, jump into a bookmark folder, or send a question to an AI assistant. Chrome's default new tab page does not put those actions together, and a traditional bookmark page can become another system to maintain.
+
+`Wayleaf` makes a few deliberate tradeoffs:
+
+- **One screen for the next action**: shortcuts, bookmarks, history, search, feeds, and AI commands share one workspace.
+- **Local-first by default**: no backend account. Preferences, custom shortcuts, pinned pages, and bookmark choices stay in Chrome extension storage.
+- **Dense but controlled**: built-in categories are ready to use, while selected bookmarks and up to 48 custom shortcuts keep the page personal.
+- **Directly loadable**: Manifest V3, no build step, and release packages that can be unzipped and loaded as a Chrome extension.
+
+## Core Experience
+
+| What you want to do | How Wayleaf handles it |
 | --- | --- |
-| Current version | `1.3.0` |
-| Runtime | Chrome / Chromium Manifest V3 |
-| Installation | Download a release package and load the unzipped folder from `chrome://extensions/` |
-| Build step | None. Chrome can load the source folder directly. |
-| Data location | Chrome extension storage; preferences can use `chrome.storage.sync` |
-| Backend | No backend service and no account system |
+| Search or open a site | The search box supports local history/bookmarks, full URLs, Google, Baidu, Bing, and aggregate Google+Bing search. |
+| Manage frequent destinations | Built-in categories cover search, social, shopping, developer, productivity, media, design, and AI sites; custom shortcuts are supported. |
+| Continue recent browsing | Recent pages are grouped by repeat visits per site, with pin and delete actions for important or noisy pages. |
+| Show a bookmark folder | Pick one Chrome bookmark folder and Wayleaf displays its sites grouped by title initial. |
+| Send a prompt to AI | Use `/gpt`, `/claude`, `/gemini`, or `/grok` to open the matching AI site and try to fill the prompt. |
+| Read tech feeds | Built-in Chinese and English tech sources are included, and custom RSS/JSON sources can be added. |
+| Tune appearance and sync | System/light/dark themes, accent colors, custom light/dark colors, and `chrome.storage.sync` preference sync are supported. |
 
-`Wayleaf` is for people who want a denser replacement for Chrome's default new tab page. Frequent sites, a selected bookmark folder, repeatedly visited pages, RSS/JSON feeds, and direct AI handoff live in one local workspace.
+The interface follows the browser language for Chinese, English, Japanese, Korean, Spanish, French, or German.
 
 ## Quick Install
 
-Download the latest package from the [Releases page](https://github.com/je44/wayleaf/releases/latest).
+Current version: `1.3.0`
 
-Current package: [wayleaf-v1.3.0.zip](https://github.com/je44/wayleaf/releases/download/v1.3/wayleaf-v1.3.0.zip)
-
-1. Download `wayleaf-v1.3.0.zip` and unzip it.
+1. Download [wayleaf-v1.3.0.zip](https://github.com/je44/wayleaf/releases/download/v1.3/wayleaf-v1.3.0.zip) and unzip it.
 2. Open `chrome://extensions/` in Chrome.
 3. Turn on Developer mode.
 4. Click Load unpacked.
 5. Select the unzipped folder that contains `manifest.json`.
 6. Open a new tab and confirm that it shows `Wayleaf`.
 
-> Chrome does not load the zip file directly. Unzip it first, then load the folder as an unpacked extension.
+> Chrome does not load the zip file directly. Unzip it first, then load the unzipped folder.
 
-## Features
+## Usage Cheatsheet
 
-| Feature | Details |
+| Action | Result |
 | --- | --- |
-| Navigation hub | Built-in shortcuts for search, social, shopping, developer, productivity, media, design, and AI sites. |
-| Custom shortcuts | Add up to 48 custom sites with a title, URL, and category. |
-| Selected bookmarks | Pick one Chrome bookmark folder and show its sites grouped by title initial. |
-| Recent browsing | Surface repeatedly visited sites so you can continue where you left off; important pages can be pinned. |
-| Local search | Search history and bookmarks from the main search box, or open a full URL directly. |
-| Search engines | Use Google, Baidu, Bing, or the default aggregate search that opens Google and Bing. |
-| AI commands | Send prompts to ChatGPT, Claude, Gemini, or Grok with `/gpt`, `/claude`, `/gemini`, or `/grok`. |
-| Feeds panel | Read built-in Chinese and English tech sources, or add custom RSS/JSON sources. |
-| Appearance | Use system, light, dark, preset accent colors, or custom light/dark colors. |
-| Chrome sync | Preferences can be written to `chrome.storage.sync`; unsupported browsers keep them on the current device. |
-| Localized interface | The UI follows the browser language for Chinese, English, Japanese, Korean, Spanish, French, or German. |
+| Type a keyword and press Enter | Search with the current engine. |
+| Type a full URL and press Enter | Open the URL directly. |
+| Click the icon on the left side of the search box | Switch between local search, Google, Baidu, Bing, and AI command modes. |
+| Pick a local search result | Open a matching history item or bookmark. |
+| Add an item in the navigation hub | Save a titled `http` or `https` shortcut in a category. |
+| Click `+` in Bookmarks | Select a Chrome folder that contains website bookmarks. |
 
-## Daily Use
-
-### Search and Open Sites
-
-- Type a keyword and press Enter to search with the current engine.
-- Type a full URL and press Enter to open it directly.
-- Click the icon on the left side of the search box to switch between local search, Google, Baidu, Bing, and AI command modes.
-- Pick a local search result to open a matching history item or bookmark.
-
-### Add a Shortcut
-
-1. Open the navigation hub in the top right.
-2. Click the add button.
-3. Enter a title, an `http` or `https` URL, and a category.
-4. Save it. The shortcut appears in its category.
-
-### Show a Bookmark Folder
-
-1. Open the navigation hub.
-2. Switch to Bookmarks.
-3. Click `+` and choose a folder with website bookmarks.
-4. Sites from that folder appear on the new tab page and refresh when Chrome bookmarks change.
-
-### Use AI Commands
-
-Type one of these formats in the center search box, then press Enter:
+AI command examples:
 
 ```text
 /gpt Summarize this text
@@ -104,16 +79,11 @@ Type one of these formats in the center search box, then press Enter:
 /grok Explain this news
 ```
 
-Notes:
-
-- If you are already signed in to the AI site, `Wayleaf` opens it and tries to fill the prompt.
-- If the AI site asks you to sign in, sign in first, then send the prompt from `Wayleaf` again.
-- If the target site changes its page, auto-fill or auto-submit may fail, but the jump and temporary prompt handoff still try to work.
-- To leave AI mode, press `Esc`, or clear the search box and press Backspace.
+If you are already signed in to the selected AI site, `Wayleaf` opens it and tries to fill the prompt. If the site asks you to sign in, loads slowly, or changes its page structure, auto-fill may fail, but the jump and temporary prompt handoff still try to work.
 
 ## Permissions and Privacy
 
-`Wayleaf` has no backend service and does not require an account. Preferences, shortcuts, pinned pages, bookmark choices, and temporary AI prompts stay in Chrome extension storage.
+`Wayleaf` has no backend service and does not require an account. History access, bookmark access, and preference storage happen inside the browser extension environment.
 
 | Permission | Purpose |
 | --- | --- |
@@ -125,15 +95,42 @@ Notes:
 | `scripting` | Support AI page handoff and prompt fill. |
 | `http://*/*`, `https://*/*` | Recognize web shortcuts, fetch site icons, and assist supported AI pages. |
 
-Notes:
+Expected network behavior:
 
-- History and bookmark access happen inside your local browser.
-- Custom shortcuts and appearance preferences sync to the same Chrome account when sync is available; otherwise they stay on the current device.
-- AI commands send your prompt to the selected AI website. That service's account, privacy, and data rules are controlled by that provider.
+- Search sends the query to the search engine you choose.
+- AI commands send the prompt to the AI website you choose. Account, privacy, and data rules are controlled by that provider.
+- The feeds panel requests built-in or custom RSS/JSON sources.
+- Site icon discovery may request icon or manifest resources from the target site.
 
 ## Local Development
 
-This is a Chrome Manifest V3 extension with no build step. Chrome can load the folder directly.
+This project has no dependency installation step and no build step.
+
+```sh
+git clone https://github.com/je44/wayleaf.git
+cd wayleaf
+```
+
+Edit `manifest.json`, `newtab.html`, `newtab.css`, `newtab.js`, or `ai-submit.js`, then click reload on the `Wayleaf` extension card in `chrome://extensions/` and open a new tab.
+
+You can preview the static page with a local server, but Chrome extension APIs only work fully inside the extension environment:
+
+```sh
+python3 -m http.server 8080
+```
+
+Then open `http://127.0.0.1:8080/newtab.html`.
+
+Run at least these checks before committing:
+
+```sh
+jq empty manifest.json
+node --check newtab.js
+node --check ai-submit.js
+```
+
+<details>
+<summary>Project structure and release checks</summary>
 
 ```text
 .
@@ -144,35 +141,10 @@ This is a Chrome Manifest V3 extension with no build step. Chrome can load the f
 ├── ai-submit.js         # Helper script for AI page handoff
 ├── icons/               # Extension icons and site icons
 ├── vendor/              # Frontend runtime dependencies
-└── docs/                # Preview images
+└── docs/                # README preview images
 ```
 
-### Development Flow
-
-1. Edit `manifest.json`, `newtab.html`, `newtab.css`, `newtab.js`, or `ai-submit.js`.
-2. Open `chrome://extensions/`.
-3. Click reload on the `Wayleaf` extension card.
-4. Open a new tab and check the result.
-
-You can preview the static page with a local read-only server, but Chrome extension APIs only work fully inside the extension environment:
-
-```sh
-python3 -m http.server 8080
-```
-
-Then open `http://127.0.0.1:8080/newtab.html` for layout checks.
-
-### Verification
-
-Run at least these checks before committing:
-
-```sh
-jq empty manifest.json
-node --check newtab.js
-node --check ai-submit.js
-```
-
-For release packages, also verify the zip structure:
+Verify that the release zip has `manifest.json` at its root:
 
 ```sh
 mkdir -p dist
@@ -180,7 +152,7 @@ zip -r -X dist/wayleaf-v1.3.0.zip manifest.json newtab.html newtab.css newtab.js
 unzip -t dist/wayleaf-v1.3.0.zip
 ```
 
-### Release Checklist
+Release checklist:
 
 1. Update `version` in `manifest.json`.
 2. Update the current package version and download link in the README files.
@@ -189,6 +161,8 @@ unzip -t dist/wayleaf-v1.3.0.zip
 5. Upload `dist/wayleaf-vX.Y.Z.zip` to the GitHub Release.
 
 The extension icon, install-page icon, and toolbar icon still declare `16/32/48/128` entries in `manifest.json`, but they all point to `icons/wayleaf-flat-128.png` at runtime so Chrome scales from the 128px source for clearer small icons. Release packages include `icons/wayleaf-flat-16.png`, `32.png`, `48.png`, `128.png`, `1024.png`, and the local `icons/sites/` site icon catalog.
+
+</details>
 
 ## Troubleshooting
 
@@ -208,13 +182,8 @@ The target AI site may be signed out, slow to load, or using a changed page stru
 
 Make sure both devices use the same Chrome/Google account and that Chrome is allowed to sync extension data. If sync is unavailable, settings stay on the current device.
 
-## Maintenance and Support
+## Support and License
 
-- Maintenance goal: keep the extension lightweight, directly loadable, clear about permissions, and stable in the core new tab experience.
 - Support: open a [GitHub Issue](https://github.com/je44/wayleaf/issues) with your browser version, Wayleaf version, and reproduction steps.
+- Maintenance goal: keep the extension lightweight, local-first, directly loadable, clear about permissions, and stable in the core new tab experience.
 - License status: this repository does not currently include a `LICENSE` file. Confirm licensing before reuse or redistribution.
-
-## Related Docs
-
-- [Light mode preview](docs/previews/wayleaf-light.png)
-- [Dark mode preview](docs/previews/wayleaf-dark.png)
